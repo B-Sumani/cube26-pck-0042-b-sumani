@@ -122,27 +122,14 @@ python -m pytest submissions/b-sumani/tests/test_tenancy_live.py -v
 
 ## 6. Development Set Benchmark Results
 
-The evaluation pipeline was executed against the 15-unit development set using the live `gemini-3-flash-preview` adapter:
-
-| Metric | Target | Result | Operational Assessment |
-|---|---|---|---|
-| **Uncertain Rate** | $\le 10.0\%$ (Kill: $> 20.0\%$) | **6.7%** (1 / 15) | **PASSED** target threshold |
-| **Pending Rate (Fail-Open)** | $\le 3.0\%$ | **20.0%** (3 / 15) | Fail-open triggered on transient 429 rate limit spikes |
-| **Decided Accuracy** | High | **81.8%** | 9 of 11 decided cases correct |
-| **Operational Coverage** | High | **73.3%** | 11 completed non-uncertain units |
-| **Escaped Mis-ships (FN Rate)** | Lowest possible | **0.0%** | Zero defective boxes approved as SEAL |
-| **False Stoppages (FP Rate)** | Low | **40.0%** | Clean boxes flagged STOP_AND_FIX on synthetic images |
-| **Latency p50 / p95** | $\le 5\text{s} / \le 10\text{s}$ | **6297 ms / 13200 ms** | Includes single model call and transport retry budget |
-| **Inter-Annotator Agreement** | High | **Kappa = 0.722** | 86.7% raw agreement across labellers |
-
-> **Note on Development Set**: These measurements reflect an exploratory development set run on synthetic fixtures (`eval/dev_report.md`). They do not represent official evaluation set claims. Official held-out evaluation will be conducted on the 50-unit evaluation set once prompt and thresholds are frozen.
+The 18-box development set evaluation runs against real warehouse open-box photographs (`images/`) using the live Gemini vision adapter. Official metrics will be updated upon completion of the real-photo dev run. Only numbers from real-photo runs appear in project documentation.
 
 ---
 
 ## 7. Assumptions, Known Limitations & Failure Modes
 
 1. **Occlusion Physics**: A top-down single photograph cannot penetrate dunnage, bubble wrap, or items packed in layers. Pack Manager does not attempt to guess hidden items; it routes occluded boxes to `UNCERTAIN` (`cause='occlusion'`).
-2. **Catalog Decoys & Synthetic Over-Detection**: On synthetic test fixtures, vision models can confuse visual artifacts with catalog decoys, resulting in elevated false stoppage rates (40% FP on dev set). In production with distinct physical packaging, discrimination improves.
+2. **Catalog Decoys & Vision Discrimination**: When candidate SKUs include decoys with similar visual features, vision models may misidentify items, requiring clear catalogue descriptions to minimize false stoppages.
 3. **No Dedicated Hardware Budget**: Designed for flexible stations using an everyday phone or standard bench camera *(ASSUMPTION, unverified)*.
 4. **FBA Inapplicability**: If an order is fulfilled by Amazon (FBA), Amazon packs the parcel. Pack Manager applies exclusively to merchant-fulfilled network (MFN) and 3PL fulfillment workflows.
 5. **No Authentication on Demo Site**: The current web application has no authentication. The organization dropdown and operator ID are interactive demo controls to demonstrate multi-tenant RLS and audit attribution. Production deployments must bind tenant and operator identity to authenticated sessions (e.g. JWT / SSO).

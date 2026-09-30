@@ -32,7 +32,7 @@
 - **Audio Script:**
   > "Let's inspect a clean carton for unit `UNIT-0008`. Notice that we never send order quantities to the vision model—only the photo and candidate SKUs including catalog decoys.
   > 
-  > In roughly 4 to 6 seconds (measured dev-set median: ~6.3s on gemini-3-flash-preview), the model returns observed counts and confidences, and our deterministic rules layer verifies them. 
+  > In a single inspection call, the model returns observed counts and confidences, and our deterministic rules layer verifies them. 
   > 
   > The operator sees a green **GO** banner and the **SEAL** approval. Below, all three checks are broken down: items present, quantities correct, and nothing extra. We see an order vs model comparison table and the photograph with SVG bounding boxes drawn as visual evidence."
 

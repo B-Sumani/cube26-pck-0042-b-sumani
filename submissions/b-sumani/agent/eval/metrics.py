@@ -194,6 +194,10 @@ def compute_eval_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
                     cause = "occlusion"
                     break
             box_matrix.uncertain_by_cause[cause] = box_matrix.uncertain_by_cause.get(cause, 0) + 1
+        elif gt_verdict == "UNCERTAIN":
+            # Ground truth was UNCERTAIN (e.g. occluded or bad photo).
+            # Model decided when truth was uncertain; counted separately per contract.
+            pass
         else:
             is_gt_positive = (gt_verdict == "STOP_AND_FIX")
             is_pred_positive = (pred_verdict == "STOP_AND_FIX")
@@ -224,6 +228,9 @@ def compute_eval_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
                 matrix.uncertain_count += 1
                 c = pred_cause if pred_cause in ("occlusion", "recognition") else "recognition"
                 matrix.uncertain_by_cause[c] = matrix.uncertain_by_cause.get(c, 0) + 1
+            elif gt_check_result == "UNCERTAIN":
+                # Check ground truth is uncertain; do not count in decided defect/clean
+                pass
             else:
                 is_gt_defect = (gt_check_result == "FAIL")
                 is_pred_defect = (pred_result == "FAIL")

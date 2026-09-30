@@ -14,7 +14,7 @@ import os
 import time
 import base64
 import logging
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 import httpx
 from dotenv import load_dotenv
 
@@ -78,6 +78,28 @@ GEMINI_RESPONSE_SCHEMA = {
 }
 
 
+import csv
+from pathlib import Path
+
+def load_catalogue(catalogue_csv_path: Optional[Path] = None) -> Dict[str, Dict[str, str]]:
+    """Loads catalogue mapping: sku -> {'title': ..., 'description': ...}."""
+    if catalogue_csv_path is None:
+        catalogue_csv_path = Path(__file__).resolve().parents[2] / "data" / "catalogue.csv"
+    if not catalogue_csv_path.exists():
+        return {}
+    mapping = {}
+    with open(catalogue_csv_path, mode="r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            sku = row.get("sku", "").strip()
+            if sku:
+                mapping[sku] = {
+                    "title": row.get("title", "").strip(),
+                    "description": row.get("description", "").strip(),
+                }
+    return mapping
+
+
 class GeminiVisionAdapter(VisionModelAdapter):
     """Adapter for Google Gemini Vision models."""
     IS_MOCK: bool = False
@@ -88,7 +110,8 @@ class GeminiVisionAdapter(VisionModelAdapter):
         model_name: Optional[str] = None,
         eval_mode: bool = False,
         total_timeout_budget: float = 15.0,
-        max_transport_retries: int = 2
+        max_transport_retries: int = 2,
+        catalogue: Optional[Dict[str, Dict[str, str]]] = None
     ):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         if not self.api_key:
@@ -105,19 +128,33 @@ class GeminiVisionAdapter(VisionModelAdapter):
 
         self.total_timeout_budget = total_timeout_budget
         self.max_transport_retries = max_transport_retries
+        self.catalogue = catalogue if catalogue is not None else load_catalogue()
 
     def _build_prompt(self, candidate_skus: List[str]) -> str:
-        """Constructs the prompt containing ONLY candidate SKUs (order items + decoys).
+        """Constructs the prompt containing candidate SKUs and seller catalogue descriptions.
         
         CRITICAL: Never send order quantities or indicate which SKUs are real order items.
         """
-        sku_list = "\n".join(f"- {sku}" for sku in candidate_skus)
+        sku_lines = []
+        for sku in candidate_skus:
+            cat_entry = self.catalogue.get(sku)
+            if cat_entry and cat_entry.get("title"):
+                title = cat_entry.get("title", "")
+                desc = cat_entry.get("description", "")
+                if desc:
+                    sku_lines.append(f"- {sku}: {title} - {desc}")
+                else:
+                    sku_lines.append(f"- {sku}: {title}")
+            else:
+                sku_lines.append(f"- {sku}")
+
+        sku_list = "\n".join(sku_lines)
         return (
             "You are inspecting a photograph of an open shipping box before it is sealed.\n"
-            "Below is the list of candidate SKUs that may be in this seller's inventory:\n"
+            "Below is the seller's catalogue of candidate products that may be packed in this box:\n"
             f"{sku_list}\n\n"
             "Instructions:\n"
-            "1. Carefully identify which candidate SKUs are visible in the open box.\n"
+            "1. Carefully identify which candidate SKUs from the catalogue above are visible in the open box.\n"
             "2. For each SKU observed, count how many units are visible, report count_confidence (0.0 to 1.0) "
             "and identity_confidence (0.0 to 1.0), whether it is partially occluded, and its bounding box [ymin, xmin, ymax, xmax].\n"
             "3. If you observe any item in the box that does NOT match any candidate SKU, add it to unrecognised_items "
@@ -206,7 +243,19 @@ class GeminiVisionAdapter(VisionModelAdapter):
                     logger.warning(f"Transient error on attempt {attempts}: {last_error}")
                     # Allow at most max_transport_retries for 429/5xx
                     if attempts <= self.max_transport_retries:
-                        time.sleep(min(1.0 * attempts, remaining_time))
+                        retry_after = 2.5 * attempts
+                        try:
+                            resp_err = resp.json().get("error", {})
+                            for detail in resp_err.get("details", []):
+                                if detail.get("@type") == "type.googleapis.com/google.rpc.RetryInfo":
+                                    delay_str = detail.get("retryDelay", "")
+                                    if delay_str.endswith("s"):
+                                        retry_after = max(retry_after, float(delay_str[:-1]))
+                        except Exception:
+                            pass
+                        sleep_time = min(retry_after, max(0.1, remaining_time))
+                        logger.info(f"Backing off for {sleep_time:.1f}s before retry...")
+                        time.sleep(sleep_time)
                         continue
                     else:
                         raise ModelProviderError(f"Exhausted retries ({attempts}): {last_error}")

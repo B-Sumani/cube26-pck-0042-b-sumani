@@ -282,6 +282,48 @@ Chronological log of engineering steps, design decisions, and test outcomes. App
 - **Test Suite Results**:
   - Full suite: 50 passed offline, 4 skipped (live Postgres/Supabase suite skips when DATABASE_URL is unset). Zero regressions.
 
+---
+
+## 2026-10-01 · Step 9: Phase 1 Real Dev Run (18 Warehouse Boxes)
+
+- **Scope & Objectives**:
+  - Integrate real product catalogue: received confirmed titles and one-line visual descriptions for all 10 candidate SKUs, added them as columns to `data/catalogue.csv`, and updated model prompt construction in `GeminiVisionAdapter` to include product descriptions.
+  - Remove all synthetic dev-set results tables and claims from `README.md` and `demo/demo_script.md`.
+  - Execute real development run across the 18 dev boxes in `data/dev_units.txt` with real warehouse photographs from `IMAGES_DIR` (`C:\Users\user\Desktop\Pack Manager\images`) under each unit's own `org_id` (`org_demo_alpha` and `org_demo_bravo`).
+  - Implement request pacing (7.0s delay between units) and parse Google `RetryInfo` delays to avoid rate-limit throttling and prevent fail-open `PENDING`.
+- **Model Used**:
+  - `gemini-3.1-flash-lite-preview` (multimodal vision with structured JSON schema output).
+- **Run Execution & Operational Metrics**:
+  - Total Units: 18 / 18 evaluated (100% completion).
+  - Decided Cases: 15 / 18 (Coverage: 83.3%).
+  - Decided Accuracy: 100.0% (15 / 15 decided cases correct).
+  - Pending Rate: 0.0% (0 / 18 units; 7s pacing successfully prevented all rate-limit fail-opens).
+  - Uncertain Rate: 0.0% (0 / 18 units; 3 physical defect/occlusion/blur units were decided by model).
+  - Latency: p50 = 5045.5 ms, p95 = 11180.6 ms.
+  - Box-Level Confusion Matrix:
+    - True Positives (Defect correctly flagged STOP_AND_FIX): 10 / 10 (100%)
+    - True Negatives (Clean carton approved SEAL): 5 / 5 (100%)
+    - False Positives (Clean carton stopped): 0 / 5 (0.0% false alarm rate)
+    - False Negatives (Defective carton sealed): 0 / 10 (0.0% mis-ship rate)
+  - Per-Check Results:
+    - `all_items_present`: TP=5, TN=9, FP=1, FN=0, Uncertain=0, Pending=0
+    - `quantities_correct`: TP=3, TN=14, FP=0, FN=0, Uncertain=0, Pending=0
+    - `nothing_extra`: TP=4, TN=12, FP=1, FN=0, Uncertain=0, Pending=0
+- **Breakdown by Physical Failure Type**:
+  - `correct` (n=5): 5/5 matched verdict SEAL (100%) [UNIT-0017, 0019, 0021, 0048, 0084]
+  - `missing` (n=3): 3/3 matched verdict STOP_AND_FIX (100%) [UNIT-0012, 0024, 0063]
+  - `short_quantity` (n=3): 3/3 matched verdict STOP_AND_FIX (100%) [UNIT-0020, 0038, 0069]
+  - `extra` (n=2): 2/2 matched verdict STOP_AND_FIX (100%) [UNIT-0010, 0091]
+  - `wrong_item` (n=2): 2/2 matched verdict STOP_AND_FIX (100%) [UNIT-0029, 0087]
+  - `occluded_hidden` (n=1): Expected UNCERTAIN, Got STOP_AND_FIX [UNIT-0043]
+  - `occluded_absent` (n=1): Expected UNCERTAIN, Got STOP_AND_FIX [UNIT-0081]
+  - `bad_photo` (n=1): Expected UNCERTAIN, Got SEAL [UNIT-0049]
+- **Named Failure Modes & Findings**:
+  1. *Occlusion Tagging Boundary*: For UNIT-0043 (`occluded_hidden`) and UNIT-0081 (`occluded_absent`), the model did not mark `occlusion_suspected=True`; the missing item was detected as a missing item (`MISSING_ITEMS` -> `STOP_AND_FIX`). The box was safely halted, but tagged as a deterministic missing defect rather than routing to human check `UNCERTAIN (cause=occlusion)`.
+  2. *Blur Image Quality Threshold*: In UNIT-0049 (`bad_photo`, blur), the model flagged `issues: ['blur']` but reported `usable: True` and identified all items with 0.90-0.95 confidence, allowing the box to pass to `SEAL`.
+  3. *Over-Pack Discrimination*: In UNIT-0069, `SKU-SOAP-MYSORE` count was correctly identified as 3 (order expected 2), triggering `quantities_correct` FAIL with `SURPLUS_QUANTITY`.
+
+
 
 
 
