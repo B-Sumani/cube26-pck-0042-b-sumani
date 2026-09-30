@@ -94,3 +94,85 @@ The model adapter follows strict operational constraints designed for warehouse 
 ### Evaluation Harness Guard
 - The mock adapter has `IS_MOCK = True`.
 - `validate_eval_adapter()` strictly rejects mock adapters: the evaluation harness refuses to run with mock adapters to guarantee evaluation numbers are computed exclusively on real vision models.
+
+---
+
+## 5. Deterministic Rules Layer Architecture (`agent/rules/`)
+
+The rules layer sits between raw model observations and database persistence. It is completely deterministic and decoupled from the vision provider.
+
+### Orthogonal Check Partitioning ("One Home Per Check")
+Every packaging defect is assigned to exactly one check to prevent cascading or ambiguous failures:
+1. `all_items_present` (Presence / Identity):
+   - Evaluates whether every ordered SKU has an observed count $\ge 1$.
+   - Missing item with clear visibility $\to$ `FAIL` (`MISSING_ITEMS`, `cause='recognition'`).
+   - Missing item with occlusion detected $\to$ `UNCERTAIN` (`ITEM_OCCLUDED`, `cause='occlusion'`).
+   - Observed SKU with identity confidence below threshold $\to$ `UNCERTAIN` (`LOW_IDENTITY_CONFIDENCE`, `cause='recognition'`).
+2. `quantities_correct` (Piece Count Accuracy):
+   - Evaluates count accuracy for ordered items present in the box.
+   - Completely missing items are deferred to `all_items_present` (no double-counting).
+   - Short count $\to$ `FAIL` (`SHORT_QUANTITY`, `cause='recognition'`).
+   - Surplus count $\to$ `FAIL` (`SURPLUS_QUANTITY`, `cause='recognition'`).
+   - Count confidence below threshold or count occlusion $\to$ `UNCERTAIN` (`COUNT_OCCLUDED` or `LOW_COUNT_CONFIDENCE`).
+3. `nothing_extra` (Decoys & Foreign Items):
+   - Evaluates absence of unauthorized items in the box.
+   - Unrecognised foreign objects $\to$ `FAIL` (`UNRECOGNISED_ITEMS_PRESENT`, `cause='recognition'`).
+   - Authorized seller catalog decoys present $\to$ `FAIL` (`DECOY_ITEM_PRESENT`, `cause='recognition'`).
+   - Extra item with low confidence $\to$ `UNCERTAIN` (`LOW_CONFIDENCE_EXTRA_ITEM`, `cause='recognition'`).
+
+### Decision Precedence Hierarchy
+When combining the three checks into a box-level verdict:
+$$\text{FAIL} \succ \text{UNCERTAIN} \succ \text{PASS}$$
+- If ANY check is `FAIL`, the box verdict is `STOP_AND_FIX`.
+- Else if ANY check is `UNCERTAIN`, the box verdict is `UNCERTAIN` (operator sees `STOP`).
+- If ALL three checks are `PASS`, the box verdict is `SEAL` (operator sees `GO`).
+
+### Configurable Threshold Module (`RulesThresholdConfig`)
+- Thresholds live in configuration (`agent/rules/config.py`), never hardcoded in logic.
+- Default settings: `min_identity_confidence = 0.75`, `min_count_confidence = 0.70`, `audit_version = "v1.0.0"`.
+- Values can be modified via environment variables (`PACK_RULES_MIN_IDENTITY_CONF`, `PACK_RULES_MIN_COUNT_CONF`).
+- Version is saved into every record's audit metadata for reproducibility.
+
+---
+
+## 6. Frontend & User Experience Architecture (`agent/templates/`)
+
+The user interface serves warehouse packing operators working on desktop stations or mobile phones.
+
+- **Stack**: FastAPI + Jinja2 + HTMX + Tailwind CSS CDN (no Node.js build step or client-side npm dependencies).
+- **Single Page Architecture**:
+  1. **Hero**: Dark espresso block with light serif wordmark `PACK MANAGER`.
+  2. **Check a Box**: Form accepting active tenant, order ID, unit ID, order lines, candidate SKUs, and photograph upload.
+  3. **Result**: Dynamic HTMX partial swap (`#result-container`) displaying decision banner (`GO` / `STOP`), the three checks with plain-language explanations, order vs model comparison table, and photo with SVG bounding boxes.
+  4. **Records**: Filterable audit log with multi-field search (verdict, failure cause, date, unit ID).
+  5. **Footer**: Dark charcoal status block.
+- **Fail-Open & Uncertainty Presentation**:
+  - `UNCERTAIN`: Displays prominent banner: *"The agent could not verify this box. Please check the photo manually."* Operator sees `STOP`; database record preserves true `UNCERTAIN` outcome.
+  - `PENDING`: Displays *"Agent unavailable: seal on your own judgment"*. Line is not stalled.
+- **Design Token Palette**:
+  - Backgrounds: `--cream #f7f1ec`, `--cream-soft #fbf9f7`
+  - Typography: Cormorant Garamond (headings/wordmark), Inter (body)
+  - Status Indicators: `--pass #4f6a4a`, `--fail #9c3a2b`, `--uncertain #8a5a00`, `--pending #5b5f66`
+  - Visual Accessibility: The layout, borders, and status labels are designed for contrast across packing station lighting environments.
+- **Authentication Notice (Demo Controls)**:
+  - **The current website has no authentication.**
+  - The organization selector dropdown (`org_id`) and the operator input field (`operator_id`) are demo controls designed to showcase database multi-tenancy and audit trail attribution without requiring login overhead.
+  - In a production distribution center, tenant identity and operator credentials must be supplied via authenticated session headers (e.g. OIDC / SAML / JWT) rather than browser form controls.
+
+---
+
+## 7. Audit Log, Immutability & Downstream Integration
+
+- **Evidence Record Permalinks**: Every verification produces a permanent permalink at `/pack/record/{record_id}` containing complete audit metadata (`_audit`), SVG evidence overlay, and override history.
+- **Cryptographic Content Digest**: Each uploaded photograph is hashed via SHA-256 upon receipt. The 64-character hexadecimal digest is recorded in `records.content_hash`.
+- **Append-Only Override History**: Operators or supervisors can submit verdict overrides. The database table `overrides` enforces immutability via trigger `trg_prevent_override_mutation`. Records of prior decisions are never modified in place.
+- **Cross-Pod Foreign Key**: Downstream pods (Returns Manager and Recovery Manager) join on `unit_id` (`UNIT-0001` through `UNIT-0100`). Schema contract is formally defined in `contract/evidence-record.schema.json`.
+
+---
+
+## 8. Operational Boundaries and Failure Modes
+
+1. **Hardware & Budget Constraints**: Pack Manager requires zero specialized warehouse ceiling cameras or fixed conveyors. Any phone or handheld camera capturing an open-box photograph functions as the capture device.
+2. **Fail-Open Guarantee**: In the event of network disruption, Gemini API rate limits (HTTP 429), or 5xx outages, the system times out within the transport budget and emits a `PENDING` record. Outbound fulfillment lines are never held up waiting for an AI response.
+3. **Occlusion Realism**: Single-shot top-down photos cannot see beneath tissue paper, dunnage, or items stacked under larger boxes. Instead of returning false positives or false negatives, the system flags occlusion as a distinct cause (`cause='occlusion'`), enabling operations managers to measure how packaging materials impact automation.
+

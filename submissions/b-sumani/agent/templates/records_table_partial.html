@@ -1,0 +1,138 @@
+<!-- Records Table Partial: Swapped dynamically via HTMX -->
+<div class="overflow-x-auto">
+  <table class="w-full text-xs text-left">
+    <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider">
+      <tr>
+        <th class="py-3 px-3">Record ID</th>
+        <th class="py-3 px-3">Unit ID</th>
+        <th class="py-3 px-3">Verdict</th>
+        <th class="py-3 px-3">Presence</th>
+        <th class="py-3 px-3">Count</th>
+        <th class="py-3 px-3">Extra</th>
+        <th class="py-3 px-3">Cause</th>
+        <th class="py-3 px-3">Latency</th>
+        <th class="py-3 px-3">Timestamp (UTC)</th>
+        <th class="py-3 px-3 text-right">Action</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-[var(--stone-light)] font-mono">
+      {% for rec in recent_records %}
+      <tr class="hover:bg-white/60 transition">
+        
+        <!-- Record ID with permalink link -->
+        <td class="py-3 px-3 font-bold text-[var(--charcoal)]">
+          <a href="/pack/record/{{ rec.id }}?org_id={{ selected_org }}" class="hover:text-[var(--walnut)] underline">
+            {{ rec.id }}
+          </a>
+        </td>
+
+        <!-- Unit ID -->
+        <td class="py-3 px-3">{{ rec.unit_id }}</td>
+
+        <!-- Verdict Badge -->
+        <td class="py-3 px-3">
+          {% if rec.status == 'pending' %}
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-[#eceef0] text-[var(--pending)] border border-[var(--stone)]">
+              PENDING
+            </span>
+          {% elif rec.verdict == 'SEAL' %}
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-[#edf3ec] text-[var(--pass)]">
+              SEAL
+            </span>
+          {% elif rec.verdict == 'STOP_AND_FIX' %}
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-[#fcf0ee] text-[var(--fail)]">
+              STOP_AND_FIX
+            </span>
+          {% elif rec.verdict == 'UNCERTAIN' %}
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-[#fff9ee] text-[var(--uncertain)]">
+              UNCERTAIN
+            </span>
+          {% else %}
+            <span class="text-[var(--taupe)]">None</span>
+          {% endif %}
+        </td>
+
+        <!-- Check 1: all_items_present -->
+        <td class="py-3 px-3">
+          {% set c1 = rec.checks.all_items_present if rec.checks else None %}
+          {% if c1 and c1.result == 'PASS' %}
+            <span class="text-[var(--pass)] font-bold">✓ PASS</span>
+          {% elif c1 and c1.result == 'FAIL' %}
+            <span class="text-[var(--fail)] font-bold">✗ FAIL</span>
+          {% elif c1 and c1.result == 'UNCERTAIN' %}
+            <span class="text-[var(--uncertain)] font-bold">? UNC</span>
+          {% else %}
+            <span class="text-[var(--taupe)]">-</span>
+          {% endif %}
+        </td>
+
+        <!-- Check 2: quantities_correct -->
+        <td class="py-3 px-3">
+          {% set c2 = rec.checks.quantities_correct if rec.checks else None %}
+          {% if c2 and c2.result == 'PASS' %}
+            <span class="text-[var(--pass)] font-bold">✓ PASS</span>
+          {% elif c2 and c2.result == 'FAIL' %}
+            <span class="text-[var(--fail)] font-bold">✗ FAIL</span>
+          {% elif c2 and c2.result == 'UNCERTAIN' %}
+            <span class="text-[var(--uncertain)] font-bold">? UNC</span>
+          {% else %}
+            <span class="text-[var(--taupe)]">-</span>
+          {% endif %}
+        </td>
+
+        <!-- Check 3: nothing_extra -->
+        <td class="py-3 px-3">
+          {% set c3 = rec.checks.nothing_extra if rec.checks else None %}
+          {% if c3 and c3.result == 'PASS' %}
+            <span class="text-[var(--pass)] font-bold">✓ PASS</span>
+          {% elif c3 and c3.result == 'FAIL' %}
+            <span class="text-[var(--fail)] font-bold">✗ FAIL</span>
+          {% elif c3 and c3.result == 'UNCERTAIN' %}
+            <span class="text-[var(--uncertain)] font-bold">? UNC</span>
+          {% else %}
+            <span class="text-[var(--taupe)]">-</span>
+          {% endif %}
+        </td>
+
+        <!-- Cause -->
+        <td class="py-3 px-3 text-[11px]">
+          {% set ns = namespace(cause=None) %}
+          {% if rec.checks is mapping %}
+            {% for k in ['all_items_present', 'quantities_correct', 'nothing_extra'] %}
+              {% set check_obj = rec.checks.get(k) if rec.checks.get else None %}
+              {% if check_obj is mapping and check_obj.cause and not ns.cause %}
+                {% set ns.cause = check_obj.cause %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if ns.cause %}
+            <span class="px-1.5 py-0.5 rounded bg-gray-100 text-[var(--charcoal)] font-semibold">{{ ns.cause }}</span>
+          {% else %}
+            <span class="text-[var(--taupe)]">-</span>
+          {% endif %}
+        </td>
+
+        <!-- Latency -->
+        <td class="py-3 px-3 text-[var(--taupe)]">{{ rec.model_latency_ms }} ms</td>
+
+        <!-- Created At -->
+        <td class="py-3 px-3 text-[var(--taupe)] text-[11px]">{{ rec.created_at[:19] }}</td>
+
+        <!-- Action Link -->
+        <td class="py-3 px-3 text-right">
+          <a href="/pack/record/{{ rec.id }}?org_id={{ selected_org }}" class="inline-block px-2.5 py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[10px] uppercase font-semibold tracking-wider transition">
+            View Evidence
+          </a>
+        </td>
+
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="10" class="py-8 text-center text-xs text-[var(--taupe)] italic">
+          No records match the selected filters for tenant {{ selected_org }}.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

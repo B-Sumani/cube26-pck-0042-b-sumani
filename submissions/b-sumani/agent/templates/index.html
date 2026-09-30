@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pack Manager · Pre-Seal Verification</title>
+
+  <!-- Google Fonts: Cormorant Garamond & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- HTMX via CDN -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+  <style>
+    :root {
+      --cream: #f7f1ec;
+      --cream-soft: #fbf9f7;
+      --stone: #bdbab4;
+      --stone-light: #e1dcd5;
+      --taupe: #8a7967;
+      --walnut: #684432;
+      --umber: #64503d;
+      --espresso: #382d22;
+      --charcoal: #1c1c1c;
+
+      --pass: #4f6a4a;
+      --fail: #9c3a2b;
+      --uncertain: #8a5a00;
+      --pending: #5b5f66;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--cream);
+      color: var(--charcoal);
+    }
+
+    .font-serif {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+
+    .htmx-indicator {
+      display: none;
+    }
+    .htmx-request .htmx-indicator {
+      display: inline-flex;
+    }
+    .htmx-request.htmx-indicator {
+      display: inline-flex;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: 'var(--cream)',
+            'cream-soft': 'var(--cream-soft)',
+            stone: 'var(--stone)',
+            'stone-light': 'var(--stone-light)',
+            taupe: 'var(--taupe)',
+            walnut: 'var(--walnut)',
+            umber: 'var(--umber)',
+            espresso: 'var(--espresso)',
+            charcoal: 'var(--charcoal)',
+            pass: 'var(--pass)',
+            fail: 'var(--fail)',
+            uncertain: 'var(--uncertain)',
+            pending: 'var(--pending)',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <!-- Mock Adapter Banner (Visible when using MockVisionAdapter) -->
+  {% if is_mock %}
+  <aside aria-label="Mock Environment" class="bg-[var(--uncertain)] text-white text-xs font-semibold px-4 py-2 text-center uppercase tracking-widest sticky top-0 z-50 shadow-md">
+    ⚠️ MOCK RESULT, not a real check · Running offline mock adapter
+  </aside>
+  {% endif %}
+
+  <!-- Small Top Navigation -->
+  <nav class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] sticky top-0 z-40 px-6 py-3 shadow">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="#hero" class="font-serif text-2xl font-bold tracking-wider hover:text-white transition">
+        PACK MANAGER
+      </a>
+      <div class="flex items-center space-x-6 text-xs uppercase tracking-widest font-semibold">
+        <a href="#check" class="hover:text-white transition">Check Box</a>
+        <a href="#result" class="hover:text-white transition">Result</a>
+        <a href="#records" class="hover:text-white transition">Audit Records</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 1. Hero Section -->
+  <header id="hero" class="bg-[var(--espresso)] text-[var(--cream)] py-16 px-6 border-b border-[var(--umber)]">
+    <div class="max-w-4xl mx-auto text-center">
+      <p class="text-xs uppercase tracking-widest text-[var(--stone)] mb-3 font-semibold">Cube Buildathon · Outbound Pack Verification</p>
+      <h1 class="font-serif text-5xl md:text-6xl font-bold tracking-wide mb-4">
+        PACK MANAGER
+      </h1>
+      <p class="text-sm md:text-base text-[var(--stone-light)] font-normal max-w-xl mx-auto leading-relaxed">
+        Single-shot vision verification for open boxes before sealing. Leaving verifiable evidence records for returns and claims.
+      </p>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-10 space-y-16">
+
+    <!-- 2. Check a Box Section -->
+    <section id="check" class="scroll-mt-20">
+      <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-sm">
+        <div class="mb-6 border-b border-[var(--stone-light)] pb-4 flex items-center justify-between">
+          <div>
+            <h2 class="font-serif text-3xl font-bold text-[var(--espresso)]">Verify an Open Box</h2>
+            <p class="text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Capture photograph and verify order lines before sealing</p>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 bg-[var(--stone-light)] text-[var(--umber)] rounded-full uppercase tracking-wider">
+            Station 03
+          </span>
+        </div>
+
+        <form 
+          hx-post="/pack/verify" 
+          hx-target="#result-container" 
+          hx-indicator="#loading-spinner, #loading-indicator-banner"
+          enctype="multipart/form-data" 
+          class="space-y-6"
+        >
+          <!-- Org & Unit Picker Row -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label for="org_id" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
+                Organization / Tenant
+              </label>
+              <select id="org_id" name="org_id" required class="w-full bg-white border border-[var(--stone)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--walnut)]">
+                <option value="org_demo_alpha" {% if selected_org == 'org_demo_alpha' %}selected{% endif %}>org_demo_alpha (Alpha Demo Merchant)</option>
+                <option value="org_demo_bravo" {% if selected_org == 'org_demo_bravo' %}selected{% endif %}>org_demo_bravo (Bravo Demo 3PL)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="order_id" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
+                Order ID
+              </label>
+              <input 
+                type="text" 
+                id="order_id" 
+                name="order_id" 
+                value="ORD-DUMMY-50008" 
+                required 
+                class="w-full bg-white border border-[var(--stone)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--walnut)]"
+              >
+            </div>
+
+            <div>
+              <label for="unit_id" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
+                Unit ID (UNIT-XXXX)
+              </label>
+              <input 
+                type="text" 
+                id="unit_id" 
+                name="unit_id" 
+                value="UNIT-0008" 
+                required 
+                placeholder="UNIT-0008" 
+                class="w-full bg-white border border-[var(--stone)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--walnut)] font-mono"
+              >
+            </div>
+          </div>
+
+          <!-- Order Lines and Catalogue Candidates -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="order_lines" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
+                Order Lines (Expected SKU:Qty)
+              </label>
+              <textarea 
+                id="order_lines" 
+                name="order_lines" 
+                rows="3" 
+                required
+                class="w-full bg-white border border-[var(--stone)] rounded-lg p-3 text-sm font-mono focus:outline-none focus:border-[var(--walnut)]"
+                placeholder="SKU-BOTTLE-750:1;SKU-PUZZLE-500:2"
+              >SKU-BOTTLE-750:1</textarea>
+              <p class="text-[11px] text-[var(--taupe)] mt-1">Format: <code>SKU:qty;SKU:qty</code> (Quantities are never sent to vision model)</p>
+            </div>
+
+            <div>
+              <label for="candidate_skus" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
+                Seller Catalogue (Candidate SKUs incl. Decoys)
+              </label>
+              <textarea 
+                id="candidate_skus" 
+                name="candidate_skus" 
+                rows="3" 
+                required
+                class="w-full bg-white border border-[var(--stone)] rounded-lg p-3 text-sm font-mono focus:outline-none focus:border-[var(--walnut)]"
+                placeholder="SKU-BOTTLE-750, SKU-PUZZLE-500, SKU-CABLE-USBC"
+              >SKU-BOTTLE-750, SKU-PUZZLE-500, SKU-CABLE-USBC, SKU-TOWEL-BLU</textarea>
+              <p class="text-[11px] text-[var(--taupe)] mt-1">Model discriminates among candidates. Extra SKUs serve as production decoys.</p>
+            </div>
+          </div>
+
+          <!-- Photo Upload & Operator Field -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+            <div class="md:col-span-2">
+              <label for="photo" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
+                Open-Box Photograph (ONE photo, max 10MB)
+              </label>
+              <input 
+                type="file" 
+                id="photo" 
+                name="photo" 
+                accept="image/jpeg,image/png" 
+                required
+                class="w-full bg-white border border-[var(--stone)] rounded-lg px-3 py-2 text-sm text-[var(--charcoal)] file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[var(--stone-light)] file:text-[var(--espresso)] hover:file:bg-[var(--stone)]"
+              >
+            </div>
+
+            <div>
+              <input type="hidden" name="operator_id" value="op_amira">
+              <button 
+                type="submit" 
+                class="w-full bg-[var(--espresso)] hover:bg-[var(--walnut)] text-[var(--cream)] font-semibold py-2.5 px-6 rounded-lg text-sm transition uppercase tracking-wider flex items-center justify-center space-x-2 shadow"
+              >
+                <span>Inspect Box</span>
+                <span id="loading-spinner" class="htmx-indicator animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-2"></span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- 3. Result Section (HTMX swaps result_partial here) -->
+    <section id="result" class="scroll-mt-20">
+      <!-- Loading feedback banner -->
+      <div id="loading-indicator-banner" class="htmx-indicator w-full mb-6 bg-[var(--cream-soft)] border border-[var(--stone)] rounded-xl p-6 text-center space-y-2">
+        <div class="flex items-center justify-center space-x-3 text-[var(--espresso)]">
+          <span class="animate-spin inline-block w-5 h-5 border-2 border-[var(--espresso)] border-t-transparent rounded-full"></span>
+          <span class="font-serif text-xl font-bold tracking-wide">Analyzing Box Photograph</span>
+        </div>
+        <p class="text-xs text-[var(--taupe)]">
+          Running single-shot visual inspection, checking counts, and validating candidate SKUs...
+        </p>
+      </div>
+
+      <div id="result-container" class="transition-all duration-300">
+        <!-- Initial Placeholder State -->
+        <div class="bg-[var(--cream-soft)] border-2 border-dashed border-[var(--stone)] rounded-xl p-12 text-center text-[var(--taupe)]">
+          <div class="font-serif text-2xl text-[var(--espresso)] mb-2">No Box Inspected Yet</div>
+          <p class="text-sm max-w-md mx-auto">
+            Select an organization, input order lines, and upload an open-box photo to run deterministic pack verification.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Records & Audit Log Section -->
+    <section id="records" class="scroll-mt-20">
+      <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[var(--stone-light)] mb-6 gap-4">
+          <div>
+            <h2 class="font-serif text-3xl font-bold text-[var(--espresso)]">Audit Records</h2>
+            <p class="text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Audit log with forced row-level isolation and per-check causes</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">Active Tenant:</span>
+            <span class="px-3 py-1 bg-white border border-[var(--stone)] rounded text-xs font-mono font-semibold">{{ selected_org }}</span>
+          </div>
+        </div>
+
+        <!-- Filter Controls Bar -->
+        <form hx-get="/pack/records" hx-target="#records-table-container" hx-trigger="change from:select, change from:input, submit" class="bg-white border border-[var(--stone-light)] p-4 rounded-lg mb-6 shadow-sm">
+          <input type="hidden" name="org_id" value="{{ selected_org }}">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end text-xs">
+            
+            <!-- Verdict Filter -->
+            <div>
+              <label for="filter-verdict" class="block uppercase tracking-wider font-semibold text-[var(--umber)] mb-1 text-[11px]">Filter Verdict</label>
+              <select id="filter-verdict" name="verdict" class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded px-2.5 py-1.5 focus:outline-none focus:border-[var(--walnut)]">
+                <option value="">All Verdicts</option>
+                <option value="SEAL">SEAL (Pass)</option>
+                <option value="STOP_AND_FIX">STOP_AND_FIX (Defect)</option>
+                <option value="UNCERTAIN">UNCERTAIN (Human Check)</option>
+                <option value="PENDING">PENDING (Fail-Open)</option>
+              </select>
+            </div>
+
+            <!-- Cause Filter -->
+            <div>
+              <label for="filter-cause" class="block uppercase tracking-wider font-semibold text-[var(--umber)] mb-1 text-[11px]">Failure Cause</label>
+              <select id="filter-cause" name="cause" class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded px-2.5 py-1.5 focus:outline-none focus:border-[var(--walnut)]">
+                <option value="">All Causes</option>
+                <option value="occlusion">Occlusion (Hidden Items)</option>
+                <option value="recognition">Recognition (Identity / Quality / Mismatch)</option>
+              </select>
+            </div>
+
+            <!-- Date Filter -->
+            <div>
+              <label for="filter-date" class="block uppercase tracking-wider font-semibold text-[var(--umber)] mb-1 text-[11px]">Capture Date (UTC)</label>
+              <input type="date" id="filter-date" name="date" class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded px-2.5 py-1.5 focus:outline-none focus:border-[var(--walnut)] font-mono">
+            </div>
+
+            <!-- Unit ID Filter -->
+            <div>
+              <label for="filter-unit" class="block uppercase tracking-wider font-semibold text-[var(--umber)] mb-1 text-[11px]">Unit ID Search</label>
+              <input type="text" id="filter-unit" name="unit_id" placeholder="e.g. UNIT-0008" class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded px-2.5 py-1.5 focus:outline-none focus:border-[var(--walnut)] font-mono">
+            </div>
+
+          </div>
+        </form>
+
+        <!-- Records Table Container -->
+        <div id="records-table-container">
+          {% include "records_table_partial.html" %}
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 5. Footer -->
+  <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-12 px-6 border-t border-[var(--espresso)] text-xs mt-16">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="space-y-1 text-center md:text-left">
+        <p class="font-serif text-lg font-bold text-[var(--cream)]">PACK MANAGER</p>
+        <p class="text-[11px] text-[var(--stone-light)]">Cube Buildathon · Outbound Pack Verification Agent (Stage 3 of 5)</p>
+      </div>
+      <div class="text-center md:text-right text-[11px] space-y-1">
+        <p>Forced Row-Level Security · Tenant Isolation Enforced</p>
+        <p class="text-[var(--stone)]">SHA-256 Content Hash Proof · Short-Lived Signed URLs</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

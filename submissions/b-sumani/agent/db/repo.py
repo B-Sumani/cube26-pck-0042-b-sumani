@@ -334,32 +334,140 @@ class PackRepository:
             "created_at": now,
         }
 
-    def list_records(self, unit_id: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Queries records strictly enforcing Row-Level Security for self.org_id."""
+    def get_record(self, record_id: str) -> Optional[Dict[str, Any]]:
+        """Fetches a single pack record strictly scoped to self.org_id under RLS."""
+        if is_live_db_configured():
+            conn = get_app_db_connection(self.org_id)
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT * FROM records WHERE id = %s;", (record_id,))
+                    row = cur.fetchone()
+                    if not row:
+                        return None
+                    cols = [desc[0] for desc in cur.description]
+                    rec = dict(zip(cols, row))
+            finally:
+                conn.close()
+        else:
+            cur = _local_engine.conn.cursor()
+            cur.execute("SELECT * FROM records WHERE org_id = ? AND id = ?;", (self.org_id, record_id))
+            row = cur.fetchone()
+            if not row:
+                return None
+            rec = dict(row)
+
+        if isinstance(rec.get("checks"), str):
+            try:
+                rec["checks"] = json.loads(rec["checks"])
+            except Exception:
+                pass
+        return rec
+
+    def get_capture(self, capture_id: str) -> Optional[Dict[str, Any]]:
+        """Fetches a capture record strictly scoped to self.org_id under RLS."""
+        if is_live_db_configured():
+            conn = get_app_db_connection(self.org_id)
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT * FROM captures WHERE id = %s;", (capture_id,))
+                    row = cur.fetchone()
+                    if not row:
+                        return None
+                    cols = [desc[0] for desc in cur.description]
+                    cap = dict(zip(cols, row))
+            finally:
+                conn.close()
+        else:
+            cur = _local_engine.conn.cursor()
+            cur.execute("SELECT * FROM captures WHERE org_id = ? AND id = ?;", (self.org_id, capture_id))
+            row = cur.fetchone()
+            if not row:
+                return None
+            cap = dict(row)
+
+        if isinstance(cap.get("photo_keys"), str):
+            try:
+                cap["photo_keys"] = json.loads(cap["photo_keys"])
+            except Exception:
+                cap["photo_keys"] = [cap["photo_keys"]]
+        return cap
+
+    def list_records(
+        self,
+        unit_id: Optional[str] = None,
+        verdict: Optional[str] = None,
+        cause: Optional[str] = None,
+        date_str: Optional[str] = None,
+        status: Optional[str] = None,
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """Queries records strictly enforcing Row-Level Security for self.org_id with audit filters."""
         if is_live_db_configured():
             conn = get_app_db_connection(self.org_id)
             try:
                 with conn.cursor() as cur:
                     # In Postgres, RLS forces: WHERE org_id = current_org_id()
-                    if unit_id:
-                        cur.execute("SELECT * FROM records WHERE unit_id = %s;", (unit_id,))
-                    else:
-                        cur.execute("SELECT * FROM records;")
+                    cur.execute("SELECT * FROM records ORDER BY created_at DESC LIMIT %s;", (limit * 2,))
                     rows = cur.fetchall()
-                    # Return list of dicts
                     cols = [desc[0] for desc in cur.description]
-                    return [dict(zip(cols, row)) for row in rows]
+                    records = [dict(zip(cols, row)) for row in rows]
             finally:
                 conn.close()
         else:
             cur = _local_engine.conn.cursor()
-            # Enforce RLS policy in local engine
-            if unit_id:
-                cur.execute("SELECT * FROM records WHERE org_id = ? AND unit_id = ?;", (self.org_id, unit_id))
-            else:
-                cur.execute("SELECT * FROM records WHERE org_id = ?;", (self.org_id,))
-            rows = cur.fetchall()
-            return [dict(row) for row in rows]
+            cur.execute("SELECT * FROM records WHERE org_id = ? ORDER BY created_at DESC LIMIT ?;", (self.org_id, limit * 2))
+            records = [dict(row) for row in cur.fetchall()]
+
+        filtered: List[Dict[str, Any]] = []
+        for rec in records:
+            if isinstance(rec.get("checks"), str):
+                try:
+                    rec["checks"] = json.loads(rec["checks"])
+                except Exception:
+                    pass
+
+            # Filter by unit_id
+            if unit_id and rec.get("unit_id") != unit_id:
+                continue
+
+            # Filter by verdict (handles PENDING status)
+            if verdict:
+                v_upper = verdict.strip().upper()
+                if v_upper == "PENDING":
+                    if rec.get("status") != "pending":
+                        continue
+                elif rec.get("verdict") != v_upper:
+                    continue
+
+            # Filter by status
+            if status and rec.get("status") != status:
+                continue
+
+            # Filter by date (matches YYYY-MM-DD prefix of ISO timestamp)
+            if date_str:
+                created = str(rec.get("created_at") or "")
+                if not created.startswith(date_str.strip()):
+                    continue
+
+            # Filter by cause ('occlusion' or 'recognition')
+            if cause:
+                target_cause = cause.strip().lower()
+                checks_dict = rec.get("checks")
+                has_cause = False
+                if isinstance(checks_dict, dict):
+                    for check_key in ("all_items_present", "quantities_correct", "nothing_extra"):
+                        check_val = checks_dict.get(check_key)
+                        if isinstance(check_val, dict) and check_val.get("cause") == target_cause:
+                            has_cause = True
+                            break
+                if not has_cause:
+                    continue
+
+            filtered.append(rec)
+            if len(filtered) >= limit:
+                break
+
+        return filtered
 
     def list_captures(self, unit_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """Queries captures strictly enforcing RLS for self.org_id."""

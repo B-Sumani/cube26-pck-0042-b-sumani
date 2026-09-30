@@ -1,0 +1,585 @@
+{
+  "box_metrics": {
+    "total": 15,
+    "decided_count": 11,
+    "tp": 6,
+    "fp": 2,
+    "fn": 0,
+    "tn": 3,
+    "accuracy": 0.8182,
+    "coverage": 0.7333,
+    "fn_rate": 0.0,
+    "fp_rate": 0.4,
+    "uncertain_count": 1,
+    "uncertain_rate": 0.0667,
+    "uncertain_by_cause": {
+      "occlusion": 0,
+      "recognition": 1
+    },
+    "pending_count": 3,
+    "pending_rate": 0.2
+  },
+  "check_metrics": {
+    "all_items_present": {
+      "total": 15,
+      "decided_count": 10,
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "tn": 6,
+      "accuracy": 0.9,
+      "coverage": 0.6667,
+      "fn_rate": 0.0,
+      "fp_rate": 0.1429,
+      "uncertain_count": 2,
+      "uncertain_rate": 0.1333,
+      "uncertain_by_cause": {
+        "occlusion": 1,
+        "recognition": 1
+      },
+      "pending_count": 3,
+      "pending_rate": 0.2
+    },
+    "quantities_correct": {
+      "total": 15,
+      "decided_count": 10,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "tn": 8,
+      "accuracy": 1.0,
+      "coverage": 0.6667,
+      "fn_rate": 0.0,
+      "fp_rate": 0.0,
+      "uncertain_count": 2,
+      "uncertain_rate": 0.1333,
+      "uncertain_by_cause": {
+        "occlusion": 1,
+        "recognition": 1
+      },
+      "pending_count": 3,
+      "pending_rate": 0.2
+    },
+    "nothing_extra": {
+      "total": 15,
+      "decided_count": 11,
+      "tp": 1,
+      "fp": 4,
+      "fn": 0,
+      "tn": 6,
+      "accuracy": 0.6364,
+      "coverage": 0.7333,
+      "fn_rate": 0.0,
+      "fp_rate": 0.4,
+      "uncertain_count": 1,
+      "uncertain_rate": 0.0667,
+      "uncertain_by_cause": {
+        "occlusion": 0,
+        "recognition": 1
+      },
+      "pending_count": 3,
+      "pending_rate": 0.2
+    }
+  },
+  "latency_percentiles": {
+    "p50": 6297.0,
+    "p95": 13199.5,
+    "mean": 6114.4,
+    "min": 0.0,
+    "max": 14694.0
+  },
+  "labeller_agreement": {
+    "raw_agreement": 0.8667,
+    "kappa": 0.7222
+  },
+  "total_units": 15,
+  "model_name": "gemini-3-flash-preview",
+  "dataset_name": "dev_set_15_units",
+  "is_frozen_eval": false,
+  "is_synthetic": true,
+  "results": [
+    {
+      "unit_id": "UNIT-0001",
+      "order_lines": "SKU-BOTTLE-750:1",
+      "predicted_verdict": "SEAL",
+      "ground_truth_verdict": "SEAL",
+      "labeller1_verdict": "SEAL",
+      "labeller2_verdict": "SEAL",
+      "status": "completed",
+      "latency_ms": 4333,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "clean_match"
+    },
+    {
+      "unit_id": "UNIT-0002",
+      "order_lines": "SKU-PUZZLE-500:1;SKU-BOTTLE-750:1",
+      "predicted_verdict": "SEAL",
+      "ground_truth_verdict": "SEAL",
+      "labeller1_verdict": "SEAL",
+      "labeller2_verdict": "SEAL",
+      "status": "completed",
+      "latency_ms": 6097,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "clean_match"
+    },
+    {
+      "unit_id": "UNIT-0003",
+      "order_lines": "SKU-TOWEL-BLU:2",
+      "predicted_verdict": "SEAL",
+      "ground_truth_verdict": "SEAL",
+      "labeller1_verdict": "SEAL",
+      "labeller2_verdict": "SEAL",
+      "status": "completed",
+      "latency_ms": 7211,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "clean_match"
+    },
+    {
+      "unit_id": "UNIT-0004",
+      "order_lines": "SKU-CANDLE-3:1;SKU-PUZZLE-500:1",
+      "predicted_verdict": "STOP_AND_FIX",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "labeller1_verdict": "STOP_AND_FIX",
+      "labeller2_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 12559,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-CANDLE-3",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "FAIL",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "missing_item"
+    },
+    {
+      "unit_id": "UNIT-0005",
+      "order_lines": "SKU-PROT-1KG:2",
+      "predicted_verdict": "STOP_AND_FIX",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "labeller1_verdict": "STOP_AND_FIX",
+      "labeller2_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 7495,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "FAIL",
+          "reason_code": "SHORT_QUANTITY",
+          "reason": "Short quantity for required item(s): SKU-PROT-1KG (expected 2, observed 1)",
+          "cause": "recognition"
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "FAIL",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "short_quantity"
+    },
+    {
+      "unit_id": "UNIT-0006",
+      "order_lines": "SKU-BOTTLE-750:1",
+      "predicted_verdict": "STOP_AND_FIX",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "labeller1_verdict": "STOP_AND_FIX",
+      "labeller2_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 14694,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "FAIL",
+          "reason_code": "SURPLUS_QUANTITY",
+          "reason": "Excess quantity packed for ordered item(s): SKU-BOTTLE-750 (expected 1, observed 2)",
+          "cause": "recognition"
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "FAIL",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "surplus_quantity"
+    },
+    {
+      "unit_id": "UNIT-0007",
+      "order_lines": "SKU-MUG-11:1",
+      "predicted_verdict": "STOP_AND_FIX",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "labeller1_verdict": "STOP_AND_FIX",
+      "labeller2_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 4593,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "DECOY_ITEM_PRESENT",
+          "reason": "Unauthorized decoy SKU(s) found in box: SKU-CABLE-USBC (count: 1)",
+          "cause": "recognition"
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "FAIL"
+      },
+      "defect_type": "decoy_item"
+    },
+    {
+      "unit_id": "UNIT-0008",
+      "order_lines": "SKU-SERUM-30:1",
+      "predicted_verdict": null,
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "labeller1_verdict": "STOP_AND_FIX",
+      "labeller2_verdict": "STOP_AND_FIX",
+      "status": "pending",
+      "latency_ms": 0,
+      "checks": {},
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "FAIL"
+      },
+      "defect_type": "unrecognised_item"
+    },
+    {
+      "unit_id": "UNIT-0009",
+      "order_lines": "SKU-PUZZLE-500:1",
+      "predicted_verdict": null,
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "labeller1_verdict": "STOP_AND_FIX",
+      "labeller2_verdict": "SEAL",
+      "status": "pending",
+      "latency_ms": 0,
+      "checks": {},
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "occlusion"
+    },
+    {
+      "unit_id": "UNIT-0010",
+      "order_lines": "SKU-LAMP-LED:1;SKU-CABLE-USBC:1",
+      "predicted_verdict": "STOP_AND_FIX",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "labeller1_verdict": "STOP_AND_FIX",
+      "labeller2_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 7437,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-LAMP-LED, SKU-CABLE-USBC",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+          "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+          "reason": "Unrecognised foreign item(s) found in box: Green square item labeled ITEM 10",
+          "cause": "recognition"
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "FAIL",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "occlusion"
+    },
+    {
+      "unit_id": "UNIT-0011",
+      "order_lines": "SKU-BOTTLE-750:1",
+      "predicted_verdict": "UNCERTAIN",
+      "ground_truth_verdict": "SEAL",
+      "labeller1_verdict": "SEAL",
+      "labeller2_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 5594,
+      "checks": {
+        "all_items_present": {
+          "result": "UNCERTAIN",
+          "reason_code": "IMAGE_UNUSABLE",
+          "reason": "Photo quality is insufficient to verify item presence: blur",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "UNCERTAIN",
+          "reason_code": "IMAGE_UNUSABLE",
+          "reason": "Photo quality is insufficient to count quantities: blur",
+          "cause": "recognition"
+        },
+        "nothing_extra": {
+          "result": "UNCERTAIN",
+          "reason_code": "IMAGE_UNUSABLE",
+          "reason": "Photo quality is insufficient to verify absence of extra items: blur",
+          "cause": "recognition"
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "image_quality"
+    },
+    {
+      "unit_id": "UNIT-0012",
+      "order_lines": "SKU-TOWEL-BLU:1",
+      "predicted_verdict": "STOP_AND_FIX",
+      "ground_truth_verdict": "SEAL",
+      "labeller1_verdict": "SEAL",
+      "labeller2_verdict": "SEAL",
+      "status": "completed",
+      "latency_ms": 6297,
+      "checks": {
+        "all_items_present": {
+          "result": "UNCERTAIN",
+          "reason_code": "ITEM_OCCLUDED",
+          "reason": "Cannot confirm presence of SKU-TOWEL-BLU due to occlusion in box",
+          "cause": "occlusion"
+        },
+        "quantities_correct": {
+          "result": "UNCERTAIN",
+          "reason_code": "COUNT_OCCLUDED",
+          "reason": "Occlusion prevents accurate piece count for SKU-TOWEL-BLU",
+          "cause": "occlusion"
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+          "reason": "Unrecognised foreign item(s) found in box: large white circular object",
+          "cause": "recognition"
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "image_quality"
+    },
+    {
+      "unit_id": "UNIT-0013",
+      "order_lines": "SKU-SERUM-30:2",
+      "predicted_verdict": "STOP_AND_FIX",
+      "ground_truth_verdict": "SEAL",
+      "labeller1_verdict": "SEAL",
+      "labeller2_verdict": "SEAL",
+      "status": "completed",
+      "latency_ms": 8265,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-SERUM-30",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+          "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+          "reason": "Unrecognised foreign item(s) found in box: Green rectangular item labeled 'ITEM 13'",
+          "cause": "recognition"
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "clean_match"
+    },
+    {
+      "unit_id": "UNIT-0014",
+      "order_lines": "SKU-LEASH-6FT:1;SKU-MUG-11:1",
+      "predicted_verdict": "STOP_AND_FIX",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "labeller1_verdict": "STOP_AND_FIX",
+      "labeller2_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 7141,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-LEASH-6FT, SKU-MUG-11",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+          "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+          "reason": "Unrecognised foreign item(s) found in box: A green square package labeled 'ITEM 14'",
+          "cause": "recognition"
+        }
+      },
+      "ground_truth_checks": {
+        "all_items_present": "FAIL",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "missing_item"
+    },
+    {
+      "unit_id": "UNIT-0015",
+      "order_lines": "SKU-CABLE-USBC:2",
+      "predicted_verdict": null,
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "labeller1_verdict": "STOP_AND_FIX",
+      "labeller2_verdict": "STOP_AND_FIX",
+      "status": "pending",
+      "latency_ms": 0,
+      "checks": {},
+      "ground_truth_checks": {
+        "all_items_correct": "PASS",
+        "quantities_correct": "FAIL",
+        "nothing_extra": "PASS"
+      },
+      "defect_type": "short_quantity"
+    }
+  ]
+}

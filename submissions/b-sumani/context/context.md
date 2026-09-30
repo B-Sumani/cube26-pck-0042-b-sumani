@@ -172,16 +172,67 @@ Rules for keeping it current:
 6. `MEMORY.md` is not `build-log.md`. The build log is a chronological record that organisers read, and it is append-only. `MEMORY.md` is a current-state snapshot.
 7. Only state what you actually know. If unsure, mark it `UNVERIFIED` rather than guessing.
 
-## 14. Website scope
+## 14. Website scope and frontend design
 
-A person picks their org, enters the order lines (SKU:qty per line) and the
-seller's catalogue (candidates incl. decoys), uploads ONE photo of the open box,
-and gets: go or STOP, the three checks each PASS/FAIL/UNCERTAIN with a reason,
-the true record verdict (SEAL / STOP_AND_FIX / UNCERTAIN / PENDING), latency,
-and a link to the evidence record. An override button stores original verdict,
-new verdict and reason. Stack: FastAPI + Jinja2 + Tailwind CDN + HTMX. Upload
-validation: JPEG/PNG only, size limit, no path tricks. Keys never reach the
-browser. PENDING shows 'Agent unavailable: seal on your own judgment'.
+Single-page site. One route serves one page with these sections, linked from a
+small top nav using anchors:
+1. Hero: dark espresso block with a large light serif wordmark "PACK MANAGER" and
+   one short line on what it does. No photographs.
+2. Check a box: order lines, seller catalogue, ONE photo upload.
+3. Result: decision, three checks, evidence, photo (HTMX swaps this in, no reload).
+4. Records: filters and detail view of the audit log.
+5. Footer: dark charcoal block.
+
+### Design tokens and styling
+- Palette (CSS variables block, extended into Tailwind CDN config):
+  `--cream #f7f1ec`, `--cream-soft #fbf9f7`, `--stone #bdbab4`, `--stone-light #e1dcd5`,
+  `--taupe #8a7967`, `--walnut #684432`, `--umber #64503d`, `--espresso #382d22`,
+  `--charcoal #1c1c1c`.
+  Status tokens: `--pass #4f6a4a`, `--fail #9c3a2b`, `--uncertain #8a5a00`, `--pending #5b5f66`.
+- Typography (Google Fonts): Cormorant Garamond for headings and the wordmark,
+  Inter for body. Small uppercase labels with wide letter-spacing.
+- Style: generous whitespace, thin borders, soft cream cards, restrained motion
+  (fade/slide on result). Layout is original: take only colours and fonts from
+  the reference, and do not copy any images or text.
+- Mobile-friendly (operators use phones).
+- No keys in the browser, no external assets except Google Fonts and Tailwind CDN.
+
+### Decision and Evidence View (v0a shows basics, v2 full history)
+- Result page shows the decision (go / STOP / "needs human check"), the three
+  checks each PASS/FAIL/UNCERTAIN with a plain-language reason, what the order
+  expects vs what the model saw (per SKU count, labelled "model-reported
+  confidence"), and the uploaded photo next to it. Bounding boxes are drawn on
+  the photo as evidence only.
+- Every status shows a text label as well as a colour, and passes contrast.
+- When the record is UNCERTAIN (blurry, glare, box cut off, item occluded, low
+  confidence), the page says clearly: "The agent could not verify this box.
+  Please check the photo manually.", shows the specific reason, and shows the
+  photo prominently. Operator sees STOP; the record keeps the true UNCERTAIN value.
+- PENDING shows "Agent unavailable: seal on your own judgment".
+- The "MOCK RESULT, not a real check" banner stays visible while on the mock
+  adapter.
+- UNCERTAIN must come only from evidence, never forced or quota-based. A clear
+  photo must still get PASS or FAIL. Add tests for both directions.
+- Images are served only through org-scoped signed URLs. Upload validation:
+  JPEG/PNG only, size limit, no path tricks. Keys never reach the browser.
+- An override button stores original verdict, new verdict and reason.
+
+### Audit Log (append-only, no secrets)
+For every record save: record_id, unit_id, org_id, UTC timestamp, model name and
+version, prompt version, threshold-config version, per-check result with
+reason_code, reason and cause (occlusion|recognition), the parsed observations
+(counts and confidences), image-quality issues, latency in ms, status
+(completed|pending), and every override. Add a Records page listing these
+with filters (verdict, cause, date). Never log keys or raw auth headers.
+
+### Eval Report (v3, DEV set first)
+Build the harness to report on the eval set, but do NOT run it on the 50 eval
+cases until I say the prompt and thresholds are frozen. Metrics, per check and
+per box: accuracy on decided cases, coverage, FN (bad box got SEAL), FP (good box
+got STOP_AND_FIX) as raw counts and rates, uncertain rate split by cause,
+pending rate, latency p50/p95, model name, and labeller agreement. UNCERTAIN and
+PENDING are counted separately, never as correct or as FP/FN. The frozen eval
+runs once, and the report states this.
 
 ## 15. Iteration and change control
 

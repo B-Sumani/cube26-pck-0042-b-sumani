@@ -110,3 +110,180 @@ Chronological log of engineering steps, design decisions, and test outcomes. App
   - `test_eval_harness_refuses_mock_adapter`: Passed.
   - `test_live_gemini_smoke_call`: Passed. Executed live call to `gemini-3-flash-preview` on valid JPEG photo, parsed structured observation, recorded latency: 4466ms.
 - **Overall Suite**: All 15 tests (6 tenancy + 9 model adapter) passing.
+
+## 2026-09-30 - Step 3 / v0: Working Web App & End-to-End Pack Verification
+
+- **Scope & Objectives**:
+  - Thin end-to-end version: Single-page FastAPI application with HTMX dynamic updates and Tailwind CSS styling using exact project tokens.
+  - Verification workflow: Photo upload + order lines (`SKU:qty`) + candidate SKUs -> one model call -> deterministic rules -> 3 checks + verdict -> storage + capture + record + signed URL.
+  - Hard Rule 1 (Tenancy & Signed URLs): Unguessable storage keys (`tenants/{org_id}/{unit_id}/{uuid}_{hash}_{file}`) and signed URL verification (`/api/storage/{storage_key}`). Cross-tenant access strictly rejected with HTTP 403. Tenancy logic tested offline.
+  - Hard Rule 2 (One Model Call & Fail-Open): Exactly one call per unit. On model timeout or provider failure, system creates a capture and writes a `status='pending'` record with `verdict=NULL`, returning fail-open PENDING to avoid blocking operators.
+  - Section 14 Frontend Redesign:
+    - 5 single-page sections: Hero (dark espresso, Cormorant Garamond wordmark "PACK MANAGER"), Check a box (order input, catalogue, photo upload), Result (dynamic HTMX swap), Records (audit log listing), Footer (dark charcoal).
+    - Design tokens: `--cream`, `--cream-soft`, `--stone`, `--stone-light`, `--taupe`, `--walnut`, `--umber`, `--espresso`, `--charcoal`, `--pass`, `--fail`, `--uncertain`, `--pending`.
+    - Distinct banners and clear text status labels with high contrast for GO (`SEAL`), STOP (`STOP_AND_FIX`), and UNCERTAIN ("The agent could not verify this box. Please check the photo manually.").
+    - Evidence overlay: Bounding boxes rendered as SVG overlay for evidence display only; never used in decision rules.
+    - Operator override flow: Append-only form capturing original verdict, new verdict, reason, and operator ID.
+- **Components Built**:
+  - `agent/rules/evaluator.py`: Deterministic evaluator executing the 3 checks (`all_items_present`, `quantities_correct`, `nothing_extra`) and deriving the box verdict (`SEAL`, `STOP_AND_FIX`, `UNCERTAIN`).
+  - `agent/templates/index.html`: Complete single-page layout with anchor navigation, color tokens, Google Fonts, and mock mode banner.
+  - `agent/templates/result_partial.html`: Dynamic result container with decision banner, check cards, comparison table, SHA-256 content hash, signed image preview with SVG bounding boxes, and override modal.
+  - `agent/main.py`: FastAPI server handling `/`, `/pack/verify`, `/pack/override`, and `/api/storage/{storage_key:path}`. Enforces upload validation (rejecting empty files, non-JPEG/PNG magic bytes, and path traversal tricks).
+  - `tests/test_v0_webapp.py`: 8 end-to-end webapp integration tests.
+- **Test Suite Results**:
+  - `test_get_index_renders_sections_and_tokens`: Passed.
+  - `test_post_verify_successful_pack_returns_go`: Passed.
+  - `test_post_verify_fail_open_on_timeout_produces_pending`: Passed.
+  - `test_post_verify_uncertain_shows_prominent_human_check_banner`: Passed.
+  - `test_upload_validation_rejects_bad_files_and_paths`: Passed.
+  - `test_storage_signed_url_cross_tenant_isolation`: Passed.
+  - `test_override_flow_records_immutably`: Passed.
+  - **Overall Suite**: 23 passed, 4 skipped (live Postgres/Supabase suite skips cleanly when DATABASE_URL is unset).
+
+## 2026-09-30 - Step 4 / v1: Rules Hardening & Orthogonal Failure Partitioning
+
+- **Scope & Objectives**:
+  - Implement strict "one home per check" to ensure orthogonal failure mode classification without double-counting defects.
+  - Implement confidence gates on FAIL & PASS: low confidence or occlusion prevents false alarms/passes, reliably yielding UNCERTAIN.
+  - Every FAIL and UNCERTAIN carries a structured machine `reason_code`, human `reason`, and failure `cause` (`occlusion` | `recognition`).
+  - Threshold configuration lives in config (`agent/rules/config.py`) with environment variable overrides and version tracking (`v1.0.0`).
+  - Implement tests proving evidence-driven UNCERTAIN in both directions (clear photos get PASS or FAIL, never forced/quota-based).
+- **Rules Hardening Details**:
+  - `all_items_present` (Presence / Identity):
+    - Evaluates whether every ordered SKU has observed count >= 1.
+    - Missing items with clear visibility produce FAIL (`MISSING_ITEMS`, `cause='recognition'`).
+    - Missing items with suspected occlusion produce UNCERTAIN (`ITEM_OCCLUDED`, `cause='occlusion'`).
+    - Items observed with identity confidence below threshold produce UNCERTAIN (`LOW_IDENTITY_CONFIDENCE`, `cause='recognition'`).
+  - `quantities_correct` (Piece Count):
+    - Evaluates piece count accuracy for ordered items.
+    - Completely missing items are deferred to `all_items_present` to prevent double-penalizing across checks.
+    - Short quantity produces FAIL (`SHORT_QUANTITY`, `cause='recognition'`).
+    - Surplus quantity of an ordered SKU produces FAIL (`SURPLUS_QUANTITY`, `cause='recognition'`).
+    - Occlusion or low count confidence gates FAIL to UNCERTAIN (`COUNT_OCCLUDED` or `LOW_COUNT_CONFIDENCE`).
+  - `nothing_extra` (Decoys & Unrecognised Items):
+    - Evaluates absence of unauthorized foreign or decoy items.
+    - Unrecognised foreign objects produce FAIL (`UNRECOGNISED_ITEMS_PRESENT`, `cause='recognition'`).
+    - Authorized catalog decoys observed in the box produce FAIL (`DECOY_ITEM_PRESENT`, `cause='recognition'`).
+    - Low-confidence extra items gate to UNCERTAIN (`LOW_CONFIDENCE_EXTRA_ITEM`, `cause='recognition'`).
+- **Components Built / Updated**:
+  - `agent/rules/config.py`: `RulesThresholdConfig` class supporting environment variable loading and audit versioning.
+  - `agent/rules/evaluator.py`: Refactored and hardened deterministic evaluator with orthogonal check partitions and confidence gating.
+  - `agent/rules/__init__.py`: Updated exports for configuration classes and thresholds.
+  - `tests/test_rules_hardening.py`: 15 comprehensive unit tests covering one-home-per-check, confidence gates, occlusion causes, box verdict precedence, both-direction evidence tests, and custom threshold overrides.
+- **Test Suite Results**:
+  - 15/15 tests passing in `tests/test_rules_hardening.py`.
+  - Full suite: 38 passed, 4 skipped (live Postgres/Supabase suite skips when DATABASE_URL is unset).
+
+## 2026-09-30 - Step 5 / v2: Evidence Record Page, Audit Log Filters, and Override History
+
+- **Scope & Objectives**:
+  - Build dedicated permalink evidence record page (`/pack/record/{record_id}`) for downstream pods (Returns Manager and Recovery Manager).
+  - Include full audit log metadata: record_id, unit_id, org_id, UTC timestamp, model name/version, prompt version (`pack-prompt-v1.0`), threshold-config version (`v1.0.0`), per-check result with reason_code and cause, parsed observations with confidences, latency in ms, status, and content hash (SHA-256).
+  - Never expose secrets, API keys, or raw authorization headers.
+  - Implement audit log filtering on the Records view by verdict (SEAL, STOP_AND_FIX, UNCERTAIN, PENDING), failure cause (occlusion, recognition), date, and unit_id.
+  - Implement full override history tracking: append-only accumulation of supervisor decisions with timestamp, operator ID, original verdict, new verdict, and reason.
+- **Components Built / Updated**:
+  - `agent/templates/record_detail.html`: Dedicated permalink template showing complete audit trail, decision badges, per-check breakdown, order vs observation comparison table, signed URL photo with SVG bounding boxes, and override history table with override submission form.
+  - `agent/templates/records_table_partial.html`: Dynamic partial for instant HTMX filtering by verdict, cause, date, and unit ID.
+  - `agent/templates/index.html`: Enhanced Records section with filter form bar linked via HTMX.
+  - `agent/templates/result_partial.html`: Added direct "View Evidence Record ↗" links across all outcome banners.
+  - `agent/db/repo.py`: Added `get_record()`, `get_capture()`, and updated `list_records()` with multi-field filtering under tenant RLS.
+  - `agent/main.py`: Added `GET /pack/records` filtering route, `GET /pack/record/{record_id}` permalink route, attached `_audit` payload to record inserts, and enhanced `POST /pack/override`.
+  - `tests/test_v2_evidence_and_records.py`: 5 integration tests covering permalink rendering, cross-tenant isolation (404), verdict filtering, cause filtering, and override history accumulation.
+- **Test Suite Results**:
+  - 5/5 tests passing in `tests/test_v2_evidence_and_records.py`.
+  - Full suite: 43 passed, 4 skipped (live Postgres/Supabase suite skips when DATABASE_URL is unset).
+
+## 2026-09-30 - Step 6 / v3: Evaluation Harness and Dev-Set Evaluation
+
+- **Scope & Objectives**:
+  - Build evaluation harness adhering to context.md Section 11, 14, and 15.
+  - Metrics computation:
+    - Box-level and per-check confusion matrices: TP, FP, FN, TN, decided accuracy, and operational coverage.
+    - False Negative rate (defective box approved as SEAL / escaped mis-ship) and False Positive rate (clean box stopped as STOP_AND_FIX / false warehouse stoppage).
+    - Uncertain rate with cause breakdown (`cause='occlusion'` vs `cause='recognition'`).
+    - Pending rate tracking fail-open safety.
+    - End-to-end model call latency percentiles (p50, p95, mean, min, max).
+    - Human inter-annotator agreement (Cohen's Kappa and raw percentage agreement).
+  - Metric separation rule: UNCERTAIN and PENDING are tracked as first-class operational outcomes and are counted separately; they are never counted as correct or recorded as FP/FN.
+  - Adapter integrity guard: `EvaluationHarness` strictly enforces `validate_eval_adapter()`, refusing execution if a mock adapter is provided.
+  - Dev-set protocol: all benchmarking and tuning restricted strictly to the 15-unit dev set. The 50-unit eval set is kept completely untouched and frozen until owner freeze approval.
+  - Generate comprehensive Markdown and JSON evaluation reports with target compliance indicators and risk breakdowns.
+- **Components Built / Updated**:
+  - `agent/eval/metrics.py`: Mathematical functions for confusion matrices, per-check accuracy, rates, latency percentiles, and Cohen's Kappa.
+  - `agent/eval/report.py`: Markdown and JSON generator with executive summary, target comparison, risk breakdown, and compliance statements.
+  - `agent/eval/harness.py`: `EvaluationHarness` with strict mock-adapter rejection, one-call-per-unit processing, deterministic rules evaluation, and report emission.
+  - `agent/eval/__init__.py`: Package export interface.
+  - `data/dev_set.csv`: 15 double-labelled dev cases covering clean matches, missing items, short counts, surplus counts, decoys, image glare, and occlusion.
+  - `data/generate_dev_fixtures.py`: Synthetic fixture generator creating test images for dev exploration.
+  - `agent/eval/run_dev_eval.py`: CLI execution script running live evaluation on `gemini-3-flash-preview`.
+  - `tests/test_eval_harness.py`: 7 tests covering mock rejection, confusion matrix math, UNCERTAIN/PENDING metric isolation, Cohen's Kappa, percentiles, report generation, and end-to-end harness run.
+- **Dev-Set Benchmark Results (gemini-3-flash-preview)**:
+  - **Decided Accuracy**: 81.8% (9/11 decided cases)
+  - **Operational Coverage**: 73.3% (11/15 non-uncertain, completed cases)
+  - **Uncertain Rate**: 6.7% (1/15) — **PASSED** target (<= 10.0%)
+  - **Pending Rate**: 20.0% (3/15) — Fail-open appropriately triggered during API 429 quota spikes, proving non-blocking warehouse line operation
+  - **Escaped Mis-ships (FN Rate)**: 0.0% (0 defective boxes marked SEAL)
+  - **False Stoppages (FP Rate)**: 40.0% (clean boxes stopped for operator check)
+  - **Latency**: p50 = 6297.0 ms, p95 = 13199.5 ms
+  - **Inter-Annotator Agreement**: Cohen's Kappa = 0.722, Agreement = 86.7%
+  - Output files generated: `submissions/b-sumani/eval/dev_report.md` and `dev_report.json`.
+- **Test Suite Results**:
+  - 7/7 tests passing in `tests/test_eval_harness.py`.
+  - Full suite: 50 passed, 4 skipped (live Postgres/Supabase suite skips when DATABASE_URL is unset).
+
+## 2026-09-30 - Step 7 / v4: UX Polish, Cross-Pod Contract, System Documentation, and Deployment
+
+- **Scope & Objectives**:
+  - Implement UX polish across frontend templates: restrained fade-in animations, responsive layout checks, and active processing feedback banner for warehouse operators.
+  - Build formal cross-pod contract artifacts (`contract/`) consumable by Returns Manager (Stage 4) and Recovery Manager (Stage 5), anchored on `unit_id`.
+  - Author full project documentation suite adhering to the working-backwards philosophy and Section 9 forbidden language constraints: `README.md`, `ARCHITECTURE.md` (expanded), `CLAUDE.md`, `build-brief.md`, `01-customer-letter.md`, `02-prfaq.md`, `03-one-pager.md`, and `eval-report.md`.
+  - Prepare deployment blueprints and container configuration (`Dockerfile`, `Procfile`, `render.yaml`).
+  - Create a structured 3-minute video demonstration script (`demo/demo_script.md`) covering clean packs, defect stops, occlusion handling, operator overrides, and tenant isolation.
+- **Components Built / Updated**:
+  - `agent/templates/index.html`: Added restrained fade-in animation keyframes, operator processing feedback banner (`#loading-indicator-banner`), and mobile-responsive layout polish.
+  - `contract/evidence-record.schema.json`: Formal JSON Schema (Draft 2020-12) specifying all fields, enums, check structures, and override objects.
+  - `contract/README.md`: Cross-pod integration documentation explaining `unit_id` joins and providing 5 sample payloads (SEAL, STOP_AND_FIX, UNCERTAIN, PENDING, override).
+  - `ARCHITECTURE.md`: Expanded with Sections 5 through 8 (rules layer architecture, frontend UX and design tokens, audit log immutability triggers, and operational failure boundaries).
+  - `README.md`: Comprehensive repository index and operator manual detailing setup, run commands, offline vs live test commands, benchmark results, and known limitations.
+  - `CLAUDE.md`: Hard engineering rules, forbidden language prohibitions, repository layout boundaries, and CLI command references.
+  - `build-brief.md`: Technical brief analyzing the economics of outbound packing, packing bench physics (glare, occlusion, takt time), and system design decisions.
+  - `01-customer-letter.md`: Working-backwards letter addressing a 3PL operations manager on eliminating blind spots at the packing station.
+  - `02-prfaq.md`: Working-backwards PR/FAQ addressing operational questions (occlusion, timeouts, barcode vs vision, marketplace dispute claims, kill conditions).
+  - `03-one-pager.md`: Executive brief with operational target scorecard and kill condition definition.
+  - `eval-report.md`: Standalone evaluation report detailing metric separation, dev-set benchmark, risk analysis, and single frozen run protocol.
+  - `Dockerfile`, `Procfile`, `render.yaml`: Production deployment blueprints for containerized and cloud execution.
+  - `demo/demo_script.md`: Detailed 3-minute video walkthrough script across 5 scenes.
+- **Test Suite Results**:
+  - 50 passed offline, 4 skipped (live Postgres/Supabase suite skips when DATABASE_URL is unset).
+  - Test duration: 5.21s. Zero regressions.
+
+## 2026-09-30 - Step 8: Honesty Audit & Pre-Freeze Hardening
+
+- **Scope & Objectives**:
+  - Perform thorough honesty and claims audit across all documentation artifacts (`README.md`, `eval-report.md`, `build-brief.md`, `02-prfaq.md`, `03-one-pager.md`, `01-customer-letter.md`, and `demo/demo_script.md`).
+  - Catalog every number, percentage, dollar figure, and Amazon rule/program claim with its authoritative source or tag it explicitly as `(ASSUMPTION, unverified)`.
+  - Convert `01-customer-letter.md` and `02-prfaq.md` into explicit hypothetical working-backwards planning exercises, removing invented customer walkthroughs, fictional characters, and invented quotes.
+  - Scan and eliminate forbidden marketing language from context.md Section 9; replace loose "immutable" / "tamper-evident" terms with accurate operational descriptions (overrides are append-only via database trigger; photos carry a SHA-256 hash).
+  - Reset `eval-report.md` to method, metric definitions, and empty result tables only. Official numbers await the single frozen evaluation run.
+  - Update contrast claims to "designed for contrast".
+  - Harden deployment security: implement in-memory per-IP sliding window rate limiting and upfront `Content-Length` upload cap (10MB) in `agent/main.py`. Confirm `render.yaml` and `Dockerfile` contain no secrets. Explicitly document in `ARCHITECTURE.md` that the site has no authentication (org picker and operator ID are interactive demo controls).
+  - Scan the entire repository tree and git commit history for secrets (0 leaked credentials found).
+- **Components Built / Updated**:
+  - `agent/main.py`: Added `apply_rate_limit()` middleware function (sliding window) and upfront `Content-Length` check.
+  - `eval-report.md`: Reset to clean evaluation methodology and empty results tables awaiting the frozen run.
+  - `01-customer-letter.md`: Reframed as a hypothetical working-backwards exercise, removed invented facilities and customer personas.
+  - `02-prfaq.md`: Reframed as a working-backwards PR/FAQ, removed fictitious launch location and quotes, tagged unverified market assumptions.
+  - `03-one-pager.md`: Reset results table to empty/pending status, tagged economic assumptions.
+  - `build-brief.md`: Tagged unverified labor, mis-ship cost, and marketplace defect assumptions.
+  - `demo/demo_script.md`: Replaced unverified latency claims with measured dev-set observation (~6.3s median).
+  - `README.md` & `contract/README.md`: Removed Amazon-specific program references from memory, added auth notice, tagged hardware assumptions.
+  - `ARCHITECTURE.md`: Added explicit notice that the web interface has no authentication (demo controls) and noted visual design for contrast.
+- **Test Suite Results**:
+  - Full suite: 50 passed offline, 4 skipped (live Postgres/Supabase suite skips when DATABASE_URL is unset). Zero regressions.
+
+
+
+
+
+

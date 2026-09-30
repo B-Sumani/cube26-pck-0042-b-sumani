@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evidence Record {{ record.id }} · Pack Manager</title>
+  
+  <!-- Google Fonts: Cormorant Garamond (headings) & Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- HTMX CDN -->
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+  <style>
+    :root {
+      --cream: #f7f1ec;
+      --cream-soft: #fbf9f7;
+      --stone: #bdbab4;
+      --stone-light: #e1dcd5;
+      --taupe: #8a7967;
+      --walnut: #684432;
+      --umber: #64503d;
+      --espresso: #382d22;
+      --charcoal: #1c1c1c;
+      --pass: #4f6a4a;
+      --fail: #9c3a2b;
+      --uncertain: #8a5a00;
+      --pending: #5b5f66;
+    }
+    body {
+      background-color: var(--cream);
+      color: var(--charcoal);
+      font-family: 'Inter', sans-serif;
+    }
+    .font-serif {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <a href="/?org_id={{ record.org_id }}" class="font-serif text-2xl font-bold tracking-wide hover:text-[var(--stone-light)] transition">
+          PACK MANAGER
+        </a>
+        <span class="text-xs uppercase tracking-widest text-[var(--stone)] px-2 py-0.5 border border-[var(--umber)] rounded">
+          Evidence Record
+        </span>
+      </div>
+      <div class="flex items-center space-x-6 text-xs tracking-wider">
+        <span class="font-mono text-[var(--stone)]">Tenant: <strong class="text-[var(--cream)]">{{ record.org_id }}</strong></span>
+        <a href="/?org_id={{ record.org_id }}#records" class="hover:text-[var(--stone-light)] underline uppercase font-semibold">
+          ← Back to Audit Log
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 py-10 w-full space-y-8 flex-grow">
+    
+    <!-- Top Record Header Banner -->
+    <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[var(--stone-light)]">
+        <div>
+          <div class="flex items-center space-x-3 mb-2">
+            <h1 class="font-serif text-3xl font-bold text-[var(--espresso)]">{{ record.id }}</h1>
+            
+            {% if record.status == 'pending' %}
+              <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#eceef0] text-[var(--pending)] border border-[var(--stone)]">
+                PENDING (AGENT UNAVAILABLE)
+              </span>
+            {% elif record.verdict == 'SEAL' %}
+              <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#edf3ec] text-[var(--pass)] border border-[var(--pass)]">
+                GO · SEAL APPROVED
+              </span>
+            {% elif record.verdict == 'STOP_AND_FIX' %}
+              <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#fcf0ee] text-[var(--fail)] border border-[var(--fail)]">
+                STOP · STOP AND FIX
+              </span>
+            {% elif record.verdict == 'UNCERTAIN' %}
+              <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#fff9ee] text-[var(--uncertain)] border border-[var(--uncertain)]">
+                STOP · UNCERTAIN (MANUAL CHECK REQUIRED)
+              </span>
+            {% endif %}
+          </div>
+          <p class="text-xs text-[var(--taupe)] font-mono">
+            Unit Key: <strong class="text-[var(--charcoal)]">{{ record.unit_id }}</strong> &nbsp;·&nbsp;
+            Order: <strong class="text-[var(--charcoal)]">{{ capture.order_id if capture else 'N/A' }}</strong> &nbsp;·&nbsp;
+            Captured UTC: <strong class="text-[var(--charcoal)]">{{ record.created_at }}</strong>
+          </p>
+        </div>
+
+        <!-- Overrides Counter Badge -->
+        <div class="text-right">
+          {% if overrides %}
+            <span class="px-3 py-1.5 text-xs font-bold rounded bg-amber-100 text-amber-900 border border-amber-300">
+              ⚠️ {{ overrides|length }} Operator Override(s) Recorded
+            </span>
+          {% else %}
+            <span class="px-3 py-1.5 text-xs font-semibold rounded bg-[var(--cream)] text-[var(--taupe)] border border-[var(--stone-light)]">
+              No Overrides (Original Model Verdict Active)
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Human Attention Banners -->
+      {% if record.verdict == 'UNCERTAIN' %}
+      <div class="mt-6 bg-[#fff9ee] border-l-4 border-[var(--uncertain)] p-4 rounded-r text-xs">
+        <div class="font-bold text-[var(--uncertain)] uppercase tracking-wider text-sm mb-1">Human Attention Required</div>
+        <p class="text-[var(--charcoal)] font-medium">
+          The agent could not verify this box. Please check the photo manually.
+        </p>
+      </div>
+      {% elif record.status == 'pending' %}
+      <div class="mt-6 bg-[#eceef0] border-l-4 border-[var(--pending)] p-4 rounded-r text-xs">
+        <div class="font-bold text-[var(--pending)] uppercase tracking-wider text-sm mb-1">Fail-Open Safe Mode</div>
+        <p class="text-[var(--charcoal)] font-medium">
+          Agent unavailable: seal on your own judgment.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Three Checks Grid -->
+    <div>
+      <h2 class="font-serif text-2xl font-bold text-[var(--espresso)] mb-4">Pack Verification Checks</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Check 1: all_items_present -->
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] p-5 rounded-lg shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">Identity Check</span>
+              {% set c1 = record.checks.all_items_present if record.checks else None %}
+              {% if c1 and c1.result == 'PASS' %}
+                <span class="px-2 py-0.5 text-xs font-bold bg-[#edf3ec] text-[var(--pass)] rounded">PASS</span>
+              {% elif c1 and c1.result == 'FAIL' %}
+                <span class="px-2 py-0.5 text-xs font-bold bg-[#fcf0ee] text-[var(--fail)] rounded">FAIL</span>
+              {% else %}
+                <span class="px-2 py-0.5 text-xs font-bold bg-[#fff9ee] text-[var(--uncertain)] rounded">UNCERTAIN</span>
+              {% endif %}
+            </div>
+            <h3 class="font-serif text-lg font-bold text-[var(--espresso)]">All Items Present</h3>
+            <p class="text-xs text-[var(--charcoal)] mt-2 leading-relaxed">
+              {{ c1.reason if c1 else 'No check data' }}
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-[var(--stone-light)] text-[11px] text-[var(--taupe)] font-mono">
+            code: {{ c1.reason_code if c1 else 'N/A' }}
+            {% if c1 and c1.cause %} · cause: <strong>{{ c1.cause }}</strong>{% endif %}
+          </div>
+        </div>
+
+        <!-- Check 2: quantities_correct -->
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] p-5 rounded-lg shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">Count Check</span>
+              {% set c2 = record.checks.quantities_correct if record.checks else None %}
+              {% if c2 and c2.result == 'PASS' %}
+                <span class="px-2 py-0.5 text-xs font-bold bg-[#edf3ec] text-[var(--pass)] rounded">PASS</span>
+              {% elif c2 and c2.result == 'FAIL' %}
+                <span class="px-2 py-0.5 text-xs font-bold bg-[#fcf0ee] text-[var(--fail)] rounded">FAIL</span>
+              {% else %}
+                <span class="px-2 py-0.5 text-xs font-bold bg-[#fff9ee] text-[var(--uncertain)] rounded">UNCERTAIN</span>
+              {% endif %}
+            </div>
+            <h3 class="font-serif text-lg font-bold text-[var(--espresso)]">Quantities Correct</h3>
+            <p class="text-xs text-[var(--charcoal)] mt-2 leading-relaxed">
+              {{ c2.reason if c2 else 'No check data' }}
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-[var(--stone-light)] text-[11px] text-[var(--taupe)] font-mono">
+            code: {{ c2.reason_code if c2 else 'N/A' }}
+            {% if c2 and c2.cause %} · cause: <strong>{{ c2.cause }}</strong>{% endif %}
+          </div>
+        </div>
+
+        <!-- Check 3: nothing_extra -->
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] p-5 rounded-lg shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">Surplus / Decoys</span>
+              {% set c3 = record.checks.nothing_extra if record.checks else None %}
+              {% if c3 and c3.result == 'PASS' %}
+                <span class="px-2 py-0.5 text-xs font-bold bg-[#edf3ec] text-[var(--pass)] rounded">PASS</span>
+              {% elif c3 and c3.result == 'FAIL' %}
+                <span class="px-2 py-0.5 text-xs font-bold bg-[#fcf0ee] text-[var(--fail)] rounded">FAIL</span>
+              {% else %}
+                <span class="px-2 py-0.5 text-xs font-bold bg-[#fff9ee] text-[var(--uncertain)] rounded">UNCERTAIN</span>
+              {% endif %}
+            </div>
+            <h3 class="font-serif text-lg font-bold text-[var(--espresso)]">Nothing Extra</h3>
+            <p class="text-xs text-[var(--charcoal)] mt-2 leading-relaxed">
+              {{ c3.reason if c3 else 'No check data' }}
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-[var(--stone-light)] text-[11px] text-[var(--taupe)] font-mono">
+            code: {{ c3.reason_code if c3 else 'N/A' }}
+            {% if c3 and c3.cause %} · cause: <strong>{{ c3.cause }}</strong>{% endif %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Evidence Content & Photo Columns -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      
+      <!-- Left Column: Order Comparison & Audit Metadata -->
+      <div class="space-y-6">
+        
+        <!-- Comparison Table -->
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-6 shadow-sm">
+          <h3 class="font-serif text-xl font-bold text-[var(--espresso)] mb-4">Order Lines vs Model Observations</h3>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider">
+                <tr>
+                  <th class="py-2.5 px-3">SKU</th>
+                  <th class="py-2.5 px-3">Expected Qty</th>
+                  <th class="py-2.5 px-3">Observed In Box</th>
+                  <th class="py-2.5 px-3">Model Confidence</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[var(--stone-light)] font-mono">
+                {% for item in comparison_table %}
+                <tr class="hover:bg-white/60">
+                  <td class="py-2.5 px-3 font-semibold text-[var(--charcoal)]">{{ item.sku }}</td>
+                  <td class="py-2.5 px-3">{{ item.expected_qty }}</td>
+                  <td class="py-2.5 px-3 {% if item.mismatch %}text-[var(--fail)] font-bold{% endif %}">
+                    {{ item.observed_count }}
+                    {% if item.occluded %}<span class="ml-1 text-[10px] text-[var(--uncertain)]">(occluded)</span>{% endif %}
+                  </td>
+                  <td class="py-2.5 px-3 text-[var(--taupe)]">
+                    {% if item.count_conf is not none %}
+                      {{ "%.0f"|format(item.count_conf * 100) }}% count · {{ "%.0f"|format(item.ident_conf * 100) }}% id
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Audit Log Technical Details -->
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-6 shadow-sm space-y-3 font-mono text-xs">
+          <h3 class="font-serif text-lg font-bold text-[var(--espresso)] font-sans">Audit Log Specifications</h3>
+          
+          <div class="grid grid-cols-2 gap-2 text-[11px] text-[var(--charcoal)]">
+            <div><span class="text-[var(--taupe)]">Model Name:</span> {{ record.model or 'None' }}</div>
+            <div><span class="text-[var(--taupe)]">Latency:</span> {{ record.model_latency_ms }} ms</div>
+            <div><span class="text-[var(--taupe)]">Prompt Version:</span> {{ audit_metadata.prompt_version }}</div>
+            <div><span class="text-[var(--taupe)]">Threshold Config:</span> {{ audit_metadata.threshold_config_version }}</div>
+            <div><span class="text-[var(--taupe)]">Status:</span> {{ record.status }}</div>
+            <div><span class="text-[var(--taupe)]">Tenant Scoped:</span> {{ record.org_id }}</div>
+          </div>
+
+          <div class="pt-2 border-t border-[var(--stone-light)] text-[11px]">
+            <span class="text-[var(--taupe)]">Content Hash (SHA-256):</span>
+            <div class="text-[var(--charcoal)] select-all break-all bg-white p-2 rounded border border-[var(--stone-light)] mt-1">
+              {{ record.content_hash }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Evidence Photo with SVG Overlays -->
+      <div class="space-y-6">
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-6 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-serif text-xl font-bold text-[var(--espresso)]">Open-Box Photo Capture</h3>
+            <span class="text-[11px] text-[var(--taupe)] font-mono">Org-Scoped Signed URL</span>
+          </div>
+
+          <div class="relative bg-black rounded-lg overflow-hidden border border-[var(--stone)] flex items-center justify-center max-h-[460px]">
+            {% if signed_image_url %}
+              <img src="{{ signed_image_url | safe }}" alt="Open Box Capture" class="w-full h-auto object-contain max-h-[460px]">
+              
+              <!-- SVG Bounding Boxes Overlay (Evidence Only) -->
+              {% if bboxes %}
+              <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                {% for b in bboxes %}
+                <rect x="{{ b.xmin }}" y="{{ b.ymin }}" width="{{ b.xmax - b.xmin }}" height="{{ b.ymax - b.ymin }}"
+                      fill="none" stroke="#4f6a4a" stroke-width="3" stroke-dasharray="4" />
+                <text x="{{ b.xmin + 6 }}" y="{{ b.ymin + 18 }}" fill="#f7f1ec" font-family="monospace" font-size="16" font-weight="bold" filter="url(#bg)">
+                  {{ b.label }}
+                </text>
+                {% endfor %}
+              </svg>
+              {% endif %}
+            {% else %}
+              <div class="p-12 text-center text-xs text-[var(--stone)]">
+                No image stored for this capture.
+              </div>
+            {% endif %}
+          </div>
+          
+          <p class="text-[11px] text-[var(--taupe)] italic">
+            * Bounding boxes are drawn for operator and downstream pod evidence only; verdicts are strictly derived by deterministic rules.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Human Overrides History & Form -->
+    <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-6 shadow-sm space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-serif text-2xl font-bold text-[var(--espresso)]">Operator Overrides History</h2>
+          <p class="text-xs text-[var(--taupe)]">Immutable audit trail of human supervisor decisions (append-only).</p>
+        </div>
+      </div>
+
+      <!-- Overrides Table -->
+      {% if overrides %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider">
+            <tr>
+              <th class="py-2.5 px-3">Timestamp (UTC)</th>
+              <th class="py-2.5 px-3">Operator</th>
+              <th class="py-2.5 px-3">Original Verdict</th>
+              <th class="py-2.5 px-3">New Verdict</th>
+              <th class="py-2.5 px-3">Reason</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--stone-light)] font-mono">
+            {% for ovr in overrides %}
+            <tr class="hover:bg-white/60">
+              <td class="py-2.5 px-3 text-[var(--taupe)]">{{ ovr.created_at }}</td>
+              <td class="py-2.5 px-3 font-semibold text-[var(--charcoal)]">{{ ovr.operator_id }}</td>
+              <td class="py-2.5 px-3">{{ ovr.original_verdict }}</td>
+              <td class="py-2.5 px-3 font-bold {% if ovr.new_verdict == 'SEAL' %}text-[var(--pass)]{% else %}text-[var(--fail)]{% endif %}">
+                {{ ovr.new_verdict }}
+              </td>
+              <td class="py-2.5 px-3 font-sans text-[var(--charcoal)]">{{ ovr.reason }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="bg-white p-4 rounded border border-[var(--stone-light)] text-xs text-[var(--taupe)]">
+        No overrides have been submitted for this record. Original verdict remains authoritative.
+      </div>
+      {% endif %}
+
+      <!-- Override Submission Form -->
+      <div class="pt-4 border-t border-[var(--stone-light)]">
+        <details class="cursor-pointer">
+          <summary class="text-xs font-semibold text-[var(--walnut)] hover:text-[var(--espresso)] uppercase tracking-wider select-none">
+            + Submit New Human Override
+          </summary>
+          <div class="mt-4 p-4 bg-white rounded border border-[var(--stone-light)] max-w-xl">
+            <form hx-post="/pack/override" hx-target="#override-result-box" class="space-y-4">
+              <input type="hidden" name="record_id" value="{{ record.id }}">
+              <input type="hidden" name="org_id" value="{{ record.org_id }}">
+              <input type="hidden" name="original_verdict" value="{{ record.verdict or 'PENDING' }}">
+              
+              <div>
+                <label class="block text-[11px] uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">New Verdict</label>
+                <select name="new_verdict" required class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded p-2 text-xs">
+                  <option value="SEAL">SEAL (Approve Box Outbound)</option>
+                  <option value="STOP_AND_FIX">STOP_AND_FIX (Reject Box for Repacking)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">Operator ID</label>
+                <input type="text" name="operator_id" value="op_supervisor" required class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded p-2 text-xs font-mono">
+              </div>
+
+              <div>
+                <label class="block text-[11px] uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">Reason for Override</label>
+                <textarea name="reason" required rows="3" class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded p-2 text-xs" placeholder="e.g. Manually inspected box: second bottle was obscured under packing paper."></textarea>
+              </div>
+
+              <button type="submit" class="w-full bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] py-2 rounded text-xs font-semibold uppercase tracking-wider transition">
+                Record Immutable Override
+              </button>
+            </form>
+            <div id="override-result-box" class="mt-3"></div>
+          </div>
+        </details>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-8 border-t border-[var(--espresso)] text-xs">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <span class="font-serif text-lg font-bold text-[var(--cream)]">PACK MANAGER</span>
+        <span class="text-[10px] uppercase tracking-widest text-[var(--taupe)] border border-[var(--umber)] px-2 py-0.5 rounded">Stage 3 of 5</span>
+      </div>
+      <div class="text-right text-[11px] text-[var(--taupe)]">
+        Postgres Row-Level Security · SHA-256 Evidence Hashing
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cube-buildathon.org/schemas/v1/pack-evidence-record.json",
+  "title": "PackEvidenceRecord",
+  "description": "Standardized evidence record emitted by Pack Manager (Stage 3) for downstream consumption by Returns Manager (Stage 4) and Recovery Manager (Stage 5).",
+  "type": "object",
+  "required": [
+    "id",
+    "org_id",
+    "unit_id",
+    "capture_id",
+    "order_lines",
+    "observed_in_box",
+    "checks",
+    "status",
+    "model",
+    "model_latency_ms",
+    "content_hash",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^PCK-[A-Za-z0-9_-]+$",
+      "description": "Unique identifier for the packaging verification record."
+    },
+    "org_id": {
+      "type": "string",
+      "description": "Tenant organization identifier enforcing strict row-level security boundaries."
+    },
+    "unit_id": {
+      "type": "string",
+      "pattern": "^UNIT-\\d{4}$",
+      "description": "Canonical cross-pod join key (UNIT-0001 through UNIT-0100) joining Receiving, Prep, Pack, Returns, and Recovery."
+    },
+    "capture_id": {
+      "type": "string",
+      "description": "Reference identifier for the physical image capture event."
+    },
+    "order_lines": {
+      "type": "string",
+      "description": "Customer order expectations encoded in standard SKU:qty format separated by semicolons (e.g. 'SKU-BOTTLE-750:1;SKU-PUZZLE-500:2')."
+    },
+    "observed_in_box": {
+      "type": "string",
+      "description": "Observed SKU counts reported by the visual verification pipeline in standard SKU:qty format."
+    },
+    "checks": {
+      "type": "object",
+      "description": "Orthogonal three-check decision breakdown enforcing the 'one home per check' rule.",
+      "required": [
+        "all_items_present",
+        "quantities_correct",
+        "nothing_extra"
+      ],
+      "properties": {
+        "all_items_present": {
+          "$ref": "#/$defs/CheckDetail",
+          "description": "Strictly evaluates item presence/identity: every ordered SKU must have count >= 1."
+        },
+        "quantities_correct": {
+          "$ref": "#/$defs/CheckDetail",
+          "description": "Strictly evaluates piece count accuracy: verifies ordered SKU counts match expected counts exactly."
+        },
+        "nothing_extra": {
+          "$ref": "#/$defs/CheckDetail",
+          "description": "Strictly evaluates absence of foreign objects or seller catalog decoys."
+        }
+      },
+      "additionalProperties": true
+    },
+    "verdict": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "SEAL",
+        "STOP_AND_FIX",
+        "UNCERTAIN",
+        null
+      ],
+      "description": "Operational packaging verdict. When status='pending', verdict is strictly null."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "pending"
+      ],
+      "description": "Operational execution status. 'pending' signals fail-open execution (line not blocked)."
+    },
+    "model": {
+      "type": "string",
+      "description": "Vision model identifier and version invoked for the single inspection call."
+    },
+    "model_latency_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "End-to-end vision model invocation latency in milliseconds, including transport retries and local repair."
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 cryptographic digest of the open-box photograph proving record provenance."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO 8601 timestamp when the verification was recorded."
+    },
+    "overrides": {
+      "type": "array",
+      "description": "Immutable append-only audit trail of human supervisor decisions.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "original_verdict",
+          "new_verdict",
+          "reason",
+          "operator_id",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "original_verdict": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "new_verdict": {
+            "type": "string",
+            "enum": [
+              "SEAL",
+              "STOP_AND_FIX",
+              "UNCERTAIN"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 5
+          },
+          "operator_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "CheckDetail": {
+      "type": "object",
+      "required": [
+        "result",
+        "reason_code",
+        "reason"
+      ],
+      "properties": {
+        "result": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "UNCERTAIN"
+          ]
+        },
+        "reason_code": {
+          "type": "string",
+          "description": "Machine-readable reason code for downstream automated claims."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Plain-language operational explanation of the check verdict."
+        },
+        "cause": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "occlusion",
+            "recognition",
+            null
+          ],
+          "description": "Attribution of defect or uncertainty: 'occlusion' indicates physically hidden items; 'recognition' indicates vision confidence or defect."
+        },
+        "observed_count": {
+          "type": "integer"
+        },
+        "expected_count": {
+          "type": "integer"
+        },
+        "confidences": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          }
+        }
+      }
+    }
+  }
+}

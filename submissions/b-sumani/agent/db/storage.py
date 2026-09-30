@@ -103,3 +103,43 @@ def verify_signed_token(storage_key: str, requesting_org: str, expires_at: int, 
     ).hexdigest()
     
     return hmac.compare_digest(expected_sig, signature)
+
+
+# In-memory storage cache for local development and offline testing
+_local_file_cache: dict[str, bytes] = {}
+
+
+def save_file_bytes(storage_key: str, content_bytes: bytes) -> None:
+    """Saves file bytes locally and/or in Supabase Storage."""
+    _local_file_cache[storage_key] = content_bytes
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    if supabase_url and supabase_service_key:
+        try:
+            from supabase import create_client
+            client = create_client(supabase_url, supabase_service_key)
+            client.storage.from_(STORAGE_BUCKET_NAME).upload(
+                path=storage_key,
+                file=content_bytes,
+                file_options={"content-type": "image/jpeg", "upsert": "true"}
+            )
+        except Exception:
+            pass
+
+
+def get_file_bytes(storage_key: str) -> Optional[bytes]:
+    """Retrieves file bytes from local cache or Supabase Storage."""
+    if storage_key in _local_file_cache:
+        return _local_file_cache[storage_key]
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    if supabase_url and supabase_service_key:
+        try:
+            from supabase import create_client
+            client = create_client(supabase_url, supabase_service_key)
+            data = client.storage.from_(STORAGE_BUCKET_NAME).download(storage_key)
+            return data
+        except Exception:
+            pass
+    return None
+

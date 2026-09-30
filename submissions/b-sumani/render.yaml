@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: pack-manager
+    env: python
+    region: oregon
+    plan: standard
+    buildCommand: pip install -r submissions/b-sumani/requirements.txt
+    startCommand: uvicorn submissions.b-sumani.agent.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: MODEL_NAME
+        value: gemini-3-flash-preview
+      - key: MODEL_NAME_EVAL
+        value: gemini-3.1-pro-preview
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SIGNED_URL_SECRET
+        generateValue: true
