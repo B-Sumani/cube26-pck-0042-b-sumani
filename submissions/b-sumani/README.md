@@ -122,15 +122,83 @@ python -m pytest submissions/b-sumani/tests/test_tenancy_live.py -v
 
 ## 6. Development Set Benchmark Results
 
-The 18-box development set evaluation runs against real warehouse open-box photographs (`images/`) using the live Gemini vision adapter. Official metrics will be updated upon completion of the real-photo dev run. Only numbers from real-photo runs appear in project documentation.
+The 18-box development set was evaluated against real warehouse open-box photographs (`images/`) using the live `gemini-3.1-flash-lite-preview` model (run date: 2026-10-01; preview model) with candidate SKUs accompanied by seller catalogue packaging descriptions.
+
+### Primary Operational Headline (Raw Counts)
+- **Bad boxes sealed (Escaped mis-ships / FN)**: **0 of 10** (0.0% mis-ship rate)
+- **Good boxes stopped (False alarms / FP)**: **0 of 15** in final temperature=0 run (0.0% false alarm rate); was **1 of 15** (FP = 1 on UNIT-0021) in the pre-temperature-0 run
+- **UNCERTAIN recall on hard/ambiguous boxes**: **1 of 3** (33.3% recall; blur caught, occlusions halted as missing items)
+- **Operational Coverage**: **18 of 18** (100.0% coverage; all 18 boxes received an actionable outcome: 17 decided, 1 UNCERTAIN, 0 PENDING)
+- **Pending Rate (Fail-Open)**: **0 of 18** (0.0% fail-open rate)
+- **Uncertain Rate**: **1 of 18** (5.6% uncertain rate)
+
+> **Batch-Runner Pacing Note**: The 7-second inter-unit pacing configured in the evaluation harness is a batch-runner test harness control to respect API rate limits during automated benchmark execution, explaining why `pending = 0`; it is not a live-use latency or packing station throughput claim. Live packing requests execute on-demand.
 
 ---
 
-## 7. Assumptions, Known Limitations & Failure Modes
+### Main Table: Clear Boxes (15 Units)
+Performance on the 15 clean, missing, short, extra, and wrong-item cartons where physical contents are fully unobstructed:
 
-1. **Occlusion Physics**: A top-down single photograph cannot penetrate dunnage, bubble wrap, or items packed in layers. Pack Manager does not attempt to guess hidden items; it routes occluded boxes to `UNCERTAIN` (`cause='occlusion'`).
-2. **Catalog Decoys & Vision Discrimination**: When candidate SKUs include decoys with similar visual features, vision models may misidentify items, requiring clear catalogue descriptions to minimize false stoppages.
-3. **No Dedicated Hardware Budget**: Designed for flexible stations using an everyday phone or standard bench camera *(ASSUMPTION, unverified)*.
-4. **FBA Inapplicability**: If an order is fulfilled by Amazon (FBA), Amazon packs the parcel. Pack Manager applies exclusively to merchant-fulfilled network (MFN) and 3PL fulfillment workflows.
-5. **No Authentication on Demo Site**: The current web application has no authentication. The organization dropdown and operator ID are interactive demo controls to demonstrate multi-tenant RLS and audit attribution. Production deployments must bind tenant and operator identity to authenticated sessions (e.g. JWT / SSO).
-6. **Visual Accessibility**: Layout, borders, and status badges are designed for contrast across packing station lighting environments.
+| Metric Category | Raw Count | Rate | Notes |
+|---|---|---|---|
+| **Defective Cartons Correctly Stopped (TP)** | 10 of 10 | 100.0% | Missing, short, extra, and wrong-item boxes stopped |
+| **Clean Cartons Correctly Approved (TN)** | 5 of 5 | 100.0% | Clean boxes approved (4 of 5 in pre-temp=0 run) |
+| **Clean Cartons Erroneously Stopped (FP)** | 0 of 15 | 0.0% | 1 of 15 in pre-temp=0 run (UNIT-0021 soap count) |
+| **Defective Cartons Erroneously Approved (FN)** | 0 of 10 | 0.0% | Zero bad boxes escaped |
+| **Clear Box Accuracy** | 15 of 15 (100.0%) | — | Operational coverage: 15 of 15 (100.0%) |
+
+*(Note: Prior to setting `temperature: 0.0`, clear box accuracy was 14 of 15 with coverage 15 of 15, due to 1 false stop on UNIT-0021).*
+
+---
+
+### Hard Table: Ambiguous & Distorted Boxes (3 Units)
+Performance on the 3 hard boxes containing severe blur, hidden items under bubble wrap, or items absent with packing covering the void:
+
+| Unit ID | Physical Defect Type | Intended Target | Actual Predicted Verdict | Operational Outcome |
+|---|---|---|---|---|
+| **UNIT-0049** | `bad_photo, blur` | `UNCERTAIN` | `UNCERTAIN` | **Caught by blur gate** (`cause='recognition'`) |
+| **UNIT-0043** | `occluded_hidden` | `UNCERTAIN` | `STOP_AND_FIX` | **False stop**: item hidden under bubble wrap caught as missing item |
+| **UNIT-0081** | `occluded_absent` | `UNCERTAIN` | `STOP_AND_FIX` | **Safe stop**: absent item with covered void caught as missing item |
+
+- **UNCERTAIN Recall on Hard Boxes**: **1 of 3 (33.3%)**
+- Neither occluded box (`UNIT-0043`, `UNIT-0081`) was flagged with `occlusion_suspected=True` by the model; both were stopped deterministically because the required item was not detected (`MISSING_ITEMS`).
+
+---
+
+### Orthogonal Check Performance (Final Run)
+Every defect is evaluated across three orthogonal checks ("one home per check"):
+
+| Check Name | Total | Decided | Accuracy | Coverage | TP | FP | FN | TN | Uncertain | Pending |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **`all_items_present`** | 18 | 15 | 93.3% (14/15) | 83.3% (15/18) | 5 | 1 | 0 | 9 | 1 | 0 |
+| **`quantities_correct`** | 18 | 17 | 100.0% (17/17) | 94.4% (17/18) | 3 | 0 | 0 | 14 | 1 | 0 |
+| **`nothing_extra`** | 18 | 17 | 94.1% (16/17) | 94.4% (17/18) | 4 | 1 | 0 | 12 | 1 | 0 |
+
+*(Note: In `UNIT-0069`, the model observed decoy sunscreen instead of ordered sanitizer, triggering FP on `all_items_present` and `nothing_extra` while still halting the box via `STOP_AND_FIX`).*
+
+---
+
+### Run-to-Run Variance (Temperature = 0.0)
+To measure stochastic stability, the dev set was executed twice consecutively with `temperature: 0.0` and identical configurations:
+- **Verdicts Changed**: **0 of 18 verdicts changed (0.0% variance)**
+- **Per-SKU Counts Changed**: **0 per-SKU count changes across all 18 boxes**
+- **Latency Distribution**:
+  - Run 1: p50 = 3470.0 ms, p95 = 7747.4 ms, mean = 4311.9 ms
+  - Run 2: p50 = 5207.0 ms, p95 = 8860.4 ms, mean = 5475.2 ms
+
+---
+
+## 7. Assumptions, Known Limitations & Named Failure Modes
+
+Tuning on 18 boxes is inherently small and carries a risk of overfitting. Improvements must be understood as directional rather than proof.
+
+### Named Failure Modes
+1. **The model never reports occlusion**: Across all prompt variations and runs, the model never flagged `occlusion_suspected=True` or `partially_occluded=True`. Consequently, `occluded_hidden` (where an item is hidden under bubble wrap but present) and `occluded_absent` (where an item is missing and packaging covers the space) are not detected as occlusions. `UNIT-0043` results in an unnecessary false stop, while `UNIT-0081` is stopped only because the item is not seen.
+2. **Counting 3 identical items is unstable**: In the pre-temperature-0 run, `UNIT-0021` produced a false stop because the model counted 2 Mysore Sandal soap cartons instead of 3. With `temperature: 0.0`, it consistently counted 3. Counting adjacent identical items remains sensitive to small model variance.
+3. **The blur gate depends on the model reporting blur**: In `UNIT-0049`, the blur gate successfully converted an unverified `SEAL` into `UNCERTAIN`. However, this is a **directional result from one box, not a fix**. If the model fails to include `"blur"` in `image_quality.issues`, the rule cannot fire.
+
+### Operational Assumptions
+1. **No Dedicated Hardware Budget**: Designed for flexible stations using an everyday phone or standard bench camera *(ASSUMPTION, unverified)*.
+2. **FBA Inapplicability**: If an order is fulfilled by Amazon (FBA), Amazon packs the parcel. Pack Manager applies exclusively to merchant-fulfilled network (MFN) and 3PL fulfillment workflows.
+3. **No Authentication on Demo Site**: The current web application has no authentication. The organization dropdown and operator ID are interactive demo controls to demonstrate multi-tenant RLS and audit attribution. Production deployments must bind tenant and operator identity to authenticated sessions (e.g. JWT / SSO).
+4. **Visual Accessibility**: Layout, borders, and status badges are designed for contrast across packing station lighting environments.

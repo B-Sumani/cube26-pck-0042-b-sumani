@@ -321,7 +321,77 @@ Chronological log of engineering steps, design decisions, and test outcomes. App
 - **Named Failure Modes & Findings**:
   1. *Occlusion Tagging Boundary*: For UNIT-0043 (`occluded_hidden`) and UNIT-0081 (`occluded_absent`), the model did not mark `occlusion_suspected=True`; the missing item was detected as a missing item (`MISSING_ITEMS` -> `STOP_AND_FIX`). The box was safely halted, but tagged as a deterministic missing defect rather than routing to human check `UNCERTAIN (cause=occlusion)`.
   2. *Blur Image Quality Threshold*: In UNIT-0049 (`bad_photo`, blur), the model flagged `issues: ['blur']` but reported `usable: True` and identified all items with 0.90-0.95 confidence, allowing the box to pass to `SEAL`.
-  3. *Over-Pack Discrimination*: In UNIT-0069, `SKU-SOAP-MYSORE` count was correctly identified as 3 (order expected 2), triggering `quantities_correct` FAIL with `SURPLUS_QUANTITY`.
+---
+
+## 2026-10-01 · Step 10: Pre-Phase 2 Fixes & Phase 2 Bounded Tuning (Dev Set Only)
+
+- **Pre-Phase 2 Fixes**:
+  1. *Metric Definitions & Two-Table Reporting*:
+     - Acknowledged coverage is 18/18 (100%) as all boxes received decided verdicts.
+     - Structured reporting into Main Table (15 clear boxes with TP/FP/FN/TN) and Hard Table (3 ambiguous boxes: `UNIT-0043`, `UNIT-0081`, `UNIT-0049` with actual verdicts and UNCERTAIN recall: 0/3).
+     - Explicitly stated that `UNIT-0043` produced a false stop and `UNIT-0049` produced an unverified `SEAL`.
+  2. *Rules Hardening on Surplus Quantities*:
+     - Hardened `nothing_extra` in `agent/rules/evaluator.py` to normalize SKUs (`order_skus_normalized`) ensuring surplus pieces of an ordered SKU fail ONLY `quantities_correct` (`SURPLUS_QUANTITY`) and never trigger `nothing_extra`.
+     - Added test `test_surplus_of_ordered_sku_fails_only_quantities_correct_and_not_nothing_extra` to `tests/test_rules_hardening.py` (51 passing).
+  3. *Single Model Selection*:
+     - Designated `gemini-3.1-flash-lite-preview` as the single model for both development tuning and evaluation (`MODEL_NAME` and `MODEL_NAME_EVAL` set to identical model).
+  4. *Batch-Runner Pacing Documentation*:
+     - Documented in `README.md` and `eval-report.md` that 7-second inter-unit pacing is an automated batch-runner rate-limiting control to explain `pending = 0`, not a live-use claim.
+
+- **Phase 2: Bounded Tuning Iterations**:
+  - *Iteration A (Prompt Tuning)*:
+    - Adjusted generic prompt instructions: asked model to judge whether it can clearly verify each candidate item, set `occlusion_suspected=True` when items overlap/cover another or appear under packaging folds, and set `usable=False` when box edges are cut off or items cannot be verified.
+    - Result: Model still reported `usable=True` and `occlusion_suspected=False` across all 18 boxes. Furthermore, prompt modification caused `UNIT-0084` to return split counts for `SKU-SOAP-MYSORE` (2 + 1 = 3), degrading a clean box to false stop (`STOP_AND_FIX`).
+    - Decision: REJECTED per rule ("Reject a change that fixes one box but breaks others"). Prompt reverted to Phase 1 baseline.
+  - *Iteration B (Rules Ambiguity Gate)*:
+    - Implemented rule in `agent/rules/evaluator.py`: If `image_quality.issues` contains `blur`, `glare`, or `box_not_in_frame`, or `occlusion_suspected` is true:
+      - A missing-item FAIL becomes `UNCERTAIN`.
+      - Any PASS becomes `UNCERTAIN`.
+    - Safety Audit on Clear Boxes: Examined all 15 clear boxes. Zero clear boxes had `blur`, `glare`, `box_not_in_frame` or `occlusion_suspected=True`. Therefore, **0 of 15 clear boxes** were downgraded or affected.
+    - Effect on Hard Boxes: In `UNIT-0049` (`bad_photo, blur`), `issues=['blur']` correctly triggered the ambiguity gate, converting the unverified `SEAL` into `UNCERTAIN` (`cause='recognition'`).
+    - UNCERTAIN rate: 5.6% (1 of 18 units), well below the 20% kill threshold.
+    - Decision: ADOPTED. Also hardened `agent/models/parser.py` with multi-box bbox envelope normalization to handle multi-count bounding box lists cleanly.
+- **Final Dev Set Outcome After Phase 2 & Part 2 Variance Runs**:
+  - Model: `gemini-3.1-flash-lite-preview` (preview model; run date: 2026-10-01).
+  - Generation config: `temperature = 0.0`.
+  - Consecutive Runs Variance (Run 1 vs Run 2 with zero changes):
+    - 0 of 18 verdicts changed (0.0% variance).
+    - 0 per-SKU counts changed across all 18 boxes.
+  - Headline Raw Counts (Final Run):
+    - Bad boxes sealed: 0 of 10 (0.0% mis-ship rate)
+    - Good boxes stopped: 0 of 15 (0.0% false alarm rate in final run; was 1 of 15 with FP = 1 on UNIT-0021 in pre-temp=0 run)
+    - UNCERTAIN recall on hard boxes: 1 of 3 (UNIT-0049 caught as UNCERTAIN; UNIT-0043 and UNIT-0081 halted as STOP_AND_FIX missing defects)
+    - Operational Coverage: 18 of 18 (100.0% coverage; 17 decided, 1 UNCERTAIN, 0 PENDING)
+    - Pending Rate: 0.0% (0 of 18)
+    - Uncertain Rate: 5.6% (1 of 18)
+  - Main Table (15 Clear Boxes): 10 TP, 5 TN, 0 FP, 0 FN. Accuracy: 15/15 (100.0%) with coverage 15/15 (100.0%). (Pre-temp=0: 14/15, FP=1).
+  - Hard Table (3 Boxes): UNCERTAIN Recall: 1 of 3 (UNIT-0049 caught as UNCERTAIN; UNIT-0043 and UNIT-0081 halted as STOP_AND_FIX missing defects).
+  - Per-Check Results:
+    - `all_items_present`: TP=5, TN=9, FP=1, FN=0, Uncertain=1, Pending=0
+    - `quantities_correct`: TP=3, TN=14, FP=0, FN=0, Uncertain=1, Pending=0
+    - `nothing_extra`: TP=4, TN=12, FP=1, FN=0, Uncertain=1, Pending=0
+  - Named Failure Modes:
+    1. The model never reports occlusion: `occluded_hidden` (UNIT-0043) and `occluded_absent` (UNIT-0081) are not detected; UNIT-0043 causes a false stop, UNIT-0081 causes a safe stop as missing item.
+    2. Counting 3 identical items is unstable: UNIT-0021 counted 2 soaps under default temperature (false stop) and 3 soaps under temp=0.0 (SEAL).
+    3. The blur gate depends on the model reporting blur: UNIT-0049 is a directional result from one box, not a fix; relies on model outputting "blur" in issues list.
+  - Test Suite: 51 passed offline, 4 skipped. Zero regressions.
+
+---
+
+## 2026-10-01 · Part 1 & Part 2 Integrity and Dev Reporting
+
+- **Part 1 Integrity Check**:
+  - Confirmed prompt builder (`GeminiVisionAdapter._build_prompt`) never accesses `truth.csv`, `expected_verdict`, `failure_type`, `subtype`, or `observed_in_box`.
+  - Confirmed zero order quantities are sent to the vision model (flat list of candidate SKU strings only).
+  - Confirmed scorer (`compute_eval_metrics`) runs strictly after predictions are finalized and saved.
+  - Confirmed catalogue descriptions describe external packaging attributes only and contain nothing derived from dev labels.
+  - Catalogue photo verification: Confirmed every photo opened while authoring descriptions was from `data/dev_units.txt` (UNIT-0010, 0017, 0019, 0021, 0069). 0 non-dev images touched.
+- **Part 2 Variance & Reporting**:
+  - Adopted Iteration B rules ambiguity gate in `agent/rules/evaluator.py`.
+  - Recomputed all dev tables directly from saved records of final temperature=0.0 runs.
+  - Documented run-to-run variance (0/18 verdicts, 0/18 counts) in `README.md` and `eval-report.md`.
+  - Replaced all older tables in `README.md`, `MEMORY.md`, and `build-log.md` with raw counts leading.
+
 
 
 

@@ -4,7 +4,7 @@
 **Author:** Sumani (`b-sumani`)  
 **Status:** ⏳ PENDING FROZEN RUN  
 **Evaluation Dataset:** `eval_set_50_units` (50 units held out, unviewed)  
-**Model for Evaluation:** `gemini-3.1-pro-preview` / `gemini-pro-latest` (read from `MODEL_NAME_EVAL`)  
+**Model for Evaluation:** `gemini-3.1-flash-lite-preview` (read from `MODEL_NAME_EVAL`, single unified preview model)  
 **Prompt Version:** `pack-prompt-v1.0` (frozen)  
 **Threshold Config Version:** `v1.0.0` (frozen)  
 **Protocol:** Single frozen run on held-out evaluation set. Executed strictly once following owner freeze confirmation.
@@ -31,6 +31,10 @@ $$\text{Uncertain Rate} = \frac{\text{Uncertain Count}}{\text{Total Units}}$$
 $$\text{Pending Rate} = \frac{\text{Pending Count}}{\text{Total Units}}$$
 
 > **Non-Negotiable Isolation Standard**: `UNCERTAIN` and `PENDING` cases are strictly excluded from $\text{TP}$, $\text{FP}$, $\text{FN}$, and $\text{TN}$. They represent incomplete verifications or fail-open safety events, not misclassifications.
+> 
+> > **Batch-Runner Pacing Note**: Automated benchmark evaluations enforce a 7-second inter-unit pacing interval to respect free-tier API provider quotas and prevent throttling-induced fail-opens (`pending = 0`). This is a test harness batch pacing setting, not a live packing-bench latency or takt-time claim. Live operations execute on-demand per packing event.
+> 
+> > **Stochastic Run-to-Run Variance Protocol**: To measure stochastic stability prior to freeze, the dev set was run twice consecutively under `temperature: 0.0`. Across both runs, 0 of 18 verdicts changed (0.0% variance) and 0 per-SKU counts changed across all 18 boxes. Setting `temperature: 0.0` eliminated count fluctuations observed at default temperatures. The frozen evaluation run will execute strictly under this deterministic `temperature: 0.0` configuration.
 
 ---
 

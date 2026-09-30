@@ -145,6 +145,54 @@ def test_one_home_per_check_surplus_quantity():
     assert action == "STOP"
 
 
+def test_surplus_of_ordered_sku_fails_only_quantities_correct_and_not_nothing_extra():
+    """Requirement 2: Surplus quantity of an ORDERED SKU must fail only quantities_correct.
+    nothing_extra applies ONLY to SKUs or items not in the order.
+    """
+    obs = ModelObservation(
+        observed_items=[
+            ObservedItem(
+                sku="SKU-SOAP-MYSORE",
+                count=3,
+                count_confidence=0.98,
+                identity_confidence=0.99,
+                partially_occluded=False,
+                bbox=[10, 10, 100, 100]
+            ),
+            ObservedItem(
+                sku="SKU-BOOK-GGGM",
+                count=1,
+                count_confidence=0.98,
+                identity_confidence=0.99,
+                partially_occluded=False,
+                bbox=[110, 10, 200, 100]
+            ),
+        ],
+        unrecognised_items=[],
+        image_quality=ImageQuality(usable=True, issues=[]),
+        occlusion_suspected=False
+    )
+    # Order expects 2 soaps and 1 book; 3 soaps are observed
+    order = "SKU-SOAP-MYSORE:2;SKU-BOOK-GGGM:1"
+    checks, verdict, action = evaluate_pack_box(order, obs)
+
+    # 1. all_items_present must pass (all order SKUs are present)
+    assert checks["all_items_present"]["result"] == "PASS"
+    assert checks["all_items_present"]["reason_code"] == "ALL_ITEMS_PRESENT"
+
+    # 2. quantities_correct MUST fail due to surplus
+    assert checks["quantities_correct"]["result"] == "FAIL"
+    assert checks["quantities_correct"]["reason_code"] == "SURPLUS_QUANTITY"
+
+    # 3. nothing_extra MUST pass (no foreign or non-ordered SKUs present)
+    assert checks["nothing_extra"]["result"] == "PASS"
+    assert checks["nothing_extra"]["reason_code"] == "NO_EXTRA_ITEMS"
+
+    # Box overall verdict is STOP_AND_FIX
+    assert verdict == "STOP_AND_FIX"
+    assert action == "STOP"
+
+
 def test_one_home_per_check_decoy_item_present():
     """Defect: Authorized decoy SKU observed in box.
     Home: nothing_extra FAIL (DECOY_ITEM_PRESENT).

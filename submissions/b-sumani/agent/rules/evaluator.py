@@ -282,8 +282,10 @@ def evaluate_pack_box(
                 unrecognised_found.append(desc)
 
         # 2. Decoy items (candidate SKUs that are NOT in the order lines)
+        order_skus_normalized = {k.strip().upper() for k in expected_lines.keys()}
         for item in observation.observed_items:
-            if item.sku not in expected_lines and item.count > 0:
+            sku_clean = item.sku.strip().upper()
+            if sku_clean not in order_skus_normalized and item.count > 0:
                 if item.identity_confidence < cfg.identity_confidence_threshold:
                     low_conf_extra.append((item.sku, item.identity_confidence))
                 else:
@@ -317,6 +319,55 @@ def evaluate_pack_box(
                 result="PASS",
                 reason_code="NO_EXTRA_ITEMS",
                 reason="No extra, decoy, or foreign items observed in the box"
+            )
+
+    # -------------------------------------------------------------------------
+    # Gating Rule (Iteration B): Ambiguity / Quality Downgrade
+    # If image_quality.issues contains blur, glare, or box_not_in_frame,
+    # or occlusion_suspected is true, then a missing-item FAIL and any PASS
+    # become UNCERTAIN.
+    # -------------------------------------------------------------------------
+    quality_issues_lower = {iss.lower().strip() for iss in observation.image_quality.issues}
+    quality_defect = bool(quality_issues_lower & {"blur", "glare", "box_not_in_frame"})
+    occlusion_defect = bool(observation.occlusion_suspected)
+
+    if quality_defect or occlusion_defect:
+        gate_cause = "occlusion" if occlusion_defect else "recognition"
+        gate_reason_prefix = "Occlusion suspected in carton" if occlusion_defect else f"Image quality issues observed ({quality_issues})"
+
+        # 1. missing-item FAIL in all_items_present becomes UNCERTAIN
+        if check_identity.result == "FAIL" and check_identity.reason_code == "MISSING_ITEMS":
+            check_identity = CheckResult(
+                result="UNCERTAIN",
+                reason_code="ITEM_OCCLUDED" if occlusion_defect else "UNVERIFIED_UNDER_QUALITY_DEFECT",
+                reason=f"{gate_reason_prefix}: cannot verify if missing item(s) are absent or concealed",
+                cause=gate_cause
+            )
+        # Any PASS in all_items_present becomes UNCERTAIN
+        elif check_identity.result == "PASS":
+            check_identity = CheckResult(
+                result="UNCERTAIN",
+                reason_code="UNVERIFIED_UNDER_OCCLUSION" if occlusion_defect else "UNVERIFIED_UNDER_QUALITY_DEFECT",
+                reason=f"{gate_reason_prefix}: item presence cannot be verified",
+                cause=gate_cause
+            )
+
+        # 2. Any PASS in quantities_correct becomes UNCERTAIN
+        if check_count.result == "PASS":
+            check_count = CheckResult(
+                result="UNCERTAIN",
+                reason_code="UNVERIFIED_UNDER_OCCLUSION" if occlusion_defect else "UNVERIFIED_UNDER_QUALITY_DEFECT",
+                reason=f"{gate_reason_prefix}: item quantities cannot be verified",
+                cause=gate_cause
+            )
+
+        # 3. Any PASS in nothing_extra becomes UNCERTAIN
+        if check_extra.result == "PASS":
+            check_extra = CheckResult(
+                result="UNCERTAIN",
+                reason_code="UNVERIFIED_UNDER_OCCLUSION" if occlusion_defect else "UNVERIFIED_UNDER_QUALITY_DEFECT",
+                reason=f"{gate_reason_prefix}: carton contents cannot be verified as free of extra items",
+                cause=gate_cause
             )
 
     # -------------------------------------------------------------------------

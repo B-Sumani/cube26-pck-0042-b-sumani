@@ -197,7 +197,8 @@ class GeminiVisionAdapter(VisionModelAdapter):
             ],
             "generationConfig": {
                 "response_mime_type": "application/json",
-                "response_schema": GEMINI_RESPONSE_SCHEMA
+                "response_schema": GEMINI_RESPONSE_SCHEMA,
+                "temperature": 0.0
             }
         }
 

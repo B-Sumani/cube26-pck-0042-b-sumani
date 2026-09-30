@@ -69,13 +69,13 @@ def derive_ground_truth_checks(failure_type: str, subtype: str) -> Dict[str, str
         return {"all_items_present": "PASS", "quantities_correct": "PASS", "nothing_extra": "PASS"}
 
 
-def run_real_dev_evaluation():
+def run_real_dev_evaluation(run_tag: str = "iter_a"):
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         print("ERROR: GEMINI_API_KEY is not configured in .env.")
         sys.exit(1)
 
-    model_name = os.getenv("MODEL_NAME", "gemini-flash-latest")
+    model_name = os.getenv("MODEL_NAME", "gemini-3.1-flash-lite-preview")
     images_dir = Path(os.getenv("IMAGES_DIR", r"C:\Users\user\Desktop\Pack Manager\images"))
     if not images_dir.exists():
         print(f"ERROR: Images directory not found: {images_dir}")
@@ -120,7 +120,7 @@ def run_real_dev_evaluation():
         total_timeout_budget=35.0
     )
     print(f"\n=======================================================")
-    print(f"Starting Real Dev Set Run (18 Boxes)")
+    print(f"Starting Real Dev Set Run ({run_tag}) across 18 Boxes")
     print(f"Model: {adapter.model_name}")
     print(f"Images Dir: {images_dir}")
     print(f"=======================================================\n")
@@ -225,7 +225,7 @@ def run_real_dev_evaluation():
     # Save Results
     eval_dir = BASE_DIR / "eval"
     eval_dir.mkdir(parents=True, exist_ok=True)
-    out_file = eval_dir / "real_dev_results.json"
+    out_file = eval_dir / f"real_dev_results_{run_tag}.json"
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump({
             "model_name": adapter.model_name,
@@ -279,4 +279,5 @@ def run_real_dev_evaluation():
 
 
 if __name__ == "__main__":
-    run_real_dev_evaluation()
+    tag = sys.argv[1] if len(sys.argv) > 1 else "iter_a"
+    run_real_dev_evaluation(tag)

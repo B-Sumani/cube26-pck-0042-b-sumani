@@ -1,0 +1,1766 @@
+{
+  "model_name": "gemini-3.1-flash-lite-preview",
+  "timestamp": "2026-09-30T20:40:41Z",
+  "total_units": 18,
+  "metrics": {
+    "box_metrics": {
+      "total": 18,
+      "decided_count": 15,
+      "tp": 10,
+      "fp": 1,
+      "fn": 0,
+      "tn": 4,
+      "accuracy": 0.9333,
+      "coverage": 0.8333,
+      "fn_rate": 0.0,
+      "fp_rate": 0.2,
+      "uncertain_count": 1,
+      "uncertain_rate": 0.0556,
+      "uncertain_by_cause": {
+        "occlusion": 0,
+        "recognition": 1
+      },
+      "pending_count": 0,
+      "pending_rate": 0.0
+    },
+    "check_metrics": {
+      "all_items_present": {
+        "total": 18,
+        "decided_count": 15,
+        "tp": 5,
+        "fp": 1,
+        "fn": 0,
+        "tn": 9,
+        "accuracy": 0.9333,
+        "coverage": 0.8333,
+        "fn_rate": 0.0,
+        "fp_rate": 0.1,
+        "uncertain_count": 1,
+        "uncertain_rate": 0.0556,
+        "uncertain_by_cause": {
+          "occlusion": 0,
+          "recognition": 1
+        },
+        "pending_count": 0,
+        "pending_rate": 0.0
+      },
+      "quantities_correct": {
+        "total": 18,
+        "decided_count": 17,
+        "tp": 3,
+        "fp": 1,
+        "fn": 0,
+        "tn": 13,
+        "accuracy": 0.9412,
+        "coverage": 0.9444,
+        "fn_rate": 0.0,
+        "fp_rate": 0.0714,
+        "uncertain_count": 1,
+        "uncertain_rate": 0.0556,
+        "uncertain_by_cause": {
+          "occlusion": 0,
+          "recognition": 1
+        },
+        "pending_count": 0,
+        "pending_rate": 0.0
+      },
+      "nothing_extra": {
+        "total": 18,
+        "decided_count": 17,
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 12,
+        "accuracy": 0.9412,
+        "coverage": 0.9444,
+        "fn_rate": 0.0,
+        "fp_rate": 0.0769,
+        "uncertain_count": 1,
+        "uncertain_rate": 0.0556,
+        "uncertain_by_cause": {
+          "occlusion": 0,
+          "recognition": 1
+        },
+        "pending_count": 0,
+        "pending_rate": 0.0
+      }
+    },
+    "latency_percentiles": {
+      "p50": 4826.0,
+      "p95": 7374.0,
+      "mean": 4858.17,
+      "min": 2312.0,
+      "max": 12610.0
+    },
+    "labeller_agreement": {
+      "raw_agreement": 1.0,
+      "kappa": 1.0
+    },
+    "total_units": 18
+  },
+  "latency": {
+    "p50": 4826.0,
+    "p95": 7374.0,
+    "mean": 4858.17,
+    "min": 2312.0,
+    "max": 12610.0
+  },
+  "type_breakdown": {
+    "extra": {
+      "total": 2,
+      "correct_verdict": 2,
+      "verdicts": [
+        [
+          "UNIT-0010",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ],
+        [
+          "UNIT-0091",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ]
+      ]
+    },
+    "missing": {
+      "total": 3,
+      "correct_verdict": 3,
+      "verdicts": [
+        [
+          "UNIT-0012",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ],
+        [
+          "UNIT-0024",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ],
+        [
+          "UNIT-0063",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ]
+      ]
+    },
+    "correct": {
+      "total": 5,
+      "correct_verdict": 4,
+      "verdicts": [
+        [
+          "UNIT-0017",
+          "SEAL",
+          "SEAL"
+        ],
+        [
+          "UNIT-0019",
+          "SEAL",
+          "SEAL"
+        ],
+        [
+          "UNIT-0021",
+          "SEAL",
+          "STOP_AND_FIX"
+        ],
+        [
+          "UNIT-0048",
+          "SEAL",
+          "SEAL"
+        ],
+        [
+          "UNIT-0084",
+          "SEAL",
+          "SEAL"
+        ]
+      ]
+    },
+    "short_quantity": {
+      "total": 3,
+      "correct_verdict": 3,
+      "verdicts": [
+        [
+          "UNIT-0020",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ],
+        [
+          "UNIT-0038",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ],
+        [
+          "UNIT-0069",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ]
+      ]
+    },
+    "wrong_item": {
+      "total": 2,
+      "correct_verdict": 2,
+      "verdicts": [
+        [
+          "UNIT-0029",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ],
+        [
+          "UNIT-0087",
+          "STOP_AND_FIX",
+          "STOP_AND_FIX"
+        ]
+      ]
+    },
+    "occluded_hidden": {
+      "total": 1,
+      "correct_verdict": 0,
+      "verdicts": [
+        [
+          "UNIT-0043",
+          "UNCERTAIN",
+          "STOP_AND_FIX"
+        ]
+      ]
+    },
+    "bad_photo": {
+      "total": 1,
+      "correct_verdict": 1,
+      "verdicts": [
+        [
+          "UNIT-0049",
+          "UNCERTAIN",
+          "UNCERTAIN"
+        ]
+      ]
+    },
+    "occluded_absent": {
+      "total": 1,
+      "correct_verdict": 0,
+      "verdicts": [
+        [
+          "UNIT-0081",
+          "UNCERTAIN",
+          "STOP_AND_FIX"
+        ]
+      ]
+    }
+  },
+  "cases": [
+    {
+      "unit_id": "UNIT-0010",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-SANITIZER-DETTOL:1;SKU-TRIMMER-BOMBAY:1",
+      "failure_type": "extra",
+      "subtype": "",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "FAIL"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 5166,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "DECOY_ITEM_PRESENT",
+          "reason": "Unauthorized decoy SKU(s) found in box: SKU-SUNSCREEN-DERMA (count: 1)",
+          "cause": "recognition"
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-TRIMMER-BOMBAY",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              68.0,
+              64.0,
+              940.0,
+              442.0
+            ]
+          },
+          {
+            "sku": "SKU-SUNSCREEN-DERMA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              234.0,
+              513.0,
+              815.0,
+              711.0
+            ]
+          },
+          {
+            "sku": "SKU-SANITIZER-DETTOL",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              251.0,
+              731.0,
+              728.0,
+              907.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": ""
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0012",
+      "org_id": "org_demo_bravo",
+      "order_lines": "SKU-SOAP-MYSORE:1;SKU-TRIMMER-BOMBAY:1;SKU-EARBUDS-BOAT:1",
+      "failure_type": "missing",
+      "subtype": "",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "FAIL",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 4850,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-TRIMMER-BOMBAY",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-SOAP-MYSORE",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              281.0,
+              148.0,
+              805.0,
+              413.0
+            ]
+          },
+          {
+            "sku": "SKU-EARBUDS-BOAT",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              210.0,
+              508.0,
+              902.0,
+              913.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "The photograph clearly shows one Mysore Sandal Soap carton and one boAt Airdopes 311 Pro box inside the shipping box."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0017",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1",
+      "failure_type": "correct",
+      "subtype": "",
+      "ground_truth_verdict": "SEAL",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "SEAL",
+      "status": "completed",
+      "latency_ms": 5013,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-PHONE-M36",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              80.0,
+              134.0,
+              827.0,
+              479.0
+            ]
+          },
+          {
+            "sku": "SKU-EARBUDS-BOAT",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              170.0,
+              505.0,
+              711.0,
+              868.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "The photograph clearly shows a Samsung Galaxy M36 5G box and a boAt Airdopes 311 Pro box placed side-by-side inside the shipping container."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0019",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-BOOK-GGGM:1;SKU-SUNSCREEN-DERMA:1;SKU-SANITIZER-DETTOL:1;SKU-STICKY-MRDIY:1",
+      "failure_type": "correct",
+      "subtype": "",
+      "ground_truth_verdict": "SEAL",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "SEAL",
+      "status": "completed",
+      "latency_ms": 4802,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-BOOK-GGGM",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              70.0,
+              114.0,
+              908.0,
+              532.0
+            ]
+          },
+          {
+            "sku": "SKU-SANITIZER-DETTOL",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              116.0,
+              574.0,
+              542.0,
+              712.0
+            ]
+          },
+          {
+            "sku": "SKU-STICKY-MRDIY",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              549.0,
+              529.0,
+              866.0,
+              768.0
+            ]
+          },
+          {
+            "sku": "SKU-SUNSCREEN-DERMA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              290.0,
+              772.0,
+              843.0,
+              934.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "All items identified are clearly visible in the open shipping box."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0020",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-BODYMILK-NIVEA:1;SKU-SOAP-MYSORE:3;SKU-PHONE-M36:1",
+      "failure_type": "short_quantity",
+      "subtype": "under_pack",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "FAIL",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 4452,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "FAIL",
+          "reason_code": "SHORT_QUANTITY",
+          "reason": "Short quantity for required item(s): SKU-SOAP-MYSORE (expected 3, observed 2)",
+          "cause": "recognition"
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-BODYMILK-NIVEA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              217.0,
+              40.0,
+              852.0,
+              218.0
+            ]
+          },
+          {
+            "sku": "SKU-SOAP-MYSORE",
+            "count": 2,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              350.0,
+              225.0,
+              760.0,
+              645.0
+            ]
+          },
+          {
+            "sku": "SKU-PHONE-M36",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              84.0,
+              655.0,
+              855.0,
+              965.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "All items identified are clearly visible within the shipping box."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0021",
+      "org_id": "org_demo_bravo",
+      "order_lines": "SKU-BOOK-GGBB:1;SKU-BODYMILK-NIVEA:1;SKU-SOAP-MYSORE:3",
+      "failure_type": "correct",
+      "subtype": "",
+      "ground_truth_verdict": "SEAL",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 5991,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "FAIL",
+          "reason_code": "SHORT_QUANTITY",
+          "reason": "Short quantity for required item(s): SKU-SOAP-MYSORE (expected 3, observed 2)",
+          "cause": "recognition"
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-BOOK-GGBB",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              105.0,
+              107.0,
+              874.0,
+              532.0
+            ]
+          },
+          {
+            "sku": "SKU-BODYMILK-NIVEA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              25.0,
+              532.0,
+              584.0,
+              696.0
+            ]
+          },
+          {
+            "sku": "SKU-SOAP-MYSORE",
+            "count": 2,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              102.0,
+              696.0,
+              483.0,
+              906.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "There are two visible Mysore Sandal Soap cartons. One is at [102, 696, 483, 906] and another is below it at [585, 528, 966, 737]."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0024",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-SUNSCREEN-DERMA:1;SKU-TRIMMER-BOMBAY:1;SKU-PHONE-M36:1",
+      "failure_type": "missing",
+      "subtype": "",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "FAIL",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 2908,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-TRIMMER-BOMBAY",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-PHONE-M36",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              180.0,
+              96.0,
+              877.0,
+              593.0
+            ]
+          },
+          {
+            "sku": "SKU-SUNSCREEN-DERMA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              319.0,
+              677.0,
+              805.0,
+              933.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": ""
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0029",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-BODYMILK-NIVEA:1;SKU-TRIMMER-BOMBAY:1;SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1",
+      "failure_type": "wrong_item",
+      "subtype": "",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "FAIL",
+        "quantities_correct": "PASS",
+        "nothing_extra": "FAIL"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 4946,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-BODYMILK-NIVEA",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "DECOY_ITEM_PRESENT",
+          "reason": "Unauthorized decoy SKU(s) found in box: SKU-SUNSCREEN-DERMA (count: 1)",
+          "cause": "recognition"
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-TRIMMER-BOMBAY",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              257.0,
+              72.0,
+              869.0,
+              329.0
+            ]
+          },
+          {
+            "sku": "SKU-SUNSCREEN-DERMA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              64.0,
+              436.0,
+              497.0,
+              584.0
+            ]
+          },
+          {
+            "sku": "SKU-EARBUDS-BOAT",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              525.0,
+              355.0,
+              946.0,
+              627.0
+            ]
+          },
+          {
+            "sku": "SKU-PHONE-M36",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              185.0,
+              631.0,
+              804.0,
+              908.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "All items are clearly visible and identifiable."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0038",
+      "org_id": "org_demo_bravo",
+      "order_lines": "SKU-BOOK-GGBB:1;SKU-SOAP-MYSORE:2",
+      "failure_type": "short_quantity",
+      "subtype": "under_pack",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "FAIL",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 6273,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "FAIL",
+          "reason_code": "SHORT_QUANTITY",
+          "reason": "Short quantity for required item(s): SKU-SOAP-MYSORE (expected 2, observed 1)",
+          "cause": "recognition"
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-BOOK-GGBB",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              57.0,
+              210.0,
+              963.0,
+              650.0
+            ]
+          },
+          {
+            "sku": "SKU-SOAP-MYSORE",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              284.0,
+              672.0,
+              696.0,
+              908.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "The image shows two items placed inside the box."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0043",
+      "org_id": "org_demo_bravo",
+      "order_lines": "SKU-SANITIZER-DETTOL:1;SKU-SOAP-MYSORE:1;SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1",
+      "failure_type": "occluded_hidden",
+      "subtype": "",
+      "ground_truth_verdict": "UNCERTAIN",
+      "ground_truth_checks": {
+        "all_items_present": "UNCERTAIN",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 3991,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-SOAP-MYSORE",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-PHONE-M36",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              110.0,
+              91.0,
+              930.0,
+              443.0
+            ]
+          },
+          {
+            "sku": "SKU-EARBUDS-BOAT",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              284.0,
+              463.0,
+              797.0,
+              783.0
+            ]
+          },
+          {
+            "sku": "SKU-SANITIZER-DETTOL",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              367.0,
+              774.0,
+              788.0,
+              932.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": ""
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0048",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-SOAP-MYSORE:1;SKU-STICKY-MRDIY:1",
+      "failure_type": "correct",
+      "subtype": "",
+      "ground_truth_verdict": "SEAL",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "SEAL",
+      "status": "completed",
+      "latency_ms": 5014,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-SOAP-MYSORE",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              205.0,
+              169.0,
+              811.0,
+              482.0
+            ]
+          },
+          {
+            "sku": "SKU-STICKY-MRDIY",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              268.0,
+              518.0,
+              741.0,
+              875.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "Two items clearly visible and identified."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0049",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-BOOK-GGBB:1;SKU-SUNSCREEN-DERMA:1;SKU-SOAP-MYSORE:1;SKU-STICKY-MRDIY:1",
+      "failure_type": "bad_photo",
+      "subtype": "blur",
+      "ground_truth_verdict": "UNCERTAIN",
+      "ground_truth_checks": {
+        "all_items_present": "UNCERTAIN",
+        "quantities_correct": "UNCERTAIN",
+        "nothing_extra": "UNCERTAIN"
+      },
+      "predicted_verdict": "UNCERTAIN",
+      "status": "completed",
+      "latency_ms": 6450,
+      "checks": {
+        "all_items_present": {
+          "result": "UNCERTAIN",
+          "reason_code": "UNVERIFIED_UNDER_QUALITY_DEFECT",
+          "reason": "Image quality issues observed (blur): item presence cannot be verified",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "UNCERTAIN",
+          "reason_code": "UNVERIFIED_UNDER_QUALITY_DEFECT",
+          "reason": "Image quality issues observed (blur): item quantities cannot be verified",
+          "cause": "recognition"
+        },
+        "nothing_extra": {
+          "result": "UNCERTAIN",
+          "reason_code": "UNVERIFIED_UNDER_QUALITY_DEFECT",
+          "reason": "Image quality issues observed (blur): carton contents cannot be verified as free of extra items",
+          "cause": "recognition"
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-BOOK-GGBB",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              74.0,
+              64.0,
+              836.0,
+              518.0
+            ]
+          },
+          {
+            "sku": "SKU-SOAP-MYSORE",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              0.0,
+              514.0,
+              363.0,
+              742.0
+            ]
+          },
+          {
+            "sku": "SKU-SUNSCREEN-DERMA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              400.0,
+              508.0,
+              877.0,
+              691.0
+            ]
+          },
+          {
+            "sku": "SKU-STICKY-MRDIY",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              448.0,
+              664.0,
+              743.0,
+              943.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": [
+            "blur"
+          ]
+        },
+        "occlusion_suspected": false,
+        "notes": "Image is slightly blurry but all items are clearly identifiable."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0063",
+      "org_id": "org_demo_bravo",
+      "order_lines": "SKU-BOOK-GGGM:1;SKU-SUNSCREEN-DERMA:1;SKU-SANITIZER-DETTOL:1",
+      "failure_type": "missing",
+      "subtype": "",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "FAIL",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 2409,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-BOOK-GGGM",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-SUNSCREEN-DERMA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              222.0,
+              132.0,
+              902.0,
+              489.0
+            ]
+          },
+          {
+            "sku": "SKU-SANITIZER-DETTOL",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              261.0,
+              538.0,
+              805.0,
+              843.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "The photograph clearly shows one tube of Dermatouch sunscreen and one bottle of Dettol hand sanitizer."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0069",
+      "org_id": "org_demo_bravo",
+      "order_lines": "SKU-BOOK-GGGM:1;SKU-SANITIZER-DETTOL:1;SKU-SOAP-MYSORE:2;SKU-STICKY-MRDIY:1",
+      "failure_type": "short_quantity",
+      "subtype": "over_pack",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "FAIL",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 3005,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-SANITIZER-DETTOL",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "FAIL",
+          "reason_code": "SURPLUS_QUANTITY",
+          "reason": "Excess quantity packed for ordered item(s): SKU-SOAP-MYSORE (expected 2, observed 3)",
+          "cause": "recognition"
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "DECOY_ITEM_PRESENT",
+          "reason": "Unauthorized decoy SKU(s) found in box: SKU-SUNSCREEN-DERMA (count: 1)",
+          "cause": "recognition"
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-BOOK-GGGM",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              47.0,
+              83.0,
+              695.0,
+              493.0
+            ]
+          },
+          {
+            "sku": "SKU-SOAP-MYSORE",
+            "count": 3,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              38.0,
+              548.0,
+              658.0,
+              913.0
+            ]
+          },
+          {
+            "sku": "SKU-SUNSCREEN-DERMA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              353.0,
+              546.0,
+              747.0,
+              694.0
+            ]
+          },
+          {
+            "sku": "SKU-STICKY-MRDIY",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              693.0,
+              675.0,
+              954.0,
+              916.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "The three soap boxes are all SKU-SOAP-MYSORE."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0081",
+      "org_id": "org_demo_bravo",
+      "order_lines": "SKU-BOOK-GGGM:1;SKU-STICKY-MRDIY:1;SKU-PHONE-M36:1",
+      "failure_type": "occluded_absent",
+      "subtype": "",
+      "ground_truth_verdict": "UNCERTAIN",
+      "ground_truth_checks": {
+        "all_items_present": "UNCERTAIN",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 2312,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-STICKY-MRDIY",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-BOOK-GGGM",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              55.0,
+              45.0,
+              942.0,
+              542.0
+            ]
+          },
+          {
+            "sku": "SKU-PHONE-M36",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              103.0,
+              584.0,
+              893.0,
+              944.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": ""
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0084",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-SOAP-MYSORE:2;SKU-STICKY-MRDIY:1",
+      "failure_type": "correct",
+      "subtype": "",
+      "ground_truth_verdict": "SEAL",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "PASS"
+      },
+      "predicted_verdict": "SEAL",
+      "status": "completed",
+      "latency_ms": 2825,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "PASS",
+          "reason_code": "NO_EXTRA_ITEMS",
+          "reason": "No extra, decoy, or foreign items observed in the box",
+          "cause": null
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-SOAP-MYSORE",
+            "count": 2,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              278.0,
+              36.0,
+              801.0,
+              946.0
+            ]
+          },
+          {
+            "sku": "SKU-STICKY-MRDIY",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              320.0,
+              358.0,
+              727.0,
+              663.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": ""
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0087",
+      "org_id": "org_demo_bravo",
+      "order_lines": "SKU-SOAP-MYSORE:1;SKU-EARBUDS-BOAT:1",
+      "failure_type": "wrong_item",
+      "subtype": "",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "FAIL",
+        "quantities_correct": "PASS",
+        "nothing_extra": "FAIL"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 4430,
+      "checks": {
+        "all_items_present": {
+          "result": "FAIL",
+          "reason_code": "MISSING_ITEMS",
+          "reason": "Required item(s) missing from open box: SKU-SOAP-MYSORE",
+          "cause": "recognition"
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "DECOY_ITEM_PRESENT",
+          "reason": "Unauthorized decoy SKU(s) found in box: SKU-SANITIZER-DETTOL (count: 1)",
+          "cause": "recognition"
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-SANITIZER-DETTOL",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              205.0,
+              71.0,
+              705.0,
+              281.0
+            ]
+          },
+          {
+            "sku": "SKU-EARBUDS-BOAT",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              113.0,
+              458.0,
+              723.0,
+              923.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "Two items are clearly visible within the shipping container."
+      },
+      "error": null
+    },
+    {
+      "unit_id": "UNIT-0091",
+      "org_id": "org_demo_alpha",
+      "order_lines": "SKU-BOOK-GGGM:1;SKU-SUNSCREEN-DERMA:1;SKU-STICKY-MRDIY:1",
+      "failure_type": "extra",
+      "subtype": "",
+      "ground_truth_verdict": "STOP_AND_FIX",
+      "ground_truth_checks": {
+        "all_items_present": "PASS",
+        "quantities_correct": "PASS",
+        "nothing_extra": "FAIL"
+      },
+      "predicted_verdict": "STOP_AND_FIX",
+      "status": "completed",
+      "latency_ms": 12610,
+      "checks": {
+        "all_items_present": {
+          "result": "PASS",
+          "reason_code": "ALL_ITEMS_PRESENT",
+          "reason": "All required order SKUs are clearly present in the box",
+          "cause": null
+        },
+        "quantities_correct": {
+          "result": "PASS",
+          "reason_code": "QUANTITIES_MATCH",
+          "reason": "Observed item counts exactly match the order line quantities",
+          "cause": null
+        },
+        "nothing_extra": {
+          "result": "FAIL",
+          "reason_code": "DECOY_ITEM_PRESENT",
+          "reason": "Unauthorized decoy SKU(s) found in box: SKU-SANITIZER-DETTOL (count: 1)",
+          "cause": "recognition"
+        }
+      },
+      "observation": {
+        "observed_items": [
+          {
+            "sku": "SKU-BOOK-GGGM",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              121.0,
+              61.0,
+              915.0,
+              513.0
+            ]
+          },
+          {
+            "sku": "SKU-STICKY-MRDIY",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              92.0,
+              684.0,
+              391.0,
+              942.0
+            ]
+          },
+          {
+            "sku": "SKU-SUNSCREEN-DERMA",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              413.0,
+              521.0,
+              905.0,
+              693.0
+            ]
+          },
+          {
+            "sku": "SKU-SANITIZER-DETTOL",
+            "count": 1,
+            "count_confidence": 1.0,
+            "identity_confidence": 1.0,
+            "partially_occluded": false,
+            "bbox": [
+              458.0,
+              797.0,
+              857.0,
+              952.0
+            ]
+          }
+        ],
+        "unrecognised_items": [],
+        "image_quality": {
+          "usable": true,
+          "issues": []
+        },
+        "occlusion_suspected": false,
+        "notes": "All items clearly visible in a flat lay within the shipping box."
+      },
+      "error": null
+    }
+  ]
+}

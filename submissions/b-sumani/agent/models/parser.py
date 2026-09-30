@@ -62,6 +62,26 @@ def parse_and_validate_observation(
         except json.JSONDecodeError as err:
             raise ModelParsingError(f"Failed to parse JSON even after local repair: {err}") from err
 
+    # Sanitize observed_items and unrecognised_items bboxes to exactly 4 coordinates
+    if isinstance(data, dict):
+        for key in ("observed_items", "unrecognised_items"):
+            items = data.get(key)
+            if isinstance(items, list):
+                for item in items:
+                    if isinstance(item, dict) and "bbox" in item:
+                        bbox = item.get("bbox")
+                        if isinstance(bbox, list) and len(bbox) != 4:
+                            if len(bbox) >= 4 and len(bbox) % 4 == 0:
+                                ymin = min(bbox[0::4])
+                                xmin = min(bbox[1::4])
+                                ymax = max(bbox[2::4])
+                                xmax = max(bbox[3::4])
+                                item["bbox"] = [ymin, xmin, ymax, xmax]
+                            elif len(bbox) > 4:
+                                item["bbox"] = bbox[:4]
+                            else:
+                                item["bbox"] = [0, 0, 1000, 1000]
+
     # Validate against Pydantic schema
     try:
         observation = ModelObservation.model_validate(data)
