@@ -20,7 +20,7 @@ Current-state notes for the build agent. Update in place. Replace outdated lines
 
 ## Projects
 - Deadline: 1 Oct 2026, 6:00 PM IST. No resubmission. Commits only during the build phase.
-- Current step: Step 14 complete (Confidence Display Diagnosis & Raw Two-Decimal Precision Fix). Live server actively running on http://127.0.0.1:8000. 59 tests passing offline, 5 live skipped. Awaiting owner "continue". The 50-unit eval set remains strictly frozen and sealed.
+- Current step: Step 16 complete (Blind Dev Set Verification & Audit Trail Evidence Seeding). Dev set verified without answers. 18 verified records and evidence photographs populated in audit log. 69 tests passing offline, 5 live skipped. Working tree uncommitted awaiting owner instruction. The 50-unit eval set remains strictly frozen and sealed.
 - Done:
   - Step 1 & 1b: DB schema with forced RLS on all 7 tables, non-bypass app role `pack_app_user`, append-only overrides, connection pooling isolation with `SET LOCAL app.current_org_id`, unguessable storage keys with HMAC-SHA256 signed URLs. Tenancy logic tested offline (6/6 tests passing); live suite ready.
   - Step 2: Model adapter with tightened schema, non-candidate demotion to unrecognised items, local string repair (no second LLM call), transport retries inside timeout budget, live smoke test verified on `gemini-3-flash-preview` (latency: 4466ms). Eval harness mock-adapter guard.

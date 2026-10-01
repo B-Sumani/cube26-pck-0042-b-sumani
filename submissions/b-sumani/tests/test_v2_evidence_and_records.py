@@ -294,3 +294,70 @@ def test_confidence_display_shows_raw_two_decimal_and_never_rounded_to_100_perce
     assert "100%" not in detail_table
     assert "Model-Reported Confidence (Not Calibrated)" in detail_html
 
+
+def test_dev_set_records_seeded_with_evidence_and_tenant_isolation(client):
+    """Proves dev set records are seeded with full evidence and strictly isolated by tenant."""
+    from agent.main import sign_session_org, COOKIE_NAME
+
+    # 1. Alpha tenant audit log checks
+    alpha_index = client.get("/")
+    assert alpha_index.status_code == 200
+    assert "PCK-DEV-0017" in alpha_index.text
+    assert "PCK-DEV-0010" in alpha_index.text
+    # Bravo's dev records must NOT appear in Alpha's view
+    assert "PCK-DEV-0012" not in alpha_index.text
+    assert "PCK-DEV-0021" not in alpha_index.text
+
+    # 2. Alpha record detail & evidence permalink checks (UNIT-0017: clean correct box)
+    detail_resp = client.get("/pack/record/PCK-DEV-0017")
+    assert detail_resp.status_code == 200
+    detail_html = detail_resp.text
+
+    assert "PCK-DEV-0017" in detail_html
+    assert "UNIT-0017" in detail_html
+    assert "ORD-DUMMY-50017" in detail_html
+    assert "GO · SEAL APPROVED" in detail_html
+    assert "All Items Present" in detail_html
+    assert "Quantities Correct" in detail_html
+    assert "Nothing Extra" in detail_html
+    assert "Content Hash (SHA-256):" in detail_html
+    assert "SKU-EARBUDS-BOAT" in detail_html
+    assert "SKU-PHONE-M36" in detail_html
+    assert "/api/storage/tenants/org_demo_alpha/UNIT-0017/" in detail_html
+    assert "<svg" in detail_html  # SVG bounding box overlay
+
+    # Fetch the image through the signed URL
+    match_img = re.search(r'src="(/api/storage/tenants/org_demo_alpha/UNIT-0017/[^"]+)"', detail_html)
+    assert match_img is not None
+    img_url = match_img.group(1).replace("&amp;", "&")
+    img_resp = client.get(img_url)
+    assert img_resp.status_code == 200
+    assert img_resp.headers["content-type"] in ("image/jpeg", "image/png")
+    assert len(img_resp.content) > 0
+
+    # 3. Cross-tenant isolation: Bravo cannot view Alpha's dev record
+    bravo_client = TestClient(app)
+    bravo_client.cookies.set(COOKIE_NAME, sign_session_org("org_demo_bravo"))
+
+    cross_resp = bravo_client.get("/pack/record/PCK-DEV-0017")
+    assert cross_resp.status_code == 404
+
+    # Bravo cannot fetch Alpha's image using Alpha's signed URL
+    cross_img_resp = bravo_client.get(img_url)
+    assert cross_img_resp.status_code == 403
+
+    # 4. Bravo sees its own dev records
+    bravo_index = bravo_client.get("/")
+    assert bravo_index.status_code == 200
+    assert "PCK-DEV-0012" in bravo_index.text
+    assert "PCK-DEV-0017" not in bravo_index.text
+
+    # Bravo record detail & evidence permalink checks (UNIT-0012)
+    bravo_detail = bravo_client.get("/pack/record/PCK-DEV-0012")
+    assert bravo_detail.status_code == 200
+    assert "PCK-DEV-0012" in bravo_detail.text
+    assert "UNIT-0012" in bravo_detail.text
+    assert "STOP · STOP AND FIX" in bravo_detail.text
+    assert "/api/storage/tenants/org_demo_bravo/UNIT-0012/" in bravo_detail.text
+
+

@@ -134,11 +134,12 @@ def get_session_org(request: Request) -> Optional[str]:
 
 @app.on_event("startup")
 def init_demo_tenants():
-    """Initializes and seeds default catalogue items for both demo organisations."""
+    """Initializes and seeds default catalogue items and dev records for both demo organisations."""
     for demo_org, name in [("org_demo_alpha", "Alpha Demo Merchant"), ("org_demo_bravo", "Bravo Demo 3PL")]:
         r = PackRepository(org_id=demo_org)
         r.create_org(demo_org, name)
         r.seed_catalogue_if_empty()
+        r.seed_dev_records_if_empty()
 
 
 # Active model adapter instance (singleton or injectable for testing)
@@ -217,6 +218,7 @@ async def get_index(request: Request):
     adapter = get_adapter()
     repo = PackRepository(org_id=session_org)
     repo.seed_catalogue_if_empty()
+    repo.seed_dev_records_if_empty()
     catalogue_items = repo.list_catalogue_items()
     recent_records = repo.list_records()
     org_name = "Alpha Demo Merchant" if session_org == "org_demo_alpha" else "Bravo Demo 3PL"
@@ -503,6 +505,7 @@ async def get_record_detail(request: Request, record_id: str):
     org_id = session_org
 
     repo = PackRepository(org_id=org_id)
+    repo.seed_dev_records_if_empty()
     record = repo.get_record(record_id)
     if not record:
         raise HTTPException(

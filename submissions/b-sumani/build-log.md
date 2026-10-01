@@ -568,3 +568,28 @@ Chronological log of engineering steps, design decisions, and test outcomes. App
   - Latency: p50 = 5207.0 ms, p95 = 8860.4 ms, mean = 5475.2 ms, min = 2983.0 ms, max = 10523.0 ms, timeouts = 0.
 - **Test Suite Results**:
   - Full test suite: 68 passed offline, 5 skipped (live). Zero regressions.
+
+---
+
+## 2026-10-01 · Step 16: Blind Dev Set Verification & Audit Trail Evidence Seeding
+
+- **Scope & Objectives**:
+  - Run the full 18-carton development set strictly without answers / ground truth (blind evaluation from `data/dev/inputs.csv` and `data/catalogue.csv`).
+  - Add verified records into the Pack Manager audit log table (`#records`) and populate full evidence records for downstream Pod review.
+  - Strictly maintain multi-tenant isolation: `org_demo_alpha` sees only its 10 dev cartons (`UNIT-0010`, `0017`, `0019`, `0020`, `0024`, `0029`, `0048`, `0049`, `0084`, `0091`); `org_demo_bravo` sees only its 8 dev cartons (`UNIT-0012`, `0021`, `0038`, `0043`, `0063`, `0069`, `0081`, `0087`).
+  - Evidence details populated:
+    - Open-box photographs served via short-lived HMAC org-scoped signed URLs (`/api/storage/...`).
+    - SVG bounding box overlays outlining detected candidate products.
+    - Order lines vs observed items comparison table with raw two-decimal confidence scores (`0.93 count · 0.93 id`), occlusions, and mismatch highlights.
+    - Three orthogonal pack checks (all items present, quantities correct, nothing extra).
+    - Cryptographic SHA-256 content hashes, model metadata, and latency.
+  - Zero git commits made (staged changes preserved in working directory awaiting user instruction).
+- **Components Built / Updated**:
+  - `agent/run_dev_blind.py`: Standalone CLI runner executing blind verification over all 18 dev cartons using only candidate SKUs from catalogue and image bytes, without inspecting `truth.csv`, and seeding audit logs into the repository.
+  - `agent/db/repo.py`: Implemented `seed_dev_records_if_empty()` on `PackRepository` to automatically hydrate tenant-scoped dev audit records and evidence on demand.
+  - `agent/db/storage.py`: Enhanced `get_file_bytes()` to resolve dev set open-box photos from `data/dev/images/` with caching.
+  - `agent/main.py`: Connected `seed_dev_records_if_empty()` to application startup and tenant view routes.
+  - `tests/test_v2_evidence_and_records.py`: Added `test_dev_set_records_seeded_with_evidence_and_tenant_isolation` validating Alpha's 10 records, Bravo's 8 records, signed photo retrieval, SVG overlays, and cross-tenant access rejection (404 on record detail, 403 on image URL).
+- **Test Results**:
+  - Full test suite: 69 passed offline, 5 skipped (live Supabase). Zero failures.
+

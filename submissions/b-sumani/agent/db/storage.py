@@ -13,6 +13,7 @@ import hmac
 import hashlib
 import uuid
 from typing import Optional
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -131,6 +132,24 @@ def get_file_bytes(storage_key: str) -> Optional[bytes]:
     """Retrieves file bytes from local cache or Supabase Storage."""
     if storage_key in _local_file_cache:
         return _local_file_cache[storage_key]
+
+    # Fallback resolution for dev set open-box photos
+    parts = storage_key.strip("/").split("/")
+    if len(parts) >= 3 and parts[0] == "tenants":
+        unit_id = parts[2]
+        possible_dirs = [
+            Path(__file__).resolve().parents[2] / "data" / "dev" / "images",
+            Path("submissions/b-sumani/data/dev/images"),
+            Path("data/dev/images"),
+        ]
+        for d in possible_dirs:
+            for ext in (".jpeg", ".jpg", ".png"):
+                img_p = d / f"{unit_id}_open_box{ext}"
+                if img_p.exists():
+                    img_bytes = img_p.read_bytes()
+                    _local_file_cache[storage_key] = img_bytes
+                    return img_bytes
+
     supabase_url = os.getenv("SUPABASE_URL")
     supabase_service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     if supabase_url and supabase_service_key:
