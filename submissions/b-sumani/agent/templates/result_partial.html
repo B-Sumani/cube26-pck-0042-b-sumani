@@ -1,5 +1,5 @@
 <!-- Result Partial: Rendered via HTMX into #result-container -->
-<div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-md space-y-8 animate-fadeIn">
+<div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 md:p-8 shadow-md space-y-6 sm:space-y-8 animate-fadeIn">
 
   {% if candidate_source == 'order_only' %}
   <div class="bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-lg text-xs flex items-center space-x-2.5 shadow-sm">
@@ -16,24 +16,24 @@
   <!-- Top Decision Banner -->
   <div>
     {% if status == 'pending' %}
-      <div class="bg-[#eceeed] border-l-4 border-[var(--pending)] p-6 rounded-r-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="bg-[#eceeed] border-l-4 border-[var(--pending)] p-4 sm:p-6 rounded-r-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center space-x-3">
-            <span class="text-3xl font-serif font-bold text-[var(--pending)]">PENDING</span>
+            <span class="text-2xl sm:text-3xl font-serif font-bold text-[var(--pending)]">PENDING</span>
             <span class="px-2.5 py-1 text-xs font-bold rounded uppercase tracking-wider bg-gray-200 text-[var(--pending)]">Fail-Open</span>
           </div>
-          <p class="text-base font-semibold text-[var(--charcoal)] mt-2">
+          <p class="text-sm sm:text-base font-semibold text-[var(--charcoal)] mt-2">
             Agent unavailable: seal on your own judgment
           </p>
           <p class="text-xs text-[var(--taupe)] mt-1">
             Capture saved under record {{ record_id }}. Operational line is not blocked.
           </p>
         </div>
-        <div class="text-right text-xs font-mono text-[var(--taupe)]">
+        <div class="text-left md:text-right text-xs font-mono text-[var(--taupe)] w-full md:w-auto">
           <div>Unit: <strong class="text-[var(--charcoal)]">{{ unit_id }}</strong></div>
           <div>Status: <strong class="text-[var(--pending)] uppercase">pending</strong></div>
           <div class="mt-2">
-            <a href="/pack/record/{{ record_id }}?org_id={{ org_id }}" target="_blank" class="inline-block px-3 py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[11px] font-semibold uppercase tracking-wider transition">
+            <a href="/pack/record/{{ record_id }}?org_id={{ org_id }}" target="_blank" class="inline-block px-3 py-1.5 sm:py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[11px] font-semibold uppercase tracking-wider transition">
               View Evidence Record ↗
             </a>
           </div>
@@ -41,22 +41,22 @@
       </div>
 
     {% elif verdict == 'SEAL' %}
-      <div class="bg-[#edf3ec] border-l-4 border-[var(--pass)] p-6 rounded-r-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="bg-[#edf3ec] border-l-4 border-[var(--pass)] p-4 sm:p-6 rounded-r-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center space-x-3">
-            <span class="text-4xl font-serif font-bold text-[var(--pass)]">GO</span>
-            <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#d9e6d7] text-[var(--pass)]">SEAL</span>
+            <span class="text-3xl sm:text-4xl font-serif font-bold text-[var(--pass)]">GO</span>
+            <span class="px-2.5 sm:px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#d9e6d7] text-[var(--pass)]">SEAL</span>
           </div>
           <p class="text-sm font-medium text-[var(--charcoal)] mt-2">
             All checks passed. Box matches expected order lines. Safe to seal.
           </p>
         </div>
-        <div class="text-right text-xs font-mono text-[var(--taupe)]">
+        <div class="text-left md:text-right text-xs font-mono text-[var(--taupe)] w-full md:w-auto">
           <div>Record: <strong class="text-[var(--charcoal)]">{{ record_id }}</strong></div>
           <div>Unit: <strong class="text-[var(--charcoal)]">{{ unit_id }}</strong></div>
           <div>Latency: <strong class="text-[var(--charcoal)]">{{ model_latency_ms }}ms</strong></div>
           <div class="mt-2">
-            <a href="/pack/record/{{ record_id }}?org_id={{ org_id }}" target="_blank" class="inline-block px-3 py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[11px] font-semibold uppercase tracking-wider transition">
+            <a href="/pack/record/{{ record_id }}?org_id={{ org_id }}" target="_blank" class="inline-block px-3 py-1.5 sm:py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[11px] font-semibold uppercase tracking-wider transition">
               View Evidence Record ↗
             </a>
           </div>
@@ -64,22 +64,22 @@
       </div>
 
     {% elif verdict == 'STOP_AND_FIX' %}
-      <div class="bg-[#fcf0ee] border-l-4 border-[var(--fail)] p-6 rounded-r-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="bg-[#fcf0ee] border-l-4 border-[var(--fail)] p-4 sm:p-6 rounded-r-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center space-x-3">
-            <span class="text-4xl font-serif font-bold text-[var(--fail)]">STOP</span>
-            <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#f8dcd8] text-[var(--fail)]">STOP_AND_FIX</span>
+            <span class="text-3xl sm:text-4xl font-serif font-bold text-[var(--fail)]">STOP</span>
+            <span class="px-2.5 sm:px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#f8dcd8] text-[var(--fail)]">STOP_AND_FIX</span>
           </div>
           <p class="text-sm font-medium text-[var(--charcoal)] mt-2">
             Do not seal this box. One or more order conditions failed verification.
           </p>
         </div>
-        <div class="text-right text-xs font-mono text-[var(--taupe)]">
+        <div class="text-left md:text-right text-xs font-mono text-[var(--taupe)] w-full md:w-auto">
           <div>Record: <strong class="text-[var(--charcoal)]">{{ record_id }}</strong></div>
           <div>Unit: <strong class="text-[var(--charcoal)]">{{ unit_id }}</strong></div>
           <div>Latency: <strong class="text-[var(--charcoal)]">{{ model_latency_ms }}ms</strong></div>
           <div class="mt-2">
-            <a href="/pack/record/{{ record_id }}?org_id={{ org_id }}" target="_blank" class="inline-block px-3 py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[11px] font-semibold uppercase tracking-wider transition">
+            <a href="/pack/record/{{ record_id }}?org_id={{ org_id }}" target="_blank" class="inline-block px-3 py-1.5 sm:py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[11px] font-semibold uppercase tracking-wider transition">
               View Evidence Record ↗
             </a>
           </div>
@@ -87,25 +87,25 @@
       </div>
 
     {% elif verdict == 'UNCERTAIN' %}
-      <div class="bg-[#fff9ee] border-l-4 border-[var(--uncertain)] p-6 rounded-r-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="bg-[#fff9ee] border-l-4 border-[var(--uncertain)] p-4 sm:p-6 rounded-r-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center space-x-3">
-            <span class="text-4xl font-serif font-bold text-[var(--fail)]">STOP</span>
-            <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#fceecf] text-[var(--uncertain)]">UNCERTAIN</span>
+            <span class="text-3xl sm:text-4xl font-serif font-bold text-[var(--fail)]">STOP</span>
+            <span class="px-2.5 sm:px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#fceecf] text-[var(--uncertain)]">UNCERTAIN</span>
           </div>
-          <p class="text-base font-bold text-[var(--charcoal)] mt-2">
+          <p class="text-sm sm:text-base font-bold text-[var(--charcoal)] mt-2">
             The agent could not verify this box. Please check the photo manually.
           </p>
           <p class="text-xs text-[var(--taupe)] mt-1">
             Operator action is STOP; evidence record preserves true UNCERTAIN outcome.
           </p>
         </div>
-        <div class="text-right text-xs font-mono text-[var(--taupe)]">
+        <div class="text-left md:text-right text-xs font-mono text-[var(--taupe)] w-full md:w-auto">
           <div>Record: <strong class="text-[var(--charcoal)]">{{ record_id }}</strong></div>
           <div>Unit: <strong class="text-[var(--charcoal)]">{{ unit_id }}</strong></div>
           <div>Latency: <strong class="text-[var(--charcoal)]">{{ model_latency_ms }}ms</strong></div>
           <div class="mt-2">
-            <a href="/pack/record/{{ record_id }}?org_id={{ org_id }}" target="_blank" class="inline-block px-3 py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[11px] font-semibold uppercase tracking-wider transition">
+            <a href="/pack/record/{{ record_id }}?org_id={{ org_id }}" target="_blank" class="inline-block px-3 py-1.5 sm:py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[11px] font-semibold uppercase tracking-wider transition">
               View Evidence Record ↗
             </a>
           </div>
@@ -192,45 +192,47 @@
   {% endif %}
 
   <!-- Evidence Breakdown & Photo View -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
     <!-- Left: Expected vs Observed Table -->
     <div class="space-y-4">
       <h3 class="font-serif text-xl font-bold text-[var(--espresso)]">Contents Comparison</h3>
       <div class="bg-white border border-[var(--stone-light)] rounded-lg overflow-hidden">
-        <table class="w-full text-xs text-left">
-          <thead class="bg-[var(--stone-light)] text-[var(--umber)] uppercase tracking-wider">
-            <tr>
-              <th class="py-2.5 px-3">SKU</th>
-              <th class="py-2.5 px-3">Expected Qty</th>
-              <th class="py-2.5 px-3">Observed Count</th>
-              <th class="py-2.5 px-3">Model-Reported Confidence (Not Calibrated)</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[var(--stone-light)] font-mono">
-            {% for item in comparison_table %}
-            <tr class="{% if item.mismatch %}bg-red-50/50{% endif %}">
-              <td class="py-2.5 px-3 font-semibold text-[var(--charcoal)]">{{ item.sku }}</td>
-              <td class="py-2.5 px-3">{{ item.expected_qty }}</td>
-              <td class="py-2.5 px-3 {% if item.mismatch %}text-[var(--fail)] font-bold{% endif %}">
-                {{ item.observed_count }}
-                {% if item.occluded %}<span class="ml-1 text-[10px] text-[var(--uncertain)]">(occluded)</span>{% endif %}
-              </td>
-              <td class="py-2.5 px-3 text-[var(--taupe)]">
-                {% if item.count_conf is not none %}
-                  {{ "%.2f"|format(item.count_conf) }} count · {{ "%.2f"|format(item.ident_conf) }} id
-                {% else %}
-                  N/A
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left min-w-[460px] sm:min-w-full">
+            <thead class="bg-[var(--stone-light)] text-[var(--umber)] uppercase tracking-wider">
+              <tr>
+                <th class="py-2.5 px-3">SKU</th>
+                <th class="py-2.5 px-3">Expected Qty</th>
+                <th class="py-2.5 px-3">Observed Count</th>
+                <th class="py-2.5 px-3">Model-Reported Confidence (Not Calibrated)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[var(--stone-light)] font-mono">
+              {% for item in comparison_table %}
+              <tr class="{% if item.mismatch %}bg-red-50/50{% endif %}">
+                <td class="py-2.5 px-3 font-semibold text-[var(--charcoal)]">{{ item.sku }}</td>
+                <td class="py-2.5 px-3">{{ item.expected_qty }}</td>
+                <td class="py-2.5 px-3 {% if item.mismatch %}text-[var(--fail)] font-bold{% endif %}">
+                  {{ item.observed_count }}
+                  {% if item.occluded %}<span class="ml-1 text-[10px] text-[var(--uncertain)]">(occluded)</span>{% endif %}
+                </td>
+                <td class="py-2.5 px-3 text-[var(--taupe)]">
+                  {% if item.count_conf is not none %}
+                    {{ "%.2f"|format(item.count_conf) }} count · {{ "%.2f"|format(item.ident_conf) }} id
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Content Hash & Record Integrity -->
-      <div class="text-[11px] text-[var(--taupe)] font-mono bg-white p-3 rounded border border-[var(--stone-light)]">
-        <div>Content Hash (SHA-256): <span class="text-[var(--charcoal)] select-all">{{ content_hash }}</span></div>
+      <div class="text-[11px] text-[var(--taupe)] font-mono bg-white p-3 rounded border border-[var(--stone-light)] space-y-1">
+        <div class="break-all">Content Hash (SHA-256): <span class="text-[var(--charcoal)] select-all">{{ content_hash }}</span></div>
         <div>Model Used: <span class="text-[var(--charcoal)]">{{ model_name }}</span></div>
       </div>
     </div>
@@ -242,9 +244,9 @@
         <span class="text-xs text-[var(--taupe)] font-mono">Org-Scoped Signed URL</span>
       </div>
       
-      <div class="relative bg-black rounded-lg overflow-hidden border border-[var(--stone)] flex items-center justify-center max-h-96">
+      <div class="relative bg-black rounded-lg overflow-hidden border border-[var(--stone)] flex items-center justify-center max-h-80 sm:max-h-96 md:max-h-[460px]">
         {% if signed_image_url %}
-          <img src="{{ signed_image_url | safe }}" alt="Open Box Capture" class="w-full h-auto object-contain max-h-96">
+          <img src="{{ signed_image_url | safe }}" alt="Open Box Capture" class="w-full h-auto object-contain max-h-80 sm:max-h-96 md:max-h-[460px]">
           
           <!-- SVG Overlay for Bounding Boxes (Evidence only) -->
           {% if bboxes %}
@@ -269,7 +271,7 @@
   </div>
 
   <!-- Operator Override Flow -->
-  <div class="border-t border-[var(--stone-light)] pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+  <div class="border-t border-[var(--stone-light)] pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
     <div class="text-xs text-[var(--taupe)]">
       Disagreed with the automated verdict? Record an immutable human override.
     </div>
@@ -280,7 +282,7 @@
           <span>Manual Operator Override</span>
           <span class="group-open:rotate-180 transition-transform">▼</span>
         </summary>
-        <div class="absolute right-0 bottom-full mb-2 w-80 bg-white border border-[var(--stone)] rounded-xl shadow-xl p-5 z-20 space-y-4">
+        <div class="absolute right-0 bottom-full mb-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white border border-[var(--stone)] rounded-xl shadow-xl p-4 sm:p-5 z-20 space-y-4">
           <h4 class="font-serif text-base font-bold text-[var(--espresso)]">Submit Override</h4>
           <form hx-post="/pack/override" hx-target="#result-container" class="space-y-3">
             <input type="hidden" name="record_id" value="{{ record_id }}">

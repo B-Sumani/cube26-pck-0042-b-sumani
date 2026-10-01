@@ -66,7 +66,7 @@
 
   <!-- Catalogue Items Table -->
   <div class="bg-white border border-[var(--stone-light)] rounded-xl overflow-hidden shadow-sm">
-    <div class="px-5 py-3 border-b border-[var(--stone-light)] bg-[var(--cream-soft)] flex items-center justify-between">
+    <div class="px-4 sm:px-5 py-3 border-b border-[var(--stone-light)] bg-[var(--cream-soft)] flex flex-col sm:flex-row sm:items-center justify-between gap-1">
       <span class="font-semibold text-xs uppercase tracking-wider text-[var(--espresso)]">
         Seller Catalogue ({{ catalogue_items|length }} Products)
       </span>
@@ -75,13 +75,13 @@
 
     {% if catalogue_items %}
     <div class="overflow-x-auto">
-      <table class="w-full text-xs text-left">
+      <table class="w-full text-xs text-left min-w-[500px]">
         <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider bg-[var(--cream-soft)]/50">
           <tr>
-            <th class="py-2.5 px-4 font-mono">SKU</th>
-            <th class="py-2.5 px-4">Title</th>
-            <th class="py-2.5 px-4">Visual Description</th>
-            <th class="py-2.5 px-4 text-right">Actions</th>
+            <th class="py-2.5 px-3 sm:px-4 font-mono">SKU</th>
+            <th class="py-2.5 px-3 sm:px-4">Title</th>
+            <th class="py-2.5 px-3 sm:px-4">Visual Description</th>
+            <th class="py-2.5 px-3 sm:px-4 text-right">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-[var(--stone-light)]">

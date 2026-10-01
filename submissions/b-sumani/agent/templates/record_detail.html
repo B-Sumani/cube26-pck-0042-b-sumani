@@ -44,19 +44,19 @@
 <body class="min-h-screen flex flex-col justify-between">
 
   <!-- Top Navigation Bar -->
-  <header class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] sticky top-0 z-50 shadow-md">
-    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-4">
-        <a href="/?org_id={{ record.org_id }}" class="font-serif text-2xl font-bold tracking-wide hover:text-[var(--stone-light)] transition">
+  <header class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] sticky top-0 z-50 shadow-md px-3 sm:px-6 py-2.5 sm:py-0">
+    <div class="max-w-7xl mx-auto min-h-[48px] sm:h-16 flex flex-wrap items-center justify-between gap-y-2">
+      <div class="flex items-center space-x-2 sm:space-x-4">
+        <a href="/?org_id={{ record.org_id }}" class="font-serif text-lg sm:text-2xl font-bold tracking-wide hover:text-[var(--stone-light)] transition whitespace-nowrap">
           PACK MANAGER
         </a>
-        <span class="text-xs uppercase tracking-widest text-[var(--stone)] px-2 py-0.5 border border-[var(--umber)] rounded">
+        <span class="text-[10px] sm:text-xs uppercase tracking-widest text-[var(--stone)] px-2 py-0.5 border border-[var(--umber)] rounded">
           Evidence Record
         </span>
       </div>
-      <div class="flex items-center space-x-6 text-xs tracking-wider">
+      <div class="flex items-center space-x-3 sm:space-x-6 text-[11px] sm:text-xs tracking-wider">
         <span class="font-mono text-[var(--stone)]">Tenant: <strong class="text-[var(--cream)]">{{ record.org_id }}</strong></span>
-        <a href="/#records" class="hover:text-[var(--stone-light)] underline uppercase font-semibold">
+        <a href="/#records" class="hover:text-[var(--stone-light)] underline uppercase font-semibold whitespace-nowrap">
           ← Back to Audit Log
         </a>
       </div>
@@ -64,34 +64,34 @@
   </header>
 
   <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-6 py-10 w-full space-y-8 flex-grow">
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-10 w-full space-y-6 sm:space-y-8 flex-grow">
     
     <!-- Top Record Header Banner -->
-    <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-sm">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[var(--stone-light)]">
+    <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 md:p-8 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 pb-5 sm:pb-6 border-b border-[var(--stone-light)]">
         <div>
-          <div class="flex items-center space-x-3 mb-2">
-            <h1 class="font-serif text-3xl font-bold text-[var(--espresso)]">{{ record.id }}</h1>
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--espresso)]">{{ record.id }}</h1>
             
             {% if record.status == 'pending' %}
-              <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#eceef0] text-[var(--pending)] border border-[var(--stone)]">
+              <span class="px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold rounded uppercase tracking-wider bg-[#eceef0] text-[var(--pending)] border border-[var(--stone)]">
                 PENDING (AGENT UNAVAILABLE)
               </span>
             {% elif record.verdict == 'SEAL' %}
-              <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#edf3ec] text-[var(--pass)] border border-[var(--pass)]">
+              <span class="px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold rounded uppercase tracking-wider bg-[#edf3ec] text-[var(--pass)] border border-[var(--pass)]">
                 GO · SEAL APPROVED
               </span>
             {% elif record.verdict == 'STOP_AND_FIX' %}
-              <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#fcf0ee] text-[var(--fail)] border border-[var(--fail)]">
+              <span class="px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold rounded uppercase tracking-wider bg-[#fcf0ee] text-[var(--fail)] border border-[var(--fail)]">
                 STOP · STOP AND FIX
               </span>
             {% elif record.verdict == 'UNCERTAIN' %}
-              <span class="px-3 py-1 text-xs font-bold rounded uppercase tracking-wider bg-[#fff9ee] text-[var(--uncertain)] border border-[var(--uncertain)]">
+              <span class="px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold rounded uppercase tracking-wider bg-[#fff9ee] text-[var(--uncertain)] border border-[var(--uncertain)]">
                 STOP · UNCERTAIN (MANUAL CHECK REQUIRED)
               </span>
             {% endif %}
           </div>
-          <p class="text-xs text-[var(--taupe)] font-mono">
+          <p class="text-[11px] sm:text-xs text-[var(--taupe)] font-mono leading-relaxed">
             Unit Key: <strong class="text-[var(--charcoal)]">{{ record.unit_id }}</strong> &nbsp;·&nbsp;
             Order: <strong class="text-[var(--charcoal)]">{{ capture.order_id if capture else 'N/A' }}</strong> &nbsp;·&nbsp;
             Captured UTC: <strong class="text-[var(--charcoal)]">{{ record.created_at }}</strong>
@@ -103,15 +103,15 @@
 
       <!-- Human Attention Banners -->
       {% if record.verdict == 'UNCERTAIN' %}
-      <div class="mt-6 bg-[#fff9ee] border-l-4 border-[var(--uncertain)] p-4 rounded-r text-xs">
-        <div class="font-bold text-[var(--uncertain)] uppercase tracking-wider text-sm mb-1">Human Attention Required</div>
+      <div class="mt-4 sm:mt-6 bg-[#fff9ee] border-l-4 border-[var(--uncertain)] p-3.5 sm:p-4 rounded-r text-xs">
+        <div class="font-bold text-[var(--uncertain)] uppercase tracking-wider text-xs sm:text-sm mb-1">Human Attention Required</div>
         <p class="text-[var(--charcoal)] font-medium">
           The agent could not verify this box. Please check the photo manually.
         </p>
       </div>
       {% elif record.status == 'pending' %}
-      <div class="mt-6 bg-[#eceef0] border-l-4 border-[var(--pending)] p-4 rounded-r text-xs">
-        <div class="font-bold text-[var(--pending)] uppercase tracking-wider text-sm mb-1">Fail-Open Safe Mode</div>
+      <div class="mt-4 sm:mt-6 bg-[#eceef0] border-l-4 border-[var(--pending)] p-3.5 sm:p-4 rounded-r text-xs">
+        <div class="font-bold text-[var(--pending)] uppercase tracking-wider text-xs sm:text-sm mb-1">Fail-Open Safe Mode</div>
         <p class="text-[var(--charcoal)] font-medium">
           Agent unavailable: seal on your own judgment.
         </p>
@@ -203,17 +203,17 @@
     </div>
 
     <!-- Evidence Content & Photo Columns -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
       
       <!-- Left Column: Order Comparison & Audit Metadata -->
       <div class="space-y-6">
         
         <!-- Comparison Table -->
-        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-6 shadow-sm">
-          <h3 class="font-serif text-xl font-bold text-[var(--espresso)] mb-4">Order Lines vs Model Observations</h3>
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 shadow-sm">
+          <h3 class="font-serif text-lg sm:text-xl font-bold text-[var(--espresso)] mb-4">Order Lines vs Model Observations</h3>
           
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
+          <div class="overflow-x-auto -mx-1 sm:mx-0">
+            <table class="w-full min-w-[460px] sm:min-w-full text-xs text-left">
               <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider">
                 <tr>
                   <th class="py-2.5 px-3">SKU</th>
@@ -246,10 +246,10 @@
         </div>
 
         <!-- Audit Log Technical Details -->
-        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-6 shadow-sm space-y-3 font-mono text-xs">
-          <h3 class="font-serif text-lg font-bold text-[var(--espresso)] font-sans">Audit Log Specifications</h3>
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 shadow-sm space-y-3 font-mono text-xs">
+          <h3 class="font-serif text-base sm:text-lg font-bold text-[var(--espresso)] font-sans">Audit Log Specifications</h3>
           
-          <div class="grid grid-cols-2 gap-2 text-[11px] text-[var(--charcoal)]">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-[var(--charcoal)]">
             <div><span class="text-[var(--taupe)]">Model Name:</span> {{ record.model or 'None' }}</div>
             <div><span class="text-[var(--taupe)]">Latency:</span> {{ record.model_latency_ms }} ms</div>
             <div><span class="text-[var(--taupe)]">Prompt Version:</span> {{ audit_metadata.prompt_version }}</div>
@@ -270,15 +270,15 @@
 
       <!-- Right Column: Evidence Photo with SVG Overlays -->
       <div class="space-y-6">
-        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-6 shadow-sm space-y-4">
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 shadow-sm space-y-4">
           <div class="flex items-center justify-between">
-            <h3 class="font-serif text-xl font-bold text-[var(--espresso)]">Open-Box Photo Capture</h3>
+            <h3 class="font-serif text-lg sm:text-xl font-bold text-[var(--espresso)]">Open-Box Photo Capture</h3>
             <span class="text-[11px] text-[var(--taupe)] font-mono">Org-Scoped Signed URL</span>
           </div>
 
-          <div class="relative bg-black rounded-lg overflow-hidden border border-[var(--stone)] flex items-center justify-center max-h-[460px]">
+          <div class="relative bg-black rounded-lg overflow-hidden border border-[var(--stone)] flex items-center justify-center max-h-80 sm:max-h-96 md:max-h-[460px]">
             {% if signed_image_url %}
-              <img src="{{ signed_image_url | safe }}" alt="Open Box Capture" class="w-full h-auto object-contain max-h-[460px]">
+              <img src="{{ signed_image_url | safe }}" alt="Open Box Capture" class="w-full h-auto object-contain max-h-80 sm:max-h-96 md:max-h-[460px]">
               
               <!-- SVG Bounding Boxes Overlay (Evidence Only) -->
               {% if bboxes %}
@@ -293,7 +293,7 @@
               </svg>
               {% endif %}
             {% else %}
-              <div class="p-12 text-center text-xs text-[var(--stone)]">
+              <div class="p-8 sm:p-12 text-center text-xs text-[var(--stone)]">
                 No image stored for this capture.
               </div>
             {% endif %}
@@ -310,10 +310,10 @@
   </main>
 
   <!-- Footer -->
-  <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-8 border-t border-[var(--espresso)] text-xs">
-    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+  <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-6 sm:py-8 border-t border-[var(--espresso)] text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <span class="font-serif text-lg font-bold text-[var(--cream)]">PACK MANAGER</span>
+        <span class="font-serif text-base sm:text-lg font-bold text-[var(--cream)]">PACK MANAGER</span>
       </div>
     </div>
   </footer>

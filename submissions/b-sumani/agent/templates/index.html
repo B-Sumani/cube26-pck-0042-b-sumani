@@ -108,45 +108,45 @@
   {% endif %}
 
   <!-- Top Navigation with Signed In Org & Switch Action -->
-  <nav class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] sticky top-0 z-40 px-4 sm:px-6 py-2.5 sm:py-3 shadow">
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
-      <div class="flex items-center space-x-3 sm:space-x-4">
+  <nav class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] sticky top-0 z-40 px-3 sm:px-6 py-2.5 sm:py-3 shadow">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-y-2">
+      <div class="flex items-center space-x-2 sm:space-x-3">
         <a href="#hero" class="font-serif text-lg sm:text-2xl font-bold tracking-wider hover:text-white transition whitespace-nowrap">
           PACK MANAGER
         </a>
-        <span class="inline-block text-[11px] text-[var(--stone)] font-mono bg-[var(--charcoal)] px-2.5 py-1 rounded border border-[var(--umber)]">
-          Signed in as <strong class="text-white">{{ org_name }}</strong> <span class="hidden sm:inline">({{ session_org }})</span>
+        <span class="inline-block text-[10px] sm:text-[11px] text-[var(--stone)] font-mono bg-[var(--charcoal)] px-2 sm:px-2.5 py-0.5 sm:py-1 rounded border border-[var(--umber)]">
+          Signed in as <strong class="text-white">{{ org_name }}</strong> <span class="hidden md:inline">({{ session_org }})</span>
         </span>
       </div>
-      <div class="flex items-center space-x-4 sm:space-x-6 text-xs uppercase tracking-widest font-semibold">
+      <div class="flex items-center space-x-3 sm:space-x-5 text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest font-semibold">
         <a href="#check" class="hover:text-white transition hidden md:inline">Check Box</a>
         <a href="#catalogue" class="hover:text-white transition">Catalogue</a>
-        <a href="#records" class="hover:text-white transition hidden sm:inline">Audit Records</a>
-        <a href="/logout" class="text-[var(--stone-light)] hover:text-white underline transition normal-case text-xs">Switch organisation</a>
+        <a href="#records" class="hover:text-white transition">Records</a>
+        <a href="/logout" class="text-[var(--stone-light)] hover:text-white underline transition normal-case text-[11px] sm:text-xs whitespace-nowrap">Switch</a>
       </div>
     </div>
   </nav>
 
   <!-- 1. Hero Section -->
-  <header id="hero" class="bg-[var(--espresso)] text-[var(--cream)] py-14 px-6 border-b border-[var(--umber)]">
+  <header id="hero" class="bg-[var(--espresso)] text-[var(--cream)] py-10 sm:py-14 px-4 sm:px-6 border-b border-[var(--umber)]">
     <div class="max-w-4xl mx-auto text-center">
-      <h1 class="font-serif text-5xl md:text-6xl font-bold tracking-wide">
+      <h1 class="font-serif text-4xl sm:text-5xl md:text-6xl font-bold tracking-wide">
         PACK MANAGER
       </h1>
     </div>
   </header>
 
-  <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-10 space-y-16">
+  <main class="flex-grow max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-16">
 
     <!-- 2. Check a Box Section -->
     <section id="check" class="scroll-mt-20">
-      <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-sm">
-        <div class="mb-6 border-b border-[var(--stone-light)] pb-4 flex items-center justify-between">
+      <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 md:p-8 shadow-sm">
+        <div class="mb-5 sm:mb-6 border-b border-[var(--stone-light)] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 class="font-serif text-3xl font-bold text-[var(--espresso)]">Verify an Open Box</h2>
-            <p class="text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Capture photograph and verify order lines before sealing</p>
+            <h2 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--espresso)]">Verify an Open Box</h2>
+            <p class="text-[11px] sm:text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Capture photograph and verify order lines before sealing</p>
           </div>
-          <span class="text-xs font-mono text-[var(--taupe)] bg-white px-2.5 py-1 rounded border border-[var(--stone)]">
+          <span class="self-start sm:self-auto text-xs font-mono text-[var(--taupe)] bg-white px-2.5 py-1 rounded border border-[var(--stone)]">
             Tenant: {{ session_org }}
           </span>
         </div>
@@ -156,10 +156,10 @@
           hx-target="#result-container" 
           hx-indicator="#loading-spinner, #loading-indicator-banner"
           enctype="multipart/form-data" 
-          class="space-y-6"
+          class="space-y-5 sm:space-y-6"
         >
           <!-- Order ID & Unit ID Row -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
               <label for="order_id" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
                 Order ID
@@ -190,7 +190,7 @@
           </div>
 
           <!-- Order Lines (Catalogue-Driven Product Picker) -->
-          <div class="bg-white border border-[var(--stone-light)] rounded-xl p-5 shadow-sm space-y-4">
+          <div class="bg-white border border-[var(--stone-light)] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--stone-light)] pb-3">
               <div>
                 <label class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">
@@ -313,13 +313,13 @@
 
     <!-- 4. Catalogue Management Section -->
     <section id="catalogue" class="scroll-mt-20">
-      <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-sm space-y-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[var(--stone-light)] gap-2">
+      <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 md:p-8 shadow-sm space-y-5 sm:space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[var(--stone-light)] gap-2">
           <div>
-            <h2 class="font-serif text-3xl font-bold text-[var(--espresso)]">Seller Product Catalogue</h2>
-            <p class="text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Tenant-scoped catalogue of products and packaging descriptions for vision model discrimination</p>
+            <h2 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--espresso)]">Seller Product Catalogue</h2>
+            <p class="text-[11px] sm:text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Tenant-scoped catalogue of products and packaging descriptions for vision model discrimination</p>
           </div>
-          <div class="text-xs font-mono bg-white px-3 py-1.5 rounded border border-[var(--stone)] text-[var(--charcoal)]">
+          <div class="self-start sm:self-auto text-xs font-mono bg-white px-3 py-1.5 rounded border border-[var(--stone)] text-[var(--charcoal)]">
             Active Tenant: <strong>{{ session_org }}</strong>
           </div>
         </div>
@@ -330,21 +330,21 @@
 
     <!-- 5. Records & Audit Log Section -->
     <section id="records" class="scroll-mt-20">
-      <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-sm">
-        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[var(--stone-light)] mb-6 gap-4">
+      <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 md:p-8 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[var(--stone-light)] mb-5 sm:mb-6 gap-3">
           <div>
-            <h2 class="font-serif text-3xl font-bold text-[var(--espresso)]">Audit Records</h2>
-            <p class="text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Audit log with forced row-level isolation and per-check causes</p>
+            <h2 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--espresso)]">Audit Records</h2>
+            <p class="text-[11px] sm:text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Audit log with forced row-level isolation and per-check causes</p>
           </div>
-          <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2 sm:space-x-3 self-start sm:self-auto">
             <span class="text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">Active Tenant:</span>
-            <span class="px-3 py-1 bg-white border border-[var(--stone)] rounded text-xs font-mono font-semibold">{{ session_org }}</span>
+            <span class="px-2.5 sm:px-3 py-1 bg-white border border-[var(--stone)] rounded text-xs font-mono font-semibold">{{ session_org }}</span>
           </div>
         </div>
 
         <!-- Filter Controls Bar -->
-        <form hx-get="/pack/records" hx-target="#records-table-container" hx-trigger="change from:select, change from:input, submit" class="bg-white border border-[var(--stone-light)] p-4 rounded-lg mb-6 shadow-sm">
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end text-xs">
+        <form hx-get="/pack/records" hx-target="#records-table-container" hx-trigger="change from:select, change from:input, submit" class="bg-white border border-[var(--stone-light)] p-3 sm:p-4 rounded-lg mb-5 sm:mb-6 shadow-sm">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end text-xs">
             
             <!-- Verdict Filter -->
             <div>
@@ -438,7 +438,7 @@
       }
 
       const row = document.createElement('div');
-      row.className = 'picker-row flex items-center gap-3 p-2 bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-lg';
+      row.className = 'picker-row flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 p-3 sm:p-2.5 bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-lg';
 
       let optionsHtml = '';
       if (catalogueProducts.length > 0) {
@@ -447,30 +447,40 @@
           `<option value="${p.sku}" ${p.sku === defaultSku ? 'selected' : ''}>${p.title} (${p.sku})</option>`
         ).join('');
         row.innerHTML = `
-          <div class="flex-grow">
-            <select class="picker-sku w-full bg-white border border-[var(--stone)] rounded px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-[var(--walnut)]" onchange="serializeOrderLines()">
+          <div class="flex-grow min-w-0">
+            <select class="picker-sku w-full bg-white border border-[var(--stone)] rounded px-2.5 py-2 sm:py-1.5 text-xs font-medium focus:outline-none focus:border-[var(--walnut)]" onchange="serializeOrderLines()">
               ${optionsHtml}
             </select>
           </div>
-          <div class="flex items-center space-x-1">
-            <button type="button" class="w-7 h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold" onclick="stepQty(this, -1)">-</button>
-            <input type="number" min="1" value="${defaultQty}" class="picker-qty w-14 text-center bg-white border border-[var(--stone)] rounded py-1 text-xs font-mono font-bold focus:outline-none" onchange="serializeOrderLines()" oninput="serializeOrderLines()">
-            <button type="button" class="w-7 h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold" onclick="stepQty(this, 1)">+</button>
+          <div class="flex items-center justify-between sm:justify-start gap-2">
+            <div class="flex items-center space-x-1">
+              <button type="button" class="w-8 h-8 sm:w-7 sm:h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold transition" onclick="stepQty(this, -1)">-</button>
+              <input type="number" min="1" value="${defaultQty}" class="picker-qty w-14 text-center bg-white border border-[var(--stone)] rounded py-1.5 sm:py-1 text-xs font-mono font-bold focus:outline-none" onchange="serializeOrderLines()" oninput="serializeOrderLines()">
+              <button type="button" class="w-8 h-8 sm:w-7 sm:h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold transition" onclick="stepQty(this, 1)">+</button>
+            </div>
+            <button type="button" class="text-[var(--taupe)] hover:text-[var(--fail)] px-2.5 py-1 text-xs font-semibold rounded border border-[var(--stone)] sm:border-0 hover:bg-red-50 sm:hover:bg-transparent flex items-center space-x-1 transition" onclick="removePickerRow(this)" title="Remove item">
+              <span>✕</span>
+              <span class="sm:hidden text-[11px]">Remove</span>
+            </button>
           </div>
-          <button type="button" class="text-[var(--taupe)] hover:text-[var(--fail)] px-2 py-1 text-sm font-bold" onclick="removePickerRow(this)" title="Remove item">✕</button>
         `;
       } else {
         // Fallback manual input when no catalogue products exist
         row.innerHTML = `
-          <div class="flex-grow">
-            <input type="text" placeholder="e.g. SKU-CUSTOM-01" value="${defaultSku}" class="picker-sku w-full bg-white border border-[var(--stone)] rounded px-2.5 py-1.5 text-xs font-mono uppercase focus:outline-none focus:border-[var(--walnut)]" oninput="serializeOrderLines()">
+          <div class="flex-grow min-w-0">
+            <input type="text" placeholder="e.g. SKU-CUSTOM-01" value="${defaultSku}" class="picker-sku w-full bg-white border border-[var(--stone)] rounded px-2.5 py-2 sm:py-1.5 text-xs font-mono uppercase focus:outline-none focus:border-[var(--walnut)]" oninput="serializeOrderLines()">
           </div>
-          <div class="flex items-center space-x-1">
-            <button type="button" class="w-7 h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold" onclick="stepQty(this, -1)">-</button>
-            <input type="number" min="1" value="${defaultQty}" class="picker-qty w-14 text-center bg-white border border-[var(--stone)] rounded py-1 text-xs font-mono font-bold focus:outline-none" onchange="serializeOrderLines()" oninput="serializeOrderLines()">
-            <button type="button" class="w-7 h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold" onclick="stepQty(this, 1)">+</button>
+          <div class="flex items-center justify-between sm:justify-start gap-2">
+            <div class="flex items-center space-x-1">
+              <button type="button" class="w-8 h-8 sm:w-7 sm:h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold transition" onclick="stepQty(this, -1)">-</button>
+              <input type="number" min="1" value="${defaultQty}" class="picker-qty w-14 text-center bg-white border border-[var(--stone)] rounded py-1.5 sm:py-1 text-xs font-mono font-bold focus:outline-none" onchange="serializeOrderLines()" oninput="serializeOrderLines()">
+              <button type="button" class="w-8 h-8 sm:w-7 sm:h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold transition" onclick="stepQty(this, 1)">+</button>
+            </div>
+            <button type="button" class="text-[var(--taupe)] hover:text-[var(--fail)] px-2.5 py-1 text-xs font-semibold rounded border border-[var(--stone)] sm:border-0 hover:bg-red-50 sm:hover:bg-transparent flex items-center space-x-1 transition" onclick="removePickerRow(this)" title="Remove item">
+              <span>✕</span>
+              <span class="sm:hidden text-[11px]">Remove</span>
+            </button>
           </div>
-          <button type="button" class="text-[var(--taupe)] hover:text-[var(--fail)] px-2 py-1 text-sm font-bold" onclick="removePickerRow(this)" title="Remove item">✕</button>
         `;
       }
 

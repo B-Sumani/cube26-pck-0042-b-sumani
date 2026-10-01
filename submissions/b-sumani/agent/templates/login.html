@@ -46,24 +46,24 @@
 <body class="min-h-screen flex flex-col justify-between antialiased">
 
   <!-- Top Nav -->
-  <nav class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] px-6 py-4 shadow">
+  <nav class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] px-4 sm:px-6 py-3 sm:py-4 shadow">
     <div class="max-w-4xl mx-auto flex items-center justify-between">
-      <span class="font-serif text-2xl font-bold tracking-wider">PACK MANAGER</span>
-      <span class="text-xs uppercase tracking-widest text-[var(--stone)] font-semibold">Demo Authentication</span>
+      <span class="font-serif text-xl sm:text-2xl font-bold tracking-wider">PACK MANAGER</span>
+      <span class="text-[10px] sm:text-xs uppercase tracking-widest text-[var(--stone)] font-semibold">Demo Authentication</span>
     </div>
   </nav>
 
   <!-- Main Login Card -->
-  <main class="flex-grow flex items-center justify-center px-4 py-12">
-    <div class="max-w-lg w-full bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-2xl p-8 sm:p-10 shadow-lg space-y-8">
+  <main class="flex-grow flex items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
+    <div class="max-w-lg w-full bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl sm:rounded-2xl p-5 sm:p-8 md:p-10 shadow-lg space-y-6 sm:space-y-8">
       
       <!-- Header -->
       <div class="text-center">
-        <h1 class="font-serif text-4xl font-bold text-[var(--espresso)] tracking-tight">Select Demo Organisation</h1>
+        <h1 class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--espresso)] tracking-tight">Select Demo Organisation</h1>
       </div>
 
       <!-- Login Buttons Form -->
-      <div class="space-y-4">
+      <div class="space-y-3.5 sm:space-y-4">
         
         <!-- Alpha Demo Merchant Form -->
         <form method="POST" action="/login">
@@ -71,13 +71,13 @@
           <button 
             type="submit" 
             id="btn-login-alpha"
-            class="w-full text-left bg-[var(--espresso)] hover:bg-[var(--walnut)] text-[var(--cream)] p-5 rounded-xl transition shadow-md group flex items-center justify-between"
+            class="w-full text-left bg-[var(--espresso)] hover:bg-[var(--walnut)] text-[var(--cream)] p-4 sm:p-5 rounded-xl transition shadow-md group flex items-center justify-between gap-3"
           >
-            <div>
-              <div class="font-serif text-xl font-bold text-white tracking-wide">Enter as Alpha Demo Merchant</div>
-              <div class="text-xs text-[var(--stone)] font-mono mt-0.5">org_demo_alpha · Dedicated Catalogue & Evidence Records</div>
+            <div class="min-w-0 flex-1">
+              <div class="font-serif text-base sm:text-xl font-bold text-white tracking-wide">Enter as Alpha Demo Merchant</div>
+              <div class="text-[11px] sm:text-xs text-[var(--stone)] font-mono mt-0.5 leading-snug">org_demo_alpha · Dedicated Catalogue & Evidence Records</div>
             </div>
-            <div class="text-white text-xl transform group-hover:translate-x-1 transition font-bold">→</div>
+            <div class="text-white text-lg sm:text-xl transform group-hover:translate-x-1 transition font-bold flex-shrink-0">→</div>
           </button>
         </form>
 
@@ -87,20 +87,20 @@
           <button 
             type="submit" 
             id="btn-login-bravo"
-            class="w-full text-left bg-white hover:bg-[var(--cream)] text-[var(--espresso)] border-2 border-[var(--stone)] hover:border-[var(--walnut)] p-5 rounded-xl transition shadow-sm group flex items-center justify-between"
+            class="w-full text-left bg-white hover:bg-[var(--cream)] text-[var(--espresso)] border-2 border-[var(--stone)] hover:border-[var(--walnut)] p-4 sm:p-5 rounded-xl transition shadow-sm group flex items-center justify-between gap-3"
           >
-            <div>
-              <div class="font-serif text-xl font-bold text-[var(--espresso)] tracking-wide">Enter as Bravo Demo Merchant</div>
-              <div class="text-xs text-[var(--taupe)] font-mono mt-0.5">org_demo_bravo · Dedicated Catalogue & Evidence Records</div>
+            <div class="min-w-0 flex-1">
+              <div class="font-serif text-base sm:text-xl font-bold text-[var(--espresso)] tracking-wide">Enter as Bravo Demo Merchant</div>
+              <div class="text-[11px] sm:text-xs text-[var(--taupe)] font-mono mt-0.5 leading-snug">org_demo_bravo · Dedicated Catalogue & Evidence Records</div>
             </div>
-            <div class="text-[var(--espresso)] text-xl transform group-hover:translate-x-1 transition font-bold">→</div>
+            <div class="text-[var(--espresso)] text-lg sm:text-xl transform group-hover:translate-x-1 transition font-bold flex-shrink-0">→</div>
           </button>
         </form>
 
       </div>
 
       <div class="text-center">
-        <p class="text-[11px] text-[var(--taupe)]">
+        <p class="text-[10px] sm:text-[11px] text-[var(--taupe)] leading-relaxed">
           Signed session cookie enforced with HMAC-SHA256 signature · SameSite=Lax · HttpOnly
         </p>
       </div>
@@ -109,9 +109,9 @@
   </main>
 
   <!-- Footer -->
-  <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-6 px-6 border-t border-[var(--espresso)] text-xs">
+  <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-5 sm:py-6 px-4 sm:px-6 border-t border-[var(--espresso)] text-xs">
     <div class="max-w-4xl mx-auto flex items-center justify-between">
-      <p class="font-serif text-lg font-bold text-[var(--cream)]">PACK MANAGER</p>
+      <p class="font-serif text-base sm:text-lg font-bold text-[var(--cream)]">PACK MANAGER</p>
     </div>
   </footer>
 

@@ -1,20 +1,24 @@
 <!-- Records Table Partial: Swapped dynamically via HTMX -->
-<div class="overflow-x-auto">
-  <table class="w-full text-xs text-left">
-    <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider">
-      <tr>
-        <th class="py-3 px-3">Record ID</th>
-        <th class="py-3 px-3">Unit ID</th>
-        <th class="py-3 px-3">Verdict</th>
-        <th class="py-3 px-3">Presence</th>
-        <th class="py-3 px-3">Count</th>
-        <th class="py-3 px-3">Extra</th>
-        <th class="py-3 px-3">Cause</th>
-        <th class="py-3 px-3">Latency</th>
-        <th class="py-3 px-3">Timestamp (UTC)</th>
-        <th class="py-3 px-3 text-right">Action</th>
-      </tr>
-    </thead>
+<div class="space-y-1">
+  <div class="sm:hidden text-[10px] text-[var(--taupe)] font-mono flex items-center justify-between px-1">
+    <span>← Swipe table for all audit columns →</span>
+  </div>
+  <div class="overflow-x-auto -mx-1 sm:mx-0">
+    <table class="w-full text-xs text-left min-w-[720px]">
+      <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider">
+        <tr>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3">Record ID</th>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3">Unit ID</th>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3">Verdict</th>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3">Presence</th>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3">Count</th>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3">Extra</th>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3">Cause</th>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3">Latency</th>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3">Timestamp (UTC)</th>
+          <th class="py-2.5 sm:py-3 px-2.5 sm:px-3 text-right">Action</th>
+        </tr>
+      </thead>
     <tbody class="divide-y divide-[var(--stone-light)] font-mono">
       {% for rec in recent_records %}
       <tr class="hover:bg-white/60 transition">
@@ -135,4 +139,5 @@
       {% endfor %}
     </tbody>
   </table>
+</div>
 </div>
