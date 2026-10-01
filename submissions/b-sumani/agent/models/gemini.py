@@ -120,11 +120,11 @@ class GeminiVisionAdapter(VisionModelAdapter):
         if model_name:
             self.model_name = model_name
         elif eval_mode:
-            # Use stronger evaluation model
-            self.model_name = os.getenv("MODEL_NAME_EVAL", "gemini-3.1-pro-preview")
+            # Use single unified evaluation model
+            self.model_name = os.getenv("MODEL_NAME_EVAL", "gemini-3.1-flash-lite-preview")
         else:
-            # Use fast iteration dev model
-            self.model_name = os.getenv("MODEL_NAME", "gemini-3-flash-preview")
+            # Use single unified model
+            self.model_name = os.getenv("MODEL_NAME", "gemini-3.1-flash-lite-preview")
 
         self.total_timeout_budget = total_timeout_budget
         self.max_transport_retries = max_transport_retries

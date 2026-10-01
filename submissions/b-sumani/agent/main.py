@@ -1,11 +1,13 @@
 """FastAPI Web Application for Pack Manager (Stage 3).
 
 Follows context.md Section 11 (v0) & Section 14 (Website scope & frontend design):
-- Single-page application serving Hero, Check Box, Result, Records, and Footer.
+- Single-page application serving Hero, Check Box, Result, Catalogue, Records, and Footer.
+- Demo Organisation Login: /login with signed, HttpOnly, SameSite=Lax session cookie.
 - Upload validation: JPEG/PNG only, <= 10MB limit, no path traversal tricks.
-- Keys never reach browser; images served strictly through org-scoped signed URLs.
+- Keys never reach browser; images served strictly through org-scoped signed URLs with session validation.
 - Fail open: On timeout or provider/parsing error, saves capture and writes PENDING record without blocking operator.
 - Deterministic rules layer decides PASS/FAIL/UNCERTAIN.
+- Tenant Product Catalogue: candidate set derived from org's catalogue_items table (fallback to order_only).
 - Append-only overrides stored with full audit trail.
 """
 
@@ -13,23 +15,27 @@ from __future__ import annotations
 import os
 import re
 import uuid
+import time
+import hmac
 import hashlib
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
+from collections import defaultdict
 
 from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException, Query
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, Response, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 
-from agent.db.repo import PackRepository
+from agent.db.repo import PackRepository, TenancyViolationError
 from agent.db.storage import (
     generate_storage_key,
     create_signed_url,
     verify_signed_token,
     save_file_bytes,
     get_file_bytes,
+    extract_org_from_key,
     TenancyStorageError,
 )
 from agent.models.base import (
@@ -46,20 +52,23 @@ from agent.rules.config import DEFAULT_CONFIG
 
 load_dotenv()
 
+# Hard startup requirement: SESSION_SECRET must be set
+SESSION_SECRET = os.getenv("SESSION_SECRET")
+if not SESSION_SECRET or not SESSION_SECRET.strip():
+    raise RuntimeError("Application startup failed: SESSION_SECRET environment variable is required.")
+
+COOKIE_NAME = "pack_session"
 PROMPT_VERSION = "pack-prompt-v1.0"
 
 app = FastAPI(
     title="Pack Manager",
     description="Pre-seal box verification and evidence recording agent",
-    version="0.1.0"
+    version="0.2.0"
 )
 
 # Template setup
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-
-import time
-from collections import defaultdict
 
 # Allowed MIME types and max upload size (10 MB)
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/jpg"}
@@ -82,6 +91,55 @@ def apply_rate_limit(client_ip: str, max_requests: int = RATE_LIMIT_MAX_PER_MINU
         )
     recent.append(now)
     _rate_limit_history[client_ip] = recent
+
+
+def sign_session_org(org_id: str) -> str:
+    """Signs org_id into a tamper-evident session token."""
+    timestamp = str(int(time.time()))
+    payload = f"{org_id}.{timestamp}"
+    sig = hmac.new(SESSION_SECRET.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    return f"{payload}.{sig}"
+
+
+def verify_session_org(token: Optional[str]) -> Optional[str]:
+    """Verifies session token and returns org_id, or None if invalid/tampered/expired."""
+    if not token or "." not in token:
+        return None
+    parts = token.split(".")
+    if len(parts) != 3:
+        return None
+    org_id, timestamp_str, sig = parts
+    payload = f"{org_id}.{timestamp_str}"
+    expected_sig = hmac.new(SESSION_SECRET.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sig, expected_sig):
+        return None
+    try:
+        ts = int(timestamp_str)
+        # 7-day session validity
+        if time.time() - ts > 7 * 86400:
+            return None
+    except ValueError:
+        return None
+    return org_id
+
+
+def get_session_org(request: Request) -> Optional[str]:
+    """Retrieves authenticated org_id strictly from session cookie.
+    
+    CRITICAL: Ignores any org_id sent in query string or form data.
+    """
+    token = request.cookies.get(COOKIE_NAME)
+    return verify_session_org(token)
+
+
+@app.on_event("startup")
+def init_demo_tenants():
+    """Initializes and seeds default catalogue items for both demo organisations."""
+    for demo_org, name in [("org_demo_alpha", "Alpha Demo Merchant"), ("org_demo_bravo", "Bravo Demo 3PL")]:
+        r = PackRepository(org_id=demo_org)
+        r.create_org(demo_org, name)
+        r.seed_catalogue_if_empty()
+
 
 # Active model adapter instance (singleton or injectable for testing)
 _adapter_instance: Optional[VisionModelAdapter] = None
@@ -109,32 +167,70 @@ def set_adapter(adapter: VisionModelAdapter) -> None:
     _adapter_instance = adapter
 
 
-def parse_candidate_skus(raw_text: str) -> List[str]:
-    """Parses candidates string into clean list of unique SKUs."""
-    tokens = re.split(r"[;,\n\r]+", raw_text.strip())
-    skus = []
-    for t in tokens:
-        clean = t.strip()
-        if clean and clean not in skus:
-            skus.append(clean)
-    return skus
+# ============================================================================
+# AUTHENTICATION & DEMO LOGIN ROUTES
+# ============================================================================
 
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    """Renders the demo organisation login page."""
+    return templates.TemplateResponse(request=request, name="login.html", context={})
+
+
+@app.post("/login")
+async def login_submit(request: Request, org_id: str = Form(...)):
+    """Sets a signed HttpOnly SameSite=Lax session cookie holding the org_id."""
+    if org_id not in ("org_demo_alpha", "org_demo_bravo"):
+        raise HTTPException(status_code=400, detail="Invalid organisation selection.")
+    
+    token = sign_session_org(org_id)
+    response = RedirectResponse(url="/", status_code=303)
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=7 * 86400
+    )
+    return response
+
+
+@app.get("/logout")
+async def logout():
+    """Clears the session cookie and redirects to /login."""
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie(key=COOKIE_NAME)
+    return response
+
+
+# ============================================================================
+# MAIN APPLICATION ROUTES (STRICT SESSION ORG ENFORCEMENT)
+# ============================================================================
 
 @app.get("/", response_class=HTMLResponse)
-async def get_index(request: Request, org_id: str = "org_demo_alpha"):
-    """Renders single-page application with 5 sections."""
+async def get_index(request: Request):
+    """Renders single-page application for the signed-in tenant."""
+    session_org = get_session_org(request)
+    if not session_org:
+        return RedirectResponse(url="/login", status_code=303)
+
     adapter = get_adapter()
-    repo = PackRepository(org_id=org_id)
-    repo.create_org(org_id, "Demo Merchant")
+    repo = PackRepository(org_id=session_org)
+    repo.seed_catalogue_if_empty()
+    catalogue_items = repo.list_catalogue_items()
     recent_records = repo.list_records()
+    org_name = "Alpha Demo Merchant" if session_org == "org_demo_alpha" else "Bravo Demo 3PL"
 
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
-            "selected_org": org_id,
+            "session_org": session_org,
+            "selected_org": session_org,
+            "org_name": org_name,
             "is_mock": getattr(adapter, "IS_MOCK", False),
             "recent_records": recent_records,
+            "catalogue_items": catalogue_items,
         }
     )
 
@@ -142,26 +238,26 @@ async def get_index(request: Request, org_id: str = "org_demo_alpha"):
 @app.post("/pack/verify", response_class=HTMLResponse)
 async def verify_pack_box(
     request: Request,
-    org_id: str = Form(...),
     order_id: str = Form(...),
     unit_id: str = Form(...),
     order_lines: str = Form(...),
-    candidate_skus: str = Form(...),
     operator_id: str = Form("op_default"),
-    photo: UploadFile = File(...)
+    photo: UploadFile = File(...),
+    simulate_timeout: Optional[str] = Form(None)
 ):
     """Core pack verification endpoint.
     
-    1. Validates upload format and size.
-    2. Stores photo under unguessable key in private storage.
-    3. Calls model (ONE call per unit).
-    4. Evaluates deterministic rules.
-    5. Saves record in DB (or PENDING on failure).
-    6. Swaps result_partial into #result-container.
+    The active organisation is determined STRICTLY by the signed session cookie.
+    Any org_id sent via form or query parameters is intentionally ignored.
     """
+    session_org = get_session_org(request)
+    if not session_org:
+        raise HTTPException(status_code=401, detail="Session required. Please log in at /login.")
+    org_id = session_org
+
     adapter = get_adapter()
     repo = PackRepository(org_id=org_id)
-    repo.create_org(org_id, "Demo Organization")
+    repo.create_org(org_id, "Alpha Demo Merchant" if org_id == "org_demo_alpha" else "Bravo Demo 3PL")
 
     # 0. Enforce Rate Limiting and Content-Length Upload Cap
     client_ip = request.client.host if request.client else "127.0.0.1"
@@ -214,12 +310,21 @@ async def verify_pack_box(
         operator_id=operator_id
     )
 
-    # 4. Parse candidate SKUs (Candidates = Order SKUs + Decoys)
-    candidates_list = parse_candidate_skus(candidate_skus)
+    # 4. Build Candidate Set from Organisation's Catalogue (Fallback to order_only)
+    cat_items = repo.list_catalogue_items()
     order_dict = parse_order_lines(order_lines)
-    for expected_sku in order_dict.keys():
-        if expected_sku not in candidates_list:
-            candidates_list.append(expected_sku)
+
+    if cat_items and len(cat_items) > 0:
+        candidates_list = [item["sku"] for item in cat_items]
+        candidate_source = "catalogue"
+        # Ensure any order item is included in the candidate set
+        for expected_sku in order_dict.keys():
+            if expected_sku not in candidates_list:
+                candidates_list.append(expected_sku)
+    else:
+        # Fallback: org has no catalogue set up
+        candidates_list = list(order_dict.keys())
+        candidate_source = "order_only"
 
     # 5. Model Execution with Fail-Open Safeguard
     record_id = f"PCK-{uuid.uuid4().hex[:8].upper()}"
@@ -231,6 +336,9 @@ async def verify_pack_box(
     observation = None
 
     try:
+        if simulate_timeout == "true" or request.headers.get("X-Simulate-Timeout") == "true":
+            raise ModelTimeoutError("Simulated model timeout exceeded budget of 15.0s")
+
         # ONE call per unit carrying candidate SKUs only (Zero order quantities sent!)
         observation, latency_ms = adapter.analyze_box(
             image_bytes=photo_bytes,
@@ -264,6 +372,7 @@ async def verify_pack_box(
         "_audit": {
             "prompt_version": PROMPT_VERSION,
             "threshold_config_version": DEFAULT_CONFIG.version,
+            "candidate_source": candidate_source,
             "observations": [item.model_dump() for item in observation.observed_items] if observation else [],
             "image_quality": observation.image_quality.model_dump() if observation else {"usable": False, "issues": []},
             "occlusion_suspected": observation.occlusion_suspected if observation else False,
@@ -340,6 +449,7 @@ async def verify_pack_box(
             "status": status,
             "verdict": verdict,
             "checks": checks,
+            "candidate_source": candidate_source,
             "model_name": model_name,
             "model_latency_ms": latency_ms,
             "content_hash": content_hash,
@@ -353,13 +463,17 @@ async def verify_pack_box(
 @app.get("/pack/records", response_class=HTMLResponse)
 async def filter_records_table(
     request: Request,
-    org_id: str = Query("org_demo_alpha"),
     verdict: Optional[str] = Query(None),
     cause: Optional[str] = Query(None),
     date: Optional[str] = Query(None),
     unit_id: Optional[str] = Query(None)
 ):
-    """Filters audit log records for the active tenant under RLS."""
+    """Filters audit log records for the active tenant under RLS (scoped by session)."""
+    session_org = get_session_org(request)
+    if not session_org:
+        raise HTTPException(status_code=401, detail="Session required. Please log in.")
+    org_id = session_org
+
     repo = PackRepository(org_id=org_id)
     records = repo.list_records(
         unit_id=unit_id if unit_id and unit_id.strip() else None,
@@ -378,12 +492,16 @@ async def filter_records_table(
 
 
 @app.get("/pack/record/{record_id}", response_class=HTMLResponse)
-async def get_record_detail(
-    request: Request,
-    record_id: str,
-    org_id: str = Query("org_demo_alpha")
-):
-    """Renders dedicated permalink evidence record page for downstream pods."""
+async def get_record_detail(request: Request, record_id: str):
+    """Renders dedicated permalink evidence record page for downstream pods.
+    
+    Scoped strictly by session org_id. If record belongs to a foreign org, returns 404.
+    """
+    session_org = get_session_org(request)
+    if not session_org:
+        return RedirectResponse(url="/login", status_code=303)
+    org_id = session_org
+
     repo = PackRepository(org_id=org_id)
     record = repo.get_record(record_id)
     if not record:
@@ -405,6 +523,7 @@ async def get_record_detail(
     audit_meta = checks_dict.get("_audit", {
         "prompt_version": PROMPT_VERSION,
         "threshold_config_version": DEFAULT_CONFIG.version,
+        "candidate_source": "catalogue",
         "observations": [],
         "image_quality": {"usable": True, "issues": []}
     })
@@ -458,11 +577,14 @@ async def get_record_detail(
                     "label": f"{sku} ({count})"
                 })
 
+    org_name = "Alpha Demo Merchant" if org_id == "org_demo_alpha" else "Bravo Demo 3PL"
+
     return templates.TemplateResponse(
         request=request,
         name="record_detail.html",
         context={
             "record": record,
+            "org_name": org_name,
             "capture": capture,
             "overrides": overrides,
             "signed_image_url": signed_image_url,
@@ -477,27 +599,37 @@ async def get_record_detail(
 async def submit_override(
     request: Request,
     record_id: str = Form(...),
-    org_id: str = Form(...),
     original_verdict: str = Form(...),
     new_verdict: str = Form(...),
     reason: str = Form(...),
     operator_id: str = Form("op_default")
 ):
-    """Records an append-only human operator override via database trigger."""
+    """Records an append-only human operator override via database trigger.
+    
+    Scoped strictly by session org_id. If record does not belong to session org, returns 403.
+    """
+    session_org = get_session_org(request)
+    if not session_org:
+        raise HTTPException(status_code=401, detail="Session required.")
+    org_id = session_org
+
     client_ip = request.client.host if request.client else "127.0.0.1"
     apply_rate_limit(client_ip)
 
     repo = PackRepository(org_id=org_id)
     override_id = f"OVR-{uuid.uuid4().hex[:8].upper()}"
     
-    repo.insert_override(
-        override_id=override_id,
-        record_id=record_id,
-        original_verdict=original_verdict,
-        new_verdict=new_verdict,
-        reason=reason,
-        operator_id=operator_id
-    )
+    try:
+        repo.insert_override(
+            override_id=override_id,
+            record_id=record_id,
+            original_verdict=original_verdict,
+            new_verdict=new_verdict,
+            reason=reason,
+            operator_id=operator_id
+        )
+    except TenancyViolationError as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
     overrides = repo.list_overrides(record_id)
 
@@ -514,17 +646,25 @@ async def submit_override(
 @app.get("/api/storage/{storage_key:path}")
 async def serve_signed_image(
     storage_key: str,
-    org: str = Query(...),
+    request: Request,
     expires: int = Query(...),
     sig: str = Query(...)
 ):
     """Serves images strictly via org-scoped, unexpired signed URLs.
     
-    Hard Rule 1: A second organization guessing an image key cannot fetch it.
+    Session org must match the key's org_id.
     """
+    session_org = get_session_org(request)
+    if not session_org:
+        raise HTTPException(status_code=401, detail="Session required to access images.")
+
+    key_org = extract_org_from_key(storage_key)
+    if not key_org or key_org != session_org:
+        raise HTTPException(status_code=403, detail="Forbidden: Cross-tenant image access denied.")
+
     is_valid = verify_signed_token(
         storage_key=storage_key,
-        requesting_org=org,
+        requesting_org=session_org,
         expires_at=expires,
         signature=sig
     )
@@ -540,3 +680,94 @@ async def serve_signed_image(
 
     media_type = "image/png" if storage_key.endswith(".png") else "image/jpeg"
     return Response(content=file_bytes, media_type=media_type)
+
+
+# ============================================================================
+# SELLER CATALOGUE MANAGEMENT ROUTES
+# ============================================================================
+
+@app.post("/catalogue/item", response_class=HTMLResponse)
+async def add_catalogue_item(
+    request: Request,
+    sku: str = Form(...),
+    title: str = Form(...),
+    description: str = Form("")
+):
+    """Adds a new item to the signed-in tenant's catalogue."""
+    session_org = get_session_org(request)
+    if not session_org:
+        raise HTTPException(status_code=401, detail="Session required.")
+
+    repo = PackRepository(org_id=session_org)
+    feedback_msg = None
+    feedback_is_error = False
+    try:
+        repo.insert_catalogue_item(sku=sku, title=title, description=description)
+        feedback_msg = f"✓ Added {sku.strip().upper()} to your catalogue."
+    except Exception as e:
+        feedback_msg = f"Error: {str(e)}"
+        feedback_is_error = True
+
+    items = repo.list_catalogue_items()
+    return templates.TemplateResponse(
+        request=request,
+        name="catalogue_section_partial.html",
+        context={
+            "session_org": session_org,
+            "catalogue_items": items,
+            "feedback_msg": feedback_msg,
+            "feedback_is_error": feedback_is_error,
+        }
+    )
+
+
+@app.post("/catalogue/item/delete", response_class=HTMLResponse)
+async def delete_catalogue_item(request: Request, sku: str = Form(...)):
+    """Deletes an item from the signed-in tenant's catalogue."""
+    session_org = get_session_org(request)
+    if not session_org:
+        raise HTTPException(status_code=401, detail="Session required.")
+
+    repo = PackRepository(org_id=session_org)
+    deleted = repo.delete_catalogue_item(sku=sku)
+    feedback_msg = f"✓ Deleted {sku.strip().upper()} from your catalogue." if deleted else f"SKU {sku} not found."
+    items = repo.list_catalogue_items()
+    return templates.TemplateResponse(
+        request=request,
+        name="catalogue_section_partial.html",
+        context={
+            "session_org": session_org,
+            "catalogue_items": items,
+            "feedback_msg": feedback_msg,
+            "feedback_is_error": not deleted,
+        }
+    )
+
+
+@app.post("/catalogue/upload-csv", response_class=HTMLResponse)
+async def upload_catalogue_csv(request: Request, csv_file: UploadFile = File(...)):
+    """Imports or updates catalogue items from an uploaded CSV."""
+    session_org = get_session_org(request)
+    if not session_org:
+        raise HTTPException(status_code=401, detail="Session required.")
+
+    content_bytes = await csv_file.read()
+    text = content_bytes.decode("utf-8", errors="replace")
+    repo = PackRepository(org_id=session_org)
+    res = repo.import_catalogue_csv(text)
+    
+    feedback_msg = f"✓ CSV Imported: {res['added']} added, {res['updated']} updated."
+    if res["errors"]:
+        feedback_msg += f" (Note: {res['errors'][0]})"
+
+    items = repo.list_catalogue_items()
+    return templates.TemplateResponse(
+        request=request,
+        name="catalogue_section_partial.html",
+        context={
+            "session_org": session_org,
+            "catalogue_items": items,
+            "feedback_msg": feedback_msg,
+            "feedback_is_error": False,
+        }
+    )

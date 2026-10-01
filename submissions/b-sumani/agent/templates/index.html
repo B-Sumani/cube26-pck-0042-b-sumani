@@ -1,40 +1,40 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pack Manager · Pre-Seal Verification</title>
-
-  <!-- Google Fonts: Cormorant Garamond & Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+  <title>Pack Manager · Outbound Pack Verification</title>
+  
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
   <!-- HTMX via CDN -->
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+  <!-- Google Fonts: Cormorant Garamond (Editorial serif) & Inter (Clean UI sans) & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     :root {
       --cream: #f7f1ec;
-      --cream-soft: #fbf9f7;
-      --stone: #bdbab4;
-      --stone-light: #e1dcd5;
-      --taupe: #8a7967;
-      --walnut: #684432;
-      --umber: #64503d;
+      --cream-soft: #fcf9f5;
+      --stone: #d9cec1;
+      --stone-light: #e8dfd5;
+      --taupe: #8c7d70;
+      --walnut: #59493b;
+      --umber: #40342a;
       --espresso: #382d22;
-      --charcoal: #1c1c1c;
-
-      --pass: #4f6a4a;
-      --fail: #9c3a2b;
-      --uncertain: #8a5a00;
-      --pending: #5b5f66;
+      --charcoal: #1c1815;
+      --pass: #2d5a27;
+      --fail: #a83232;
+      --uncertain: #d97706;
+      --pending: #4b5563;
     }
 
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--cream);
       color: var(--charcoal);
     }
@@ -43,6 +43,11 @@
       font-family: 'Cormorant Garamond', Georgia, serif;
     }
 
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* HTMX loading spinner styling */
     .htmx-indicator {
       display: none;
     }
@@ -102,30 +107,32 @@
   </aside>
   {% endif %}
 
-  <!-- Small Top Navigation -->
-  <nav class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] sticky top-0 z-40 px-6 py-3 shadow">
+  <!-- Top Navigation with Signed In Org & Switch Action -->
+  <nav class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] sticky top-0 z-40 px-4 sm:px-6 py-2.5 sm:py-3 shadow">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
-      <a href="#hero" class="font-serif text-2xl font-bold tracking-wider hover:text-white transition">
-        PACK MANAGER
-      </a>
-      <div class="flex items-center space-x-6 text-xs uppercase tracking-widest font-semibold">
-        <a href="#check" class="hover:text-white transition">Check Box</a>
-        <a href="#result" class="hover:text-white transition">Result</a>
-        <a href="#records" class="hover:text-white transition">Audit Records</a>
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <a href="#hero" class="font-serif text-lg sm:text-2xl font-bold tracking-wider hover:text-white transition whitespace-nowrap">
+          PACK MANAGER
+        </a>
+        <span class="inline-block text-[11px] text-[var(--stone)] font-mono bg-[var(--charcoal)] px-2.5 py-1 rounded border border-[var(--umber)]">
+          Signed in as <strong class="text-white">{{ org_name }}</strong> <span class="hidden sm:inline">({{ session_org }})</span>
+        </span>
+      </div>
+      <div class="flex items-center space-x-4 sm:space-x-6 text-xs uppercase tracking-widest font-semibold">
+        <a href="#check" class="hover:text-white transition hidden md:inline">Check Box</a>
+        <a href="#catalogue" class="hover:text-white transition">Catalogue</a>
+        <a href="#records" class="hover:text-white transition hidden sm:inline">Audit Records</a>
+        <a href="/logout" class="text-[var(--stone-light)] hover:text-white underline transition normal-case text-xs">Switch organisation</a>
       </div>
     </div>
   </nav>
 
   <!-- 1. Hero Section -->
-  <header id="hero" class="bg-[var(--espresso)] text-[var(--cream)] py-16 px-6 border-b border-[var(--umber)]">
+  <header id="hero" class="bg-[var(--espresso)] text-[var(--cream)] py-14 px-6 border-b border-[var(--umber)]">
     <div class="max-w-4xl mx-auto text-center">
-      <p class="text-xs uppercase tracking-widest text-[var(--stone)] mb-3 font-semibold">Cube Buildathon · Outbound Pack Verification</p>
-      <h1 class="font-serif text-5xl md:text-6xl font-bold tracking-wide mb-4">
+      <h1 class="font-serif text-5xl md:text-6xl font-bold tracking-wide">
         PACK MANAGER
       </h1>
-      <p class="text-sm md:text-base text-[var(--stone-light)] font-normal max-w-xl mx-auto leading-relaxed">
-        Single-shot vision verification for open boxes before sealing. Leaving verifiable evidence records for returns and claims.
-      </p>
     </div>
   </header>
 
@@ -139,8 +146,8 @@
             <h2 class="font-serif text-3xl font-bold text-[var(--espresso)]">Verify an Open Box</h2>
             <p class="text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Capture photograph and verify order lines before sealing</p>
           </div>
-          <span class="text-xs font-semibold px-3 py-1 bg-[var(--stone-light)] text-[var(--umber)] rounded-full uppercase tracking-wider">
-            Station 03
+          <span class="text-xs font-mono text-[var(--taupe)] bg-white px-2.5 py-1 rounded border border-[var(--stone)]">
+            Tenant: {{ session_org }}
           </span>
         </div>
 
@@ -151,18 +158,8 @@
           enctype="multipart/form-data" 
           class="space-y-6"
         >
-          <!-- Org & Unit Picker Row -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label for="org_id" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
-                Organization / Tenant
-              </label>
-              <select id="org_id" name="org_id" required class="w-full bg-white border border-[var(--stone)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--walnut)]">
-                <option value="org_demo_alpha" {% if selected_org == 'org_demo_alpha' %}selected{% endif %}>org_demo_alpha (Alpha Demo Merchant)</option>
-                <option value="org_demo_bravo" {% if selected_org == 'org_demo_bravo' %}selected{% endif %}>org_demo_bravo (Bravo Demo 3PL)</option>
-              </select>
-            </div>
-
+          <!-- Order ID & Unit ID Row -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label for="order_id" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
                 Order ID
@@ -171,8 +168,8 @@
                 type="text" 
                 id="order_id" 
                 name="order_id" 
-                value="ORD-DUMMY-50008" 
                 required 
+                placeholder="e.g. ORD-10024"
                 class="w-full bg-white border border-[var(--stone)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--walnut)]"
               >
             </div>
@@ -185,45 +182,77 @@
                 type="text" 
                 id="unit_id" 
                 name="unit_id" 
-                value="UNIT-0008" 
                 required 
-                placeholder="UNIT-0008" 
+                placeholder="e.g. UNIT-0017" 
                 class="w-full bg-white border border-[var(--stone)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--walnut)] font-mono"
               >
             </div>
           </div>
 
-          <!-- Order Lines and Catalogue Candidates -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label for="order_lines" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
-                Order Lines (Expected SKU:Qty)
-              </label>
-              <textarea 
-                id="order_lines" 
-                name="order_lines" 
-                rows="3" 
-                required
-                class="w-full bg-white border border-[var(--stone)] rounded-lg p-3 text-sm font-mono focus:outline-none focus:border-[var(--walnut)]"
-                placeholder="SKU-BOTTLE-750:1;SKU-PUZZLE-500:2"
-              >SKU-BOTTLE-750:1</textarea>
-              <p class="text-[11px] text-[var(--taupe)] mt-1">Format: <code>SKU:qty;SKU:qty</code> (Quantities are never sent to vision model)</p>
+          <!-- Order Lines (Catalogue-Driven Product Picker) -->
+          <div class="bg-white border border-[var(--stone-light)] rounded-xl p-5 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--stone-light)] pb-3">
+              <div>
+                <label class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">
+                  Order Lines (Pack Verification Items)
+                </label>
+                <p class="text-[11px] text-[var(--taupe)] mt-0.5">
+                  Select products from your catalogue and set quantities. (Quantities are never sent to the vision model).
+                </p>
+              </div>
+              <button 
+                type="button" 
+                id="btn-add-picker-item"
+                onclick="addOrderPickerRow()"
+                class="self-start sm:self-auto text-xs font-semibold px-3 py-1.5 bg-[var(--cream-soft)] border border-[var(--stone)] hover:bg-[var(--stone-light)] text-[var(--espresso)] rounded transition flex items-center space-x-1"
+              >
+                <span>+ Add Item</span>
+              </button>
             </div>
 
-            <div>
-              <label for="candidate_skus" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
-                Seller Catalogue (Candidate SKUs incl. Decoys)
-              </label>
-              <textarea 
-                id="candidate_skus" 
-                name="candidate_skus" 
-                rows="3" 
-                required
-                class="w-full bg-white border border-[var(--stone)] rounded-lg p-3 text-sm font-mono focus:outline-none focus:border-[var(--walnut)]"
-                placeholder="SKU-BOTTLE-750, SKU-PUZZLE-500, SKU-CABLE-USBC"
-              >SKU-BOTTLE-750, SKU-PUZZLE-500, SKU-CABLE-USBC, SKU-TOWEL-BLU</textarea>
-              <p class="text-[11px] text-[var(--taupe)] mt-1">Model discriminates among candidates. Extra SKUs serve as production decoys.</p>
+            <!-- Dynamic Picker Rows Container -->
+            <div id="order-picker-container" class="space-y-2.5">
+              <div id="order-picker-empty" class="text-xs text-[var(--taupe)] italic py-3 text-center border border-dashed border-[var(--stone)] rounded-lg">
+                No order lines added yet. Click "+ Add Item" above to select products from your catalogue.
+              </div>
             </div>
+
+            <!-- Serialized Order Lines Input for Backend Form Submission -->
+            <input type="hidden" name="order_lines" id="order_lines_serialized" required>
+          </div>
+
+          <!-- Active Catalogue Candidate Set Display -->
+          <div class="bg-white border border-[var(--stone-light)] rounded-xl p-4 text-xs">
+            {% if catalogue_items and catalogue_items|length > 0 %}
+              <details class="group">
+                <summary class="cursor-pointer font-semibold text-xs text-[var(--espresso)] uppercase tracking-wider flex items-center justify-between select-none">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-[var(--pass)] font-bold">✓</span>
+                    <span>Using your catalogue: <strong>{{ catalogue_items|length }} products</strong></span>
+                  </div>
+                  <span class="text-[11px] text-[var(--taupe)] underline group-open:no-underline">Expand Catalogue List ▼</span>
+                </summary>
+                <div class="mt-3 pt-3 border-t border-[var(--stone-light)] grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] max-h-56 overflow-y-auto font-mono">
+                  {% for item in catalogue_items %}
+                    <div class="p-2.5 bg-[var(--cream-soft)] rounded border border-[var(--stone-light)]">
+                      <div class="font-bold text-[var(--charcoal)]">{{ item.sku }}</div>
+                      <div class="font-sans text-[var(--espresso)] font-medium">{{ item.title }}</div>
+                      <div class="font-sans text-[var(--taupe)] text-[10px] truncate">{{ item.description }}</div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </details>
+            {% else %}
+              <div class="flex items-center space-x-2 text-amber-900 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                <span class="text-base">⚠️</span>
+                <div>
+                  <strong class="font-semibold">No catalogue set up. Wrong-item checks are weaker.</strong>
+                  <p class="text-[11px] text-amber-800 mt-0.5 font-sans">
+                    Verification will fall back to order-only SKUs as candidates. Add products in the <a href="#catalogue" class="underline font-semibold">Catalogue section</a> below to enable full decoy item detection.
+                  </p>
+                </div>
+              </div>
+            {% endif %}
           </div>
 
           <!-- Photo Upload & Operator Field -->
@@ -246,6 +275,7 @@
               <input type="hidden" name="operator_id" value="op_amira">
               <button 
                 type="submit" 
+                id="btn-inspect-box"
                 class="w-full bg-[var(--espresso)] hover:bg-[var(--walnut)] text-[var(--cream)] font-semibold py-2.5 px-6 rounded-lg text-sm transition uppercase tracking-wider flex items-center justify-center space-x-2 shadow"
               >
                 <span>Inspect Box</span>
@@ -275,13 +305,30 @@
         <div class="bg-[var(--cream-soft)] border-2 border-dashed border-[var(--stone)] rounded-xl p-12 text-center text-[var(--taupe)]">
           <div class="font-serif text-2xl text-[var(--espresso)] mb-2">No Box Inspected Yet</div>
           <p class="text-sm max-w-md mx-auto">
-            Select an organization, input order lines, and upload an open-box photo to run deterministic pack verification.
+            Choose products with the order picker and upload an open-box photo to run deterministic pack verification.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- 4. Records & Audit Log Section -->
+    <!-- 4. Catalogue Management Section -->
+    <section id="catalogue" class="scroll-mt-20">
+      <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-sm space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[var(--stone-light)] gap-2">
+          <div>
+            <h2 class="font-serif text-3xl font-bold text-[var(--espresso)]">Seller Product Catalogue</h2>
+            <p class="text-xs text-[var(--taupe)] uppercase tracking-wider mt-1">Tenant-scoped catalogue of products and packaging descriptions for vision model discrimination</p>
+          </div>
+          <div class="text-xs font-mono bg-white px-3 py-1.5 rounded border border-[var(--stone)] text-[var(--charcoal)]">
+            Active Tenant: <strong>{{ session_org }}</strong>
+          </div>
+        </div>
+
+        {% include "catalogue_section_partial.html" %}
+      </div>
+    </section>
+
+    <!-- 5. Records & Audit Log Section -->
     <section id="records" class="scroll-mt-20">
       <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-[var(--stone-light)] mb-6 gap-4">
@@ -291,13 +338,12 @@
           </div>
           <div class="flex items-center space-x-3">
             <span class="text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">Active Tenant:</span>
-            <span class="px-3 py-1 bg-white border border-[var(--stone)] rounded text-xs font-mono font-semibold">{{ selected_org }}</span>
+            <span class="px-3 py-1 bg-white border border-[var(--stone)] rounded text-xs font-mono font-semibold">{{ session_org }}</span>
           </div>
         </div>
 
         <!-- Filter Controls Bar -->
         <form hx-get="/pack/records" hx-target="#records-table-container" hx-trigger="change from:select, change from:input, submit" class="bg-white border border-[var(--stone-light)] p-4 rounded-lg mb-6 shadow-sm">
-          <input type="hidden" name="org_id" value="{{ selected_org }}">
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end text-xs">
             
             <!-- Verdict Filter -->
@@ -346,19 +392,124 @@
 
   </main>
 
-  <!-- 5. Footer -->
-  <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-12 px-6 border-t border-[var(--espresso)] text-xs mt-16">
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-      <div class="space-y-1 text-center md:text-left">
-        <p class="font-serif text-lg font-bold text-[var(--cream)]">PACK MANAGER</p>
-        <p class="text-[11px] text-[var(--stone-light)]">Cube Buildathon · Outbound Pack Verification Agent (Stage 3 of 5)</p>
-      </div>
-      <div class="text-center md:text-right text-[11px] space-y-1">
-        <p>Forced Row-Level Security · Tenant Isolation Enforced</p>
-        <p class="text-[var(--stone)]">SHA-256 Content Hash Proof · Short-Lived Signed URLs</p>
-      </div>
+  <!-- 6. Footer -->
+  <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-8 px-6 border-t border-[var(--espresso)] text-xs mt-16">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <p class="font-serif text-lg font-bold text-[var(--cream)]">PACK MANAGER</p>
     </div>
   </footer>
+
+  <!-- JavaScript for Order Lines Product Picker -->
+  <script>
+    const catalogueProducts = [
+      {% for item in catalogue_items %}
+        { sku: "{{ item.sku }}", title: "{{ item.title|replace('"', '\\"') }}" },
+      {% endfor %}
+    ];
+
+    function serializeOrderLines() {
+      const rows = document.querySelectorAll('.picker-row');
+      const parts = [];
+      rows.forEach(row => {
+        const skuSelect = row.querySelector('.picker-sku');
+        const qtyInput = row.querySelector('.picker-qty');
+        if (skuSelect && qtyInput) {
+          const sku = skuSelect.value.trim();
+          const qty = parseInt(qtyInput.value) || 1;
+          if (sku) {
+            parts.push(`${sku}:${qty}`);
+          }
+        }
+      });
+      const serialized = parts.join(';');
+      const input = document.getElementById('order_lines_serialized');
+      if (input) {
+        input.value = serialized;
+      }
+    }
+
+    function addOrderPickerRow(defaultSku = '', defaultQty = 1) {
+      const container = document.getElementById('order-picker-container');
+      if (!container) return;
+
+      const emptyNotice = document.getElementById('order-picker-empty');
+      if (emptyNotice) {
+        emptyNotice.remove();
+      }
+
+      const row = document.createElement('div');
+      row.className = 'picker-row flex items-center gap-3 p-2 bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-lg';
+
+      let optionsHtml = '';
+      if (catalogueProducts.length > 0) {
+        const placeholderOption = `<option value="" disabled ${!defaultSku ? 'selected' : ''}>-- Select product from catalogue --</option>`;
+        optionsHtml = placeholderOption + catalogueProducts.map(p => 
+          `<option value="${p.sku}" ${p.sku === defaultSku ? 'selected' : ''}>${p.title} (${p.sku})</option>`
+        ).join('');
+        row.innerHTML = `
+          <div class="flex-grow">
+            <select class="picker-sku w-full bg-white border border-[var(--stone)] rounded px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-[var(--walnut)]" onchange="serializeOrderLines()">
+              ${optionsHtml}
+            </select>
+          </div>
+          <div class="flex items-center space-x-1">
+            <button type="button" class="w-7 h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold" onclick="stepQty(this, -1)">-</button>
+            <input type="number" min="1" value="${defaultQty}" class="picker-qty w-14 text-center bg-white border border-[var(--stone)] rounded py-1 text-xs font-mono font-bold focus:outline-none" onchange="serializeOrderLines()" oninput="serializeOrderLines()">
+            <button type="button" class="w-7 h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold" onclick="stepQty(this, 1)">+</button>
+          </div>
+          <button type="button" class="text-[var(--taupe)] hover:text-[var(--fail)] px-2 py-1 text-sm font-bold" onclick="removePickerRow(this)" title="Remove item">✕</button>
+        `;
+      } else {
+        // Fallback manual input when no catalogue products exist
+        row.innerHTML = `
+          <div class="flex-grow">
+            <input type="text" placeholder="e.g. SKU-CUSTOM-01" value="${defaultSku}" class="picker-sku w-full bg-white border border-[var(--stone)] rounded px-2.5 py-1.5 text-xs font-mono uppercase focus:outline-none focus:border-[var(--walnut)]" oninput="serializeOrderLines()">
+          </div>
+          <div class="flex items-center space-x-1">
+            <button type="button" class="w-7 h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold" onclick="stepQty(this, -1)">-</button>
+            <input type="number" min="1" value="${defaultQty}" class="picker-qty w-14 text-center bg-white border border-[var(--stone)] rounded py-1 text-xs font-mono font-bold focus:outline-none" onchange="serializeOrderLines()" oninput="serializeOrderLines()">
+            <button type="button" class="w-7 h-7 bg-white border border-[var(--stone)] hover:bg-[var(--stone-light)] rounded text-xs font-bold" onclick="stepQty(this, 1)">+</button>
+          </div>
+          <button type="button" class="text-[var(--taupe)] hover:text-[var(--fail)] px-2 py-1 text-sm font-bold" onclick="removePickerRow(this)" title="Remove item">✕</button>
+        `;
+      }
+
+      container.appendChild(row);
+      serializeOrderLines();
+    }
+
+    function stepQty(button, delta) {
+      const input = button.parentElement.querySelector('.picker-qty');
+      if (input) {
+        let val = parseInt(input.value) || 1;
+        val = Math.max(1, val + delta);
+        input.value = val;
+        serializeOrderLines();
+      }
+    }
+
+    function removePickerRow(button) {
+      const container = document.getElementById('order-picker-container');
+      const row = button.closest('.picker-row');
+      if (row) {
+        row.remove();
+        serializeOrderLines();
+      }
+      if (container && container.querySelectorAll('.picker-row').length === 0) {
+        container.innerHTML = `
+          <div id="order-picker-empty" class="text-xs text-[var(--taupe)] italic py-3 text-center border border-dashed border-[var(--stone)] rounded-lg">
+            No order lines added yet. Click "+ Add Item" above to select products from your catalogue.
+          </div>
+        `;
+        serializeOrderLines();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Keep clear initially until user enters data
+      serializeOrderLines();
+    });
+  </script>
 
 </body>
 </html>

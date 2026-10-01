@@ -56,7 +56,7 @@
       </div>
       <div class="flex items-center space-x-6 text-xs tracking-wider">
         <span class="font-mono text-[var(--stone)]">Tenant: <strong class="text-[var(--cream)]">{{ record.org_id }}</strong></span>
-        <a href="/?org_id={{ record.org_id }}#records" class="hover:text-[var(--stone-light)] underline uppercase font-semibold">
+        <a href="/#records" class="hover:text-[var(--stone-light)] underline uppercase font-semibold">
           ← Back to Audit Log
         </a>
       </div>
@@ -98,18 +98,7 @@
           </p>
         </div>
 
-        <!-- Overrides Counter Badge -->
-        <div class="text-right">
-          {% if overrides %}
-            <span class="px-3 py-1.5 text-xs font-bold rounded bg-amber-100 text-amber-900 border border-amber-300">
-              ⚠️ {{ overrides|length }} Operator Override(s) Recorded
-            </span>
-          {% else %}
-            <span class="px-3 py-1.5 text-xs font-semibold rounded bg-[var(--cream)] text-[var(--taupe)] border border-[var(--stone-light)]">
-              No Overrides (Original Model Verdict Active)
-            </span>
-          {% endif %}
-        </div>
+
       </div>
 
       <!-- Human Attention Banners -->
@@ -230,7 +219,7 @@
                   <th class="py-2.5 px-3">SKU</th>
                   <th class="py-2.5 px-3">Expected Qty</th>
                   <th class="py-2.5 px-3">Observed In Box</th>
-                  <th class="py-2.5 px-3">Model Confidence</th>
+                  <th class="py-2.5 px-3">Model-Reported Confidence (Not Calibrated)</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[var(--stone-light)] font-mono">
@@ -244,7 +233,7 @@
                   </td>
                   <td class="py-2.5 px-3 text-[var(--taupe)]">
                     {% if item.count_conf is not none %}
-                      {{ "%.0f"|format(item.count_conf * 100) }}% count · {{ "%.0f"|format(item.ident_conf * 100) }}% id
+                      {{ "%.2f"|format(item.count_conf) }} count · {{ "%.2f"|format(item.ident_conf) }} id
                     {% else %}
                       N/A
                     {% endif %}
@@ -318,101 +307,13 @@
 
     </div>
 
-    <!-- Human Overrides History & Form -->
-    <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-6 shadow-sm space-y-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="font-serif text-2xl font-bold text-[var(--espresso)]">Operator Overrides History</h2>
-          <p class="text-xs text-[var(--taupe)]">Immutable audit trail of human supervisor decisions (append-only).</p>
-        </div>
-      </div>
-
-      <!-- Overrides Table -->
-      {% if overrides %}
-      <div class="overflow-x-auto">
-        <table class="w-full text-xs text-left">
-          <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider">
-            <tr>
-              <th class="py-2.5 px-3">Timestamp (UTC)</th>
-              <th class="py-2.5 px-3">Operator</th>
-              <th class="py-2.5 px-3">Original Verdict</th>
-              <th class="py-2.5 px-3">New Verdict</th>
-              <th class="py-2.5 px-3">Reason</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[var(--stone-light)] font-mono">
-            {% for ovr in overrides %}
-            <tr class="hover:bg-white/60">
-              <td class="py-2.5 px-3 text-[var(--taupe)]">{{ ovr.created_at }}</td>
-              <td class="py-2.5 px-3 font-semibold text-[var(--charcoal)]">{{ ovr.operator_id }}</td>
-              <td class="py-2.5 px-3">{{ ovr.original_verdict }}</td>
-              <td class="py-2.5 px-3 font-bold {% if ovr.new_verdict == 'SEAL' %}text-[var(--pass)]{% else %}text-[var(--fail)]{% endif %}">
-                {{ ovr.new_verdict }}
-              </td>
-              <td class="py-2.5 px-3 font-sans text-[var(--charcoal)]">{{ ovr.reason }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-      <div class="bg-white p-4 rounded border border-[var(--stone-light)] text-xs text-[var(--taupe)]">
-        No overrides have been submitted for this record. Original verdict remains authoritative.
-      </div>
-      {% endif %}
-
-      <!-- Override Submission Form -->
-      <div class="pt-4 border-t border-[var(--stone-light)]">
-        <details class="cursor-pointer">
-          <summary class="text-xs font-semibold text-[var(--walnut)] hover:text-[var(--espresso)] uppercase tracking-wider select-none">
-            + Submit New Human Override
-          </summary>
-          <div class="mt-4 p-4 bg-white rounded border border-[var(--stone-light)] max-w-xl">
-            <form hx-post="/pack/override" hx-target="#override-result-box" class="space-y-4">
-              <input type="hidden" name="record_id" value="{{ record.id }}">
-              <input type="hidden" name="org_id" value="{{ record.org_id }}">
-              <input type="hidden" name="original_verdict" value="{{ record.verdict or 'PENDING' }}">
-              
-              <div>
-                <label class="block text-[11px] uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">New Verdict</label>
-                <select name="new_verdict" required class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded p-2 text-xs">
-                  <option value="SEAL">SEAL (Approve Box Outbound)</option>
-                  <option value="STOP_AND_FIX">STOP_AND_FIX (Reject Box for Repacking)</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-[11px] uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">Operator ID</label>
-                <input type="text" name="operator_id" value="op_supervisor" required class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded p-2 text-xs font-mono">
-              </div>
-
-              <div>
-                <label class="block text-[11px] uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">Reason for Override</label>
-                <textarea name="reason" required rows="3" class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded p-2 text-xs" placeholder="e.g. Manually inspected box: second bottle was obscured under packing paper."></textarea>
-              </div>
-
-              <button type="submit" class="w-full bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] py-2 rounded text-xs font-semibold uppercase tracking-wider transition">
-                Record Immutable Override
-              </button>
-            </form>
-            <div id="override-result-box" class="mt-3"></div>
-          </div>
-        </details>
-      </div>
-
-    </div>
-
   </main>
 
   <!-- Footer -->
   <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-8 border-t border-[var(--espresso)] text-xs">
-    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <span class="font-serif text-lg font-bold text-[var(--cream)]">PACK MANAGER</span>
-        <span class="text-[10px] uppercase tracking-widest text-[var(--taupe)] border border-[var(--umber)] px-2 py-0.5 rounded">Stage 3 of 5</span>
-      </div>
-      <div class="text-right text-[11px] text-[var(--taupe)]">
-        Postgres Row-Level Security · SHA-256 Evidence Hashing
       </div>
     </div>
   </footer>

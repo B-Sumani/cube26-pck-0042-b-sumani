@@ -21,9 +21,6 @@ from agent.models.mock import MockVisionAdapter
 from agent.db.repo import PackRepository, AppendOnlyViolationError
 
 
-@pytest.fixture
-def client():
-    return TestClient(app)
 
 
 def create_test_image(format="JPEG") -> bytes:
@@ -89,7 +86,6 @@ def test_evidence_record_permalink_renders_all_audit_fields(client):
     assert "Threshold Config:" in html
     assert "Latency:" in html
     assert "/api/storage/tenants/org_demo_alpha/UNIT-0050/" in html
-    assert "Operator Overrides History" in html
 
 
 def test_cross_tenant_record_isolation_returns_404(client):
@@ -118,9 +114,23 @@ def test_cross_tenant_record_isolation_returns_404(client):
     record_id = match.group(0)
 
     # Request as org_demo_bravo
-    bravo_resp = client.get(f"/pack/record/{record_id}?org_id=org_demo_bravo")
+    from agent.main import sign_session_org, COOKIE_NAME
+    bravo_client = TestClient(app)
+    bravo_client.cookies.set(COOKIE_NAME, sign_session_org("org_demo_bravo"))
+    bravo_resp = bravo_client.get(f"/pack/record/{record_id}")
     assert bravo_resp.status_code == 404
     assert "not found" in bravo_resp.json()["detail"].lower()
+
+    # Override attempt by org_demo_bravo on alpha's record must return 403 Forbidden
+    override_resp = bravo_client.post("/pack/override", data={
+        "record_id": record_id,
+        "org_id": "org_demo_bravo",
+        "original_verdict": "SEAL",
+        "new_verdict": "STOP_AND_FIX",
+        "reason": "Bravo cross-tenant override attempt",
+        "operator_id": "op_bravo"
+    })
+    assert override_resp.status_code == 403
 
 
 def test_records_filtering_by_verdict(client):
@@ -219,18 +229,68 @@ def test_override_flow_updates_history_and_maintains_immutability(client):
     assert resp2.status_code == 200
     assert "Total Overrides on Record: 2" in resp2.text
 
-    # 4. Check permalink page shows both in history table
+    # 4. Check permalink page loads cleanly
     page_resp = client.get("/pack/record/PCK-OVR-HIST-1?org_id=org_demo_alpha")
     assert page_resp.status_code == 200
     html = page_resp.text
-    assert "2 Operator Override(s) Recorded" in html
-    assert "op_alice" in html
-    assert "op_supervisor_bob" in html
-    assert "item was hidden under flap" in html
-    assert "Barcode was wrong item entirely" in html
+    assert "PACK MANAGER" in html
+    assert "Operator Overrides History" not in html
 
     # 5. Verify append-only immutability (deleting or updating raises error)
     overrides = repo.list_overrides("PCK-OVR-HIST-1")
     assert len(overrides) == 2
     with pytest.raises(AppendOnlyViolationError):
         repo.attempt_override_update_or_delete(overrides[0]["id"])
+
+
+def test_confidence_display_shows_raw_two_decimal_and_never_rounded_to_100_percent(client):
+    """Proves that a stored confidence value of 0.93 is displayed as 0.93 and never rounded up to 100%."""
+    mock_obs = ModelObservation(
+        observed_items=[
+            ObservedItem(
+                sku="SKU-BOTTLE-750",
+                count=1,
+                count_confidence=0.93,
+                identity_confidence=0.93,
+                partially_occluded=False,
+                bbox=[50.0, 50.0, 200.0, 200.0]
+            )
+        ],
+        unrecognised_items=[],
+        image_quality=ImageQuality(usable=True, issues=[]),
+        occlusion_suspected=False
+    )
+    set_adapter(MockVisionAdapter(default_observation=mock_obs))
+
+    photo_bytes = create_test_image("JPEG")
+    files = {"photo": ("box.jpg", photo_bytes, "image/jpeg")}
+    data = {
+        "order_id": "ORD-CONF-93",
+        "unit_id": "UNIT-CONF-93",
+        "order_lines": "SKU-BOTTLE-750:1",
+    }
+    verify_resp = client.post("/pack/verify", data=data, files=files)
+    assert verify_resp.status_code == 200
+    verify_html = verify_resp.text
+
+    # 1. Result page assertions: raw two decimal float shown, not 100%
+    assert "0.93 count · 0.93 id" in verify_html
+    table_section = verify_html.split("Model-Reported Confidence (Not Calibrated)")[1].split("</table>")[0]
+    assert "100%" not in table_section
+    assert "Model-Reported Confidence (Not Calibrated)" in verify_html
+
+    # Extract record ID
+    match = re.search(r"PCK-[0-9A-F]+", verify_html)
+    assert match is not None
+    record_id = match.group(0)
+
+    # 2. Record detail permalink assertions
+    detail_resp = client.get(f"/pack/record/{record_id}")
+    assert detail_resp.status_code == 200
+    detail_html = detail_resp.text
+
+    assert "0.93 count · 0.93 id" in detail_html
+    detail_table = detail_html.split("Model-Reported Confidence (Not Calibrated)")[1].split("</table>")[0]
+    assert "100%" not in detail_table
+    assert "Model-Reported Confidence (Not Calibrated)" in detail_html
+

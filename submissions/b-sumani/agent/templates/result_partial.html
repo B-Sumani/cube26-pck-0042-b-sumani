@@ -1,6 +1,18 @@
 <!-- Result Partial: Rendered via HTMX into #result-container -->
 <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-8 shadow-md space-y-8 animate-fadeIn">
 
+  {% if candidate_source == 'order_only' %}
+  <div class="bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-lg text-xs flex items-center space-x-2.5 shadow-sm">
+    <span class="text-lg">⚠️</span>
+    <div>
+      <strong class="font-semibold">⚠️ No catalogue set up. Wrong-item checks are weaker because unexpected products cannot be recognized.</strong>
+      <p class="text-[11px] text-amber-800 mt-0.5 font-sans">
+        Candidate set was restricted to ordered SKUs only. Add seller catalogue items to enable production decoy item discrimination.
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Top Decision Banner -->
   <div>
     {% if status == 'pending' %}
@@ -191,7 +203,7 @@
               <th class="py-2.5 px-3">SKU</th>
               <th class="py-2.5 px-3">Expected Qty</th>
               <th class="py-2.5 px-3">Observed Count</th>
-              <th class="py-2.5 px-3">Model-Reported Confidence</th>
+              <th class="py-2.5 px-3">Model-Reported Confidence (Not Calibrated)</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[var(--stone-light)] font-mono">
@@ -205,7 +217,7 @@
               </td>
               <td class="py-2.5 px-3 text-[var(--taupe)]">
                 {% if item.count_conf is not none %}
-                  {{ "%.0f"|format(item.count_conf * 100) }}% count · {{ "%.0f"|format(item.ident_conf * 100) }}% id
+                  {{ "%.2f"|format(item.count_conf) }} count · {{ "%.2f"|format(item.ident_conf) }} id
                 {% else %}
                   N/A
                 {% endif %}

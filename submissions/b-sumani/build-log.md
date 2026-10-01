@@ -391,6 +391,189 @@ Chronological log of engineering steps, design decisions, and test outcomes. App
   - Recomputed all dev tables directly from saved records of final temperature=0.0 runs.
   - Documented run-to-run variance (0/18 verdicts, 0/18 counts) in `README.md` and `eval-report.md`.
   - Replaced all older tables in `README.md`, `MEMORY.md`, and `build-log.md` with raw counts leading.
+  - Updated per-check table to cover all 18 boxes (Decided 17 + Uncertain 1 = 18).
+  - Documented UNIT-0069 as "right verdict, wrong reason" and reported breakdown of the 7 physically clean boxes (5 sealed, 1 false stop, 1 manual check).
+  - Documented caveat that temperature 0 was chosen following dev failure on UNIT-0021 and back-to-back runs do not prove stability over time on preview models.
+
+---
+
+## 2026-10-01 · Part 3: Live Website End-to-End Verification
+
+- **Local Server Startup**:
+  - Started Uvicorn server on `http://127.0.0.1:8000` with live Gemini vision adapter (`gemini-3.1-flash-lite-preview`).
+- **Playwright Browser Automation (Chrome Headless)**:
+  - Captured baseline UI: `01_hero.png`, `02_check_a_box_form.png`, `03_records_section_initial.png`.
+- **Live Box Verifications**:
+  1. *Correct Box (`UNIT-0017`)*:
+     - Input: `SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1` + full catalogue candidate set.
+     - Decision: **`GO` (`SEAL`)**. Latency: 5708 ms. Record: `PCK-80F6A3B7`.
+     - Three Checks: All Items Present PASS (`ALL_ITEMS_PRESENT`), Quantities Correct PASS (`QUANTITIES_MATCH`), Nothing Extra PASS (`NO_EXTRA_ITEMS`).
+     - Evidence: Comparison table displays 100% count / 100% id confidences; SVG bounding boxes correctly outline phone and earbuds.
+     - Screenshot: `04_result_unit0017_correct.png`.
+  2. *Wrong Box (`UNIT-0029`)*:
+     - Input: `SKU-BODYMILK-NIVEA:1;SKU-TRIMMER-BOMBAY:1;SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1` + full catalogue.
+     - Decision: **`STOP` (`STOP_AND_FIX`)**. Latency: 8621 ms. Record: `PCK-B6D4798A`.
+     - Three Checks: All Items Present FAIL (`MISSING_ITEMS`, missing body milk), Quantities Correct PASS, Nothing Extra FAIL (`DECOY_ITEM_PRESENT`, decoy sunscreen found).
+     - Evidence: Comparison table highlights missing and surplus items in red; bounding boxes outline trimmer, sunscreen, earbuds, phone.
+     - Screenshot: `05_result_unit0029_wrong.png`.
+  3. *Blurry Box (`UNIT-0049`)*:
+     - Input: `SKU-BOOK-GGBB:1;SKU-SUNSCREEN-DERMA:1;SKU-SOAP-MYSORE:1;SKU-STICKY-MRDIY:1` + full catalogue.
+     - Decision: **`STOP` (`UNCERTAIN`)**. Latency: 3201 ms. Record: `PCK-0EFD7070`.
+     - Prominent Banner: *"The agent could not verify this box. Please check the photo manually."*
+     - Three Checks: All 3 checks routed to `UNCERTAIN` (`UNVERIFIED_UNDER_QUALITY_DEFECT`, `cause='recognition'`).
+     - Screenshot: `06_result_unit0049_blurry.png`.
+- **Operator Override Flow**:
+  - In result view for `PCK-0EFD7070`, opened operator override dropdown.
+  - Selected new verdict `SEAL` and entered reason: *"Supervisor visual inspection: physical packaging verified all 4 items present in open carton."*
+  - Submitted override. Persistent confirmation banner displayed: `✓ Override Recorded (OVR-B18B74B4): PCK-0EFD7070 changed from UNCERTAIN to SEAL by op_amira`.
+  - Evidence record permalink (`/pack/record/PCK-0EFD7070?org_id=org_demo_alpha`) verified showing `⚠️ 1 Operator Override(s) Recorded` and append-only audit trail.
+  - Screenshots: `07_override_completed.png`, `08_records_with_override.png`, `13_evidence_record_override.png`.
+- **Simulated Model Timeout (Fail-Open)**:
+  - Form submitted with simulated timeout signal.
+  - Decision: **`PENDING` (`FAIL-OPEN`)**. Latency: 0 ms. Record: `PCK-6BBD45E6`.
+  - Prominent Banner: *"Agent unavailable: seal on your own judgment"*. Subtext: *"Capture saved under record PCK-6BBD45E6. Operational line is not blocked."*
+  - Screenshot: `09_timeout_pending.png`.
+- **Upload Validation Testing**:
+  - Non-image upload (`notes.txt`): Rejected with HTTP 400 (`"Invalid image format. Only JPEG and PNG are allowed."`).
+  - Oversize upload (11MB): Rejected with HTTP 400 (`"File too large. Maximum size is 10 MB."`).
+  - Path-traversal filename (`../../secret.jpg`): Rejected with HTTP 400 (`"Invalid filename: path traversal tricks forbidden."`).
+- **Mobile Responsive Layout Audit (375x812 Viewport)**:
+  - Identified tight wrapping of header anchor navigation links against `PACK MANAGER` wordmark.
+  - Applied generic responsive styling: hid auxiliary navigation anchors on small viewports (`hidden sm:flex`) and added responsive wordmark sizing (`text-lg sm:text-2xl`), eliminating collision.
+  - Verified clean single-line header and scrollable audit table on mobile.
+  - Screenshots: `10_mobile_hero_form_fixed.png`, `11_mobile_records_fixed.png`.
+- **Server Status**: Uvicorn server left actively running on `http://127.0.0.1:8000`.
+
+---
+
+## 2026-10-01 · UI Header and Evidence Record Cleanup
+
+- **Hero Simplification**: Removed subtitle and tagline from `#hero` in `index.html`, leaving strictly `PACK MANAGER`.
+- **Evidence Record Detail Cleanup**: Removed `Operator Overrides History` table, counter badge, and override submission form from `record_detail.html`.
+- **Footer Cleanup**: Removed `Stage 3 of 5` badge and `Postgres Row-Level Security · SHA-256 Evidence Hashing` label from footers in both `index.html` and `record_detail.html`.
+- **Test Suite Alignment**: Updated test assertions in `tests/test_v2_evidence_and_records.py`; all 51 test cases passing.
+
+---
+
+## 2026-10-01 · Form Input Polish & Multi-Tenant Isolation Hardening
+
+- **Form Header Polish (`index.html`)**:
+  - Removed `Station 03` badge from the "Verify an Open Box" section header.
+- **Empty Form State with Guidance (`index.html`)**:
+  - Removed default prefilled data from `order_lines` and `candidate_skus` textareas, keeping them empty until user input.
+  - Added placeholders (`e.g. SKU-BOTTLE-750:1;SKU-PUZZLE-500:2` and `e.g. SKU-BOTTLE-750, SKU-PUZZLE-500, SKU-CABLE-USBC`).
+  - Added light explanatory text explaining format and operational roles (deterministic rule evaluation for quantities; candidate set and decoy discrimination for model).
+- **Multi-Tenant Isolation Hardening**:
+  - **Dynamic Tenant Switching**: Added `onchange="window.location.href='/?org_id=' + this.value"` to organization picker so switching tenants immediately reloads the view with active tenant scoping across the audit table and permalinks.
+  - **Storage Key Isolation (`agent/db/storage.py`)**: `create_signed_url` and `verify_signed_token` strictly require keys to begin with `tenants/{org_id}/` matching the requesting org. Non-tenant keys and cross-tenant attempts are rejected.
+  - **Append-Only Override Isolation (`agent/db/repo.py` & `agent/main.py`)**: `insert_override` enforces that the target record exists and belongs to the requesting organization; cross-tenant attempts raise `TenancyViolationError` and return HTTP 403 Forbidden.
+  - **Record Detail Isolation**: Dedicated permalink (`/pack/record/{id}?org_id={org}`) returns HTTP 404 if accessed by foreign organization.
+- **Test Suite Expansion**:
+  - Added `test_tenancy_override_cross_tenant_blocked` and `test_tenancy_storage_non_tenant_key_rejected` to `tests/test_tenancy.py`.
+  - Added cross-tenant override attempt assertion to `tests/test_v2_evidence_and_records.py`.
+  - All 53 tests passing (4 live Supabase tests skipped).
+
+---
+
+## 2026-10-01 · Step 13: Demo Org Login & Seller Product Catalogue Integration
+
+- **Scope & Objectives**:
+  - Implement two architectural improvements in one pass without touching `EVAL_DIR`, eval photos, prompts, thresholds, or the vision model.
+  - **Part A (Demo Org Login)**:
+    - Built a dedicated login page at `/login` with two buttons ("Enter as Alpha Demo Merchant" and "Enter as Bravo Demo Merchant") styled in Cormorant Garamond / Inter. Clearly labelled: *"Demo access: no password. Choose an organisation to see tenant separation."*
+    - Login POST sets an HMAC-SHA256 signed, HttpOnly, SameSite=Lax session cookie (`pack_session`) holding `org_id`.
+    - App enforces `SESSION_SECRET` on startup and refuses to start without it (`SESSION_SECRET` documented in `.env.example`).
+    - Added "Switch organisation" action (`/logout`) and header indicator showing "Signed in as <org name> (<org_id>)".
+    - The active organisation is determined exclusively from the session cookie; all pages, APIs, image downloads, audit queries, and catalogue operations ignore any `org_id` supplied in form fields or query parameters. Missing/invalid session redirects to `/login`.
+  - **Part B (Seller Product Catalogue Replaces Typed Inputs)**:
+    - Added `catalogue_items` table (`id`, `org_id`, `sku`, `title`, `description`, `created_at`) with forced RLS and grant to `pack_app_user`.
+    - Automatically seeded both demo organisations (`org_demo_alpha` and `org_demo_bravo`) from `data/catalogue.csv` on startup.
+    - Removed catalogue textarea from check form; replaced with "Using your catalogue: 10 products" expandable `<details>` list.
+    - Added dedicated `#catalogue` section on the main page where the signed-in tenant can view, add, edit, and delete products, and upload a CSV with SKU validation.
+    - Replaced typed `order_lines` textarea with an interactive product picker: dropdown of catalogue products + quantity stepper (`[-] [ qty ] [+]`, min 1) + "+ Add Item" button, serializing into `SKU:qty;SKU:qty` for deterministic rules evaluation. Quantities never reach the vision model.
+    - Form fields start clear with helpful guidance text.
+    - Implemented empty catalogue fallback: if an organisation has no catalogue items, falls back to order SKUs as candidates, shows an explicit warning banner (*"⚠️ No catalogue set up. Wrong-item checks are weaker because unexpected products cannot be recognized."*), and records `candidate_source = 'order_only'` in `checks['_audit']`.
+  - **Test Suite Results**:
+    - Expanded test suite: 58 passed offline, 5 skipped (live PostgreSQL/Supabase tests skip without `DATABASE_URL`).
+    - Verifies: Bravo session cannot read Alpha records/images/catalogue even when spoofing `org_id=alpha`; request without session redirects to `/login`; tampered cookie rejected; Alpha catalogue edits invisible to Bravo; live catalogue RLS verified (skips without `DATABASE_URL`); empty catalogue triggers fallback warning banner and sets `candidate_source = 'order_only'`.
+  - **E2E Playwright Run & Screenshots**:
+    - Captured `/login` (`15_login_page.png`), check form with catalogue and picker (`02_check_a_box_form.png`), `#catalogue` section (`16_catalogue_section.png`), UNIT-0017 (SEAL, `04_result_unit0017_correct.png`), UNIT-0029 (STOP_AND_FIX, `05_result_unit0029_wrong.png`), UNIT-0049 (UNCERTAIN, `06_result_unit0049_blurry.png`), and Bravo tenancy isolation (`14_tenancy_bravo_isolated.png`).
+
+---
+
+## 2026-10-01 · Step 14: Confidence Display Diagnosis & Precision Fix
+
+- **Scope & Objectives**:
+  - Diagnose model-reported count and identity confidences across all 18 dev boxes from the saved final runs (`real_dev_results_temp0_run1.json`, `run2`, `iter_b`).
+  - Determine root cause of `100%` display: confirmed as both a display template rounding bug (`%.0f * 100`) and the model genuinely outputting `1.0` everywhere.
+  - Implement raw two-decimal display (`0.93 count · 0.93 id`), update column headers to `"Model-Reported Confidence (Not Calibrated)"`, and eliminate percentage multiplier/rounding in `result_partial.html` and `record_detail.html`.
+  - Add test proving stored `0.93` displays as `0.93` and never as `100%`.
+  - Document uncalibrated confidence note and inactive status of thresholds in `README.md` and `eval-report.md`.
+- **Diagnostic Findings**:
+  - Across all 50 observed items in all 18 dev boxes:
+    - `count_confidence`: min = 1.00, median = 1.00, max = 1.00 (50/50 >= 0.99, 100%).
+    - `identity_confidence`: min = 1.00, median = 1.00, max = 1.00 (50/50 >= 0.99, 100%).
+    - No difference between clean and defective boxes (1.0 across all).
+    - Thresholds (0.70 identity, 0.65 count) remain inactive in practice.
+- **Components Built / Updated**:
+  - `agent/templates/result_partial.html`: Updated header to `"Model-Reported Confidence (Not Calibrated)"` and format string to `{{ "%.2f"|format(item.count_conf) }} count · {{ "%.2f"|format(item.ident_conf) }} id`.
+  - `agent/templates/record_detail.html`: Updated header and row formatting to match.
+  - `tests/test_v2_evidence_and_records.py`: Added `test_confidence_display_shows_raw_two_decimal_and_never_rounded_to_100_percent`.
+  - `README.md` & `eval-report.md`: Added operational notes explaining model confidence calibration and inactive threshold status.
+  - `scratch/capture_confidence_display.py`: Captured updated screenshot `17_result_corrected_confidence.png` / `04_result_unit0017_correct.png`.
+- **Test Suite Results**:
+
+---
+
+## 2026-10-01 · Step 15: Full Measurement Report Evaluation Harness & Dev Verification
+
+- **Scope & Objectives**:
+  - Implement full measurement report across all 9 dimensions specified in context.md Section 8 and Section 14.
+  - Test the upgraded harness strictly on the **DEV set only**. Strictly avoid opening, listing, or touching `EVAL_DIR` or any eval photos.
+  - Implement Wilson 95% Score Confidence Intervals for binomial rates alongside raw counts.
+  - Build Main Table (15 clear cartons: correct, missing, short_quantity, extra, wrong_item; defective = positive class, raw "x of N" counts, Wilson CIs) and Hard Table (3 cartons: occluded_hidden, occluded_absent, bad_photo; actual verdicts, UNCERTAIN recall, kept strictly out of main FP/FN).
+  - Build Orthogonal Check breakdown (`all_items_present`, `quantities_correct`, `nothing_extra`), confirming each totals to 18.
+  - Operational rates vs targets: UNCERTAIN rate vs 10% target and 20% kill line, PENDING rate vs 3% target, split by cause and failure_type.
+  - Latency distribution of model calls only (p50, p95, mean, max, timeouts count).
+  - Inter-labeller agreement: raw percentage agreement and Cohen's Kappa on observed contents if `LABELS_B` provided; graceful skip if absent.
+  - Safety Guards:
+    - Strictly reject mock adapters (`IS_MOCK=True`).
+    - Never stream unit IDs or truth to logs during execution.
+    - Write outputs to results folder with run manifest (git commit, prompt version, threshold version, catalogue version, model name, temperature, date, units).
+    - Emit prominent audit warning if run a second time against the same `EVAL_DIR`.
+    - Unit tests with synthetic predictions (explicitly labelled synthetic fixtures).
+- **Components Built / Updated**:
+  - `agent/eval/metrics.py`:
+    - `wilson_score_interval(x, n, confidence=0.95)`: Exact binomial Wilson score interval with center/margin math and boundary clamping.
+    - `canonicalize_observed_contents()`: Normalizes observed items into sorted `SKU:count;SKU:count` format for robust comparison.
+    - `compute_cohens_kappa()` and `compute_labeller_agreement()`: Inter-annotator agreement on observed contents with itemized disagreements.
+    - `derive_ground_truth_checks()`: Deterministic ground truth mapping across all 8 failure types.
+    - `compute_eval_metrics()`: Computes Main Table, Hard Table, Orthogonal Checks, Operational Rates, Latency stats, Failure breakdown, wrong boxes list, and flags `UNIT-0069` as "right verdict, wrong reason".
+  - `agent/eval/report.py`:
+    - `generate_markdown_report()`: Generates structured Markdown report formatted for injection into `eval-report.md`.
+  - `agent/eval/run_eval.py`:
+    - Unified CLI runner accepting `--images-dir`, `--eval-dir`, optional `--labels-b`, `--catalogue`, `--output-dir`, `--pacing`, `--temperature`, and `--dev`.
+    - Enforces mock rejection, privacy logging (no unit IDs/truth logged), repeat eval warning, and JSON/Markdown file generation.
+  - `tests/test_eval_metrics.py`:
+    - 9 comprehensive unit tests covering Wilson intervals, Cohen's Kappa, Labeller agreement, Main/Hard table separation, check totals, operational targets, latency, mock rejection, and repeat eval warning using synthetic fixtures.
+- **Verification on Dev Set**:
+  - Ran `run_eval.py --dev --images-dir images --saved-results submissions/b-sumani/eval/real_dev_results_temp0_run2.json`.
+  - Main Table (15 clear cartons): Accuracy 15/15 (100.0%, 95% CI: [79.6%, 100.0%]), Coverage 15/15 (100.0%), Defective sealed FN: 0 of 10 defective (0.0%, 95% CI: [0.0%, 27.8%]), Clean stopped FP: 0 of 5 clean (0.0%, 95% CI: [0.0%, 43.4%]).
+  - Hard Table (3 hard cartons): UNCERTAIN recall: 1 of 3 (33.3%). UNIT-0043 (occluded_hidden) false stop (STOP_AND_FIX), UNIT-0049 (bad_photo) caught as UNCERTAIN by blur gate, UNIT-0081 (occluded_absent) safe stop (STOP_AND_FIX). Kept out of main FP/FN.
+  - Orthogonal Checks: All three check tables sum to exactly 18 cartons.
+    - `all_items_present`: TP=6, FP=2, FN=0, TN=9, UNCERTAIN=1, PENDING=0 (Total = 18).
+    - `quantities_correct`: TP=3, FP=0, FN=0, TN=14, UNCERTAIN=1, PENDING=0 (Total = 18).
+    - `nothing_extra`: TP=4, FP=1, FN=0, TN=12, UNCERTAIN=1, PENDING=0 (Total = 18).
+  - Operational Rates: Uncertain rate: 1 of 18 (5.6%, 95% CI: [1.0%, 25.8%]), PASSED (<= 10.0%, kill line > 20.0% safe). Pending rate: 0 of 18 (0.0%, 95% CI: [0.0%, 17.6%]), PASSED (<= 3.0%).
+  - Latency: p50 = 5207.0 ms, p95 = 8860.4 ms, mean = 5475.2 ms, min = 2983.0 ms, max = 10523.0 ms, timeouts = 0.
+- **Test Suite Results**:
+  - Full test suite: 68 passed offline, 5 skipped (live). Zero regressions.
+
+
+
+
+
+
 
 
 

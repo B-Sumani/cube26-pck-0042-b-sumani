@@ -55,9 +55,9 @@ def create_signed_url(org_id: str, storage_key: str, expires_in: int = SIGNED_UR
     a TenancyStorageError is raised immediately.
     """
     key_org = extract_org_from_key(storage_key)
-    if key_org and key_org != org_id:
+    if not key_org or key_org != org_id:
         raise TenancyStorageError(
-            f"Tenant '{org_id}' is not authorized to access key '{storage_key}' belonging to '{key_org}'"
+            f"Tenant '{org_id}' is not authorized to access key '{storage_key}' (expected key under 'tenants/{org_id}/...')"
         )
     
     # If Supabase storage is configured, we can delegate to Supabase
@@ -92,8 +92,8 @@ def verify_signed_token(storage_key: str, requesting_org: str, expires_at: int, 
         return False  # Expired
         
     key_org = extract_org_from_key(storage_key)
-    if key_org and key_org != requesting_org:
-        return False  # Cross-tenant mismatch
+    if not key_org or key_org != requesting_org:
+        return False  # Cross-tenant mismatch or invalid tenant prefix
         
     expected_message = f"{requesting_org}:{storage_key}:{expires_at}"
     expected_sig = hmac.new(

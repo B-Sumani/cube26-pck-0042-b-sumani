@@ -166,15 +166,20 @@ Performance on the 3 hard boxes containing severe blur, hidden items under bubbl
 ---
 
 ### Orthogonal Check Performance (Final Run)
-Every defect is evaluated across three orthogonal checks ("one home per check"):
+Every defect is evaluated across three orthogonal checks ("one home per check"). All three checks cover all 18 boxes (Decided + Uncertain = 18):
 
 | Check Name | Total | Decided | Accuracy | Coverage | TP | FP | FN | TN | Uncertain | Pending |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **`all_items_present`** | 18 | 15 | 93.3% (14/15) | 83.3% (15/18) | 5 | 1 | 0 | 9 | 1 | 0 |
+| **`all_items_present`** | 18 | 17 | 88.2% (15/17) | 94.4% (17/18) | 6 | 2 | 0 | 9 | 1 | 0 |
 | **`quantities_correct`** | 18 | 17 | 100.0% (17/17) | 94.4% (17/18) | 3 | 0 | 0 | 14 | 1 | 0 |
 | **`nothing_extra`** | 18 | 17 | 94.1% (16/17) | 94.4% (17/18) | 4 | 1 | 0 | 12 | 1 | 0 |
 
-*(Note: In `UNIT-0069`, the model observed decoy sunscreen instead of ordered sanitizer, triggering FP on `all_items_present` and `nothing_extra` while still halting the box via `STOP_AND_FIX`).*
+- **`all_items_present` Details**: Includes `UNIT-0043` as an FP (false FAIL: item physically packed but hidden under bubble wrap, causing model to declare missing) and `UNIT-0081` as a TP (item physically absent with space covered, caught as missing).
+- **`UNIT-0069` ("Right Verdict, Wrong Reason")**: The model identified a decoy sunscreen in place of the sanitizer, producing false fails on both `all_items_present` and `nothing_extra`, alongside a legitimate fail on `quantities_correct` (3 soaps packed vs 2 expected). The box stopped as `STOP_AND_FIX` (right verdict), but with erroneous defect attribution.
+- **Physical Ground Truth Breakdown on Clean Boxes**: Of the **7 dev boxes that were actually packed correctly** (5 clear boxes + `UNIT-0043` + `UNIT-0049`):
+  - **5 were sealed** (`UNIT-0017`, `UNIT-0019`, `UNIT-0021`, `UNIT-0048`, `UNIT-0084`)
+  - **1 was a false stop** (`UNIT-0043`, item hidden under bubble wrap)
+  - **1 went to manual check** (`UNIT-0049`, blurry photo caught by blur gate)
 
 ---
 
@@ -186,6 +191,8 @@ To measure stochastic stability, the dev set was executed twice consecutively wi
   - Run 1: p50 = 3470.0 ms, p95 = 7747.4 ms, mean = 4311.9 ms
   - Run 2: p50 = 5207.0 ms, p95 = 8860.4 ms, mean = 5475.2 ms
 
+> **Important Caveat on Temperature 0**: Temperature 0 was chosen after seeing a dev failure (`UNIT-0021` under default temperature counted 2 soaps instead of 3). Two back-to-back runs do not prove stability over time on a preview model (`gemini-3.1-flash-lite-preview`), as upstream model updates or infrastructure changes can alter outputs even with sampling temperature set to 0.
+
 ---
 
 ## 7. Assumptions, Known Limitations & Named Failure Modes
@@ -196,9 +203,11 @@ Tuning on 18 boxes is inherently small and carries a risk of overfitting. Improv
 1. **The model never reports occlusion**: Across all prompt variations and runs, the model never flagged `occlusion_suspected=True` or `partially_occluded=True`. Consequently, `occluded_hidden` (where an item is hidden under bubble wrap but present) and `occluded_absent` (where an item is missing and packaging covers the space) are not detected as occlusions. `UNIT-0043` results in an unnecessary false stop, while `UNIT-0081` is stopped only because the item is not seen.
 2. **Counting 3 identical items is unstable**: In the pre-temperature-0 run, `UNIT-0021` produced a false stop because the model counted 2 Mysore Sandal soap cartons instead of 3. With `temperature: 0.0`, it consistently counted 3. Counting adjacent identical items remains sensitive to small model variance.
 3. **The blur gate depends on the model reporting blur**: In `UNIT-0049`, the blur gate successfully converted an unverified `SEAL` into `UNCERTAIN`. However, this is a **directional result from one box, not a fix**. If the model fails to include `"blur"` in `image_quality.issues`, the rule cannot fire.
+4. **Uncalibrated Model Confidence (Inactive Thresholds)**: model-reported confidence was near-constant on the dev set and is not a reliable signal (all 50 observed item instances across all 18 dev boxes returned exactly 1.00 count_confidence and 1.00 identity_confidence, including on blurry and occluded boxes). Consequently, the confidence thresholds (0.70 identity, 0.65 count) are inactive in practice. Verdict decisions on ambiguous or degraded photos are guarded by the deterministic image quality and defect rules, not by raw confidence scores.
 
 ### Operational Assumptions
 1. **No Dedicated Hardware Budget**: Designed for flexible stations using an everyday phone or standard bench camera *(ASSUMPTION, unverified)*.
 2. **FBA Inapplicability**: If an order is fulfilled by Amazon (FBA), Amazon packs the parcel. Pack Manager applies exclusively to merchant-fulfilled network (MFN) and 3PL fulfillment workflows.
-3. **No Authentication on Demo Site**: The current web application has no authentication. The organization dropdown and operator ID are interactive demo controls to demonstrate multi-tenant RLS and audit attribution. Production deployments must bind tenant and operator identity to authenticated sessions (e.g. JWT / SSO).
-4. **Visual Accessibility**: Layout, borders, and status badges are designed for contrast across packing station lighting environments.
+3. **Demo Organisation Switch (Not Secure Authentication)**: The login page at `/login` provides a demo organisation switch with two one-click buttons ("Enter as Alpha Demo Merchant" and "Enter as Bravo Demo Merchant") with no credentials or passwords. It sets a signed session cookie (`pack_session`) holding `org_id` strictly to demonstrate multi-tenant database row-level security and tenant separation. It is NOT authentication or a secure login system. Production deployments must bind tenant and operator identity to enterprise SSO/OIDC/SAML.
+4. **Per-Organisation Seller Catalogue & Future OMS Work**: Product catalogue items (SKU, title, description) are stored per organisation in the `catalogue_items` table under forced RLS. The packing verification form uses an interactive product picker built from the seller's active catalogue. Pulling customer orders and order lines directly from an Order Management System (OMS/WMS) via API or scanner is future work.
+5. **Visual Accessibility**: Layout, borders, and status badges are designed for contrast across packing station lighting environments.

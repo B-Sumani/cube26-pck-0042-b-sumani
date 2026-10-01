@@ -21,7 +21,7 @@
         
         <!-- Record ID with permalink link -->
         <td class="py-3 px-3 font-bold text-[var(--charcoal)]">
-          <a href="/pack/record/{{ rec.id }}?org_id={{ selected_org }}" class="hover:text-[var(--walnut)] underline">
+          <a href="/pack/record/{{ rec.id }}" class="hover:text-[var(--walnut)] underline">
             {{ rec.id }}
           </a>
         </td>
@@ -120,7 +120,7 @@
 
         <!-- Action Link -->
         <td class="py-3 px-3 text-right">
-          <a href="/pack/record/{{ rec.id }}?org_id={{ selected_org }}" class="inline-block px-2.5 py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[10px] uppercase font-semibold tracking-wider transition">
+          <a href="/pack/record/{{ rec.id }}" class="inline-block px-2.5 py-1 bg-[var(--walnut)] text-[var(--cream)] hover:bg-[var(--espresso)] rounded text-[10px] uppercase font-semibold tracking-wider transition">
             View Evidence
           </a>
         </td>

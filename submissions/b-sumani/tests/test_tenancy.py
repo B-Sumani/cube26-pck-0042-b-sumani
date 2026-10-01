@@ -15,6 +15,7 @@ from agent.db.repo import (
     PackRepository,
     AppendOnlyViolationError,
     SchemaConstraintError,
+    TenancyViolationError,
 )
 from agent.db.storage import (
     generate_storage_key,
@@ -210,7 +211,7 @@ def test_schema_sql_has_forced_rls_on_all_tables():
     assert schema_path.exists(), "schema.sql missing!"
     content = schema_path.read_text(encoding="utf-8")
 
-    expected_tables = ["orgs", "users", "captures", "records", "overrides", "eval_runs", "eval_items"]
+    expected_tables = ["orgs", "users", "captures", "records", "overrides", "eval_runs", "eval_items", "catalogue_items"]
     for tbl in expected_tables:
         enable_str = f"ALTER TABLE {tbl} ENABLE ROW LEVEL SECURITY;"
         force_str = f"ALTER TABLE {tbl} FORCE ROW LEVEL SECURITY;"
@@ -223,3 +224,241 @@ def test_schema_sql_has_forced_rls_on_all_tables():
     assert "pack_app_user" in content
     # Verify overrides does not grant update/delete to app user
     assert "GRANT SELECT, INSERT ON overrides TO pack_app_user;" in content
+
+
+def test_tenancy_override_cross_tenant_blocked(repo_alpha, repo_bravo):
+    """Proves org_demo_bravo cannot override a record belonging to org_demo_alpha."""
+    cap = repo_alpha.insert_capture(
+        capture_id="CAP-SEC-01",
+        unit_id="UNIT-0090",
+        order_id="ORD-SEC-01",
+        photo_keys=["tenants/org_demo_alpha/UNIT-0090/photo.jpg"],
+        operator_id="op_alpha"
+    )
+    rec = repo_alpha.insert_record(
+        record_id="PCK-SEC-01",
+        unit_id="UNIT-0090",
+        capture_id=cap["id"],
+        order_lines="SKU-A:1",
+        observed_in_box="SKU-A:1",
+        checks={"all_items_present": {"verdict": "PASS"}},
+        verdict="SEAL",
+        status="completed"
+    )
+
+    # Bravo attempts to submit an override on Alpha's record
+    with pytest.raises(TenancyViolationError):
+        repo_bravo.insert_override(
+            override_id="OVR-ATTACK-01",
+            record_id=rec["id"],
+            original_verdict="SEAL",
+            new_verdict="STOP_AND_FIX",
+            reason="Malicious cross-tenant override attempt",
+            operator_id="op_bravo"
+        )
+
+
+def test_tenancy_storage_non_tenant_key_rejected():
+    """Proves storage manager rejects keys that do not adhere to tenants/{org_id}/ format."""
+    # Attempting to sign arbitrary root or foreign paths must fail
+    with pytest.raises(TenancyStorageError):
+        create_signed_url("org_demo_alpha", "etc/passwd")
+
+    with pytest.raises(TenancyStorageError):
+        create_signed_url("org_demo_alpha", "shared/public_image.jpg")
+
+    with pytest.raises(TenancyStorageError):
+        create_signed_url("org_demo_alpha", "tenants/org_demo_bravo/UNIT-0001/box.jpg")
+
+    # verify_signed_token must also reject non-tenant or mismatched keys
+    assert verify_signed_token("etc/passwd", "org_demo_alpha", 9999999999, "sig") is False
+    assert verify_signed_token("tenants/org_demo_bravo/UNIT-0001/box.jpg", "org_demo_alpha", 9999999999, "sig") is False
+
+
+def test_request_with_no_session_redirects_to_login(unauth_client):
+    """Proves that a request with no session redirects to /login."""
+    resp = unauth_client.get("/", follow_redirects=False)
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+    # API endpoints reject unauthenticated access with 401
+    resp_records = unauth_client.get("/pack/records")
+    assert resp_records.status_code == 401
+
+    resp_verify = unauth_client.post(
+        "/pack/verify",
+        data={"order_id": "O1", "unit_id": "U1", "order_lines": "A:1"},
+        files={"photo": ("box.jpg", b"\xff\xd8\xff\xe0" + b"0"*20, "image/jpeg")}
+    )
+    assert resp_verify.status_code == 401
+
+
+def test_tampered_session_cookie_rejected(unauth_client):
+    """Proves that a tampered or forged session cookie is rejected."""
+    from agent.main import COOKIE_NAME
+    unauth_client.cookies.set(COOKIE_NAME, "org_demo_alpha.1700000000.badforgedhmacsig0000000000000000")
+    resp = unauth_client.get("/", follow_redirects=False)
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+    resp_records = unauth_client.get("/pack/records")
+    assert resp_records.status_code == 401
+
+    resp_verify = unauth_client.post(
+        "/pack/verify",
+        data={"order_id": "O1", "unit_id": "U1", "order_lines": "A:1"},
+        files={"photo": ("box.jpg", b"\xff\xd8\xff\xe0" + b"0"*20, "image/jpeg")}
+    )
+    assert resp_verify.status_code == 401
+
+
+def test_bravo_session_cannot_read_alpha_records_images_or_catalogue_even_when_posting_org_id_alpha():
+    """Proves Bravo session cannot read Alpha records, images, or catalogue, even when posting org_id=org_demo_alpha."""
+    import io
+    from PIL import Image
+    from starlette.testclient import TestClient
+    from agent.main import app, sign_session_org, COOKIE_NAME, set_adapter
+    from agent.models.mock import MockVisionAdapter
+    from agent.models.base import ModelObservation
+    from agent.db.storage import save_file_bytes
+
+    # 1. Seed Alpha data (record, image, catalogue item)
+    repo_alpha = PackRepository(org_id="org_demo_alpha")
+    repo_alpha.create_org("org_demo_alpha", "Alpha Demo Merchant")
+    alpha_key = generate_storage_key("org_demo_alpha", "UNIT-0099", "box.jpg", b"alpha_secret_image_bytes")
+    save_file_bytes(alpha_key, b"alpha_secret_image_bytes")
+    alpha_signed_url = create_signed_url("org_demo_alpha", alpha_key)
+
+    cap = repo_alpha.insert_capture("CAP-SEC-99", "UNIT-0099", "ORD-99", [alpha_key], "op_alpha")
+    rec = repo_alpha.insert_record(
+        record_id="PCK-SEC-ALPHA-99",
+        unit_id="UNIT-0099",
+        capture_id=cap["id"],
+        order_lines="SKU-A:1",
+        observed_in_box="SKU-A:1",
+        checks={"all_items_present": {"verdict": "PASS"}},
+        verdict="SEAL",
+        status="completed"
+    )
+    repo_alpha.insert_catalogue_item(
+        sku="SKU-ALPHA-CONFIDENTIAL",
+        title="Alpha Proprietary Device",
+        description="Confidential Alpha Item"
+    )
+
+    # 2. Authenticate client strictly as Bravo
+    bravo_client = TestClient(app)
+    bravo_client.cookies.set(COOKIE_NAME, sign_session_org("org_demo_bravo"))
+
+    # Attempt to read Alpha record (even explicitly querying ?org_id=org_demo_alpha)
+    resp_rec = bravo_client.get(f"/pack/record/{rec['id']}?org_id=org_demo_alpha")
+    assert resp_rec.status_code == 404
+
+    # Attempt to read Alpha image (even explicitly querying ?org=org_demo_alpha)
+    resp_img = bravo_client.get(alpha_signed_url)
+    assert resp_img.status_code == 403
+
+    # Attempt to read Alpha catalogue items via Bravo repository
+    repo_bravo = PackRepository(org_id="org_demo_bravo")
+    repo_bravo.create_org("org_demo_bravo", "Bravo Demo 3PL")
+    bravo_skus = [item["sku"] for item in repo_bravo.list_catalogue_items()]
+    assert "SKU-ALPHA-CONFIDENTIAL" not in bravo_skus
+
+    # Attempt to POST verify with org_id='org_demo_alpha' form field from Bravo session
+    # System MUST attribute the verification strictly to Bravo, ignoring the form field
+    buf = io.BytesIO()
+    Image.new("RGB", (50, 50)).save(buf, format="JPEG")
+    set_adapter(MockVisionAdapter(default_observation=ModelObservation(observed_items=[], unrecognised_items=[], image_quality={"usable": True, "issues": []}, occlusion_suspected=False)))
+    resp_post = bravo_client.post(
+        "/pack/verify",
+        data={"org_id": "org_demo_alpha", "order_id": "ORD-BRAVO-TEST", "unit_id": "UNIT-BRAVO-01", "order_lines": "SKU-A:1"},
+        files={"photo": ("box.jpg", buf.getvalue(), "image/jpeg")}
+    )
+    assert resp_post.status_code == 200
+    # The record must be stored under Bravo, NEVER under Alpha
+    assert len(repo_alpha.list_records(unit_id="UNIT-BRAVO-01")) == 0
+    assert len(repo_bravo.list_records(unit_id="UNIT-BRAVO-01")) == 1
+
+
+def test_alpha_catalogue_edits_invisible_to_bravo(client):
+    """Proves Alpha's catalogue edits are completely invisible to Bravo."""
+    from starlette.testclient import TestClient
+    from agent.main import app, sign_session_org, COOKIE_NAME
+
+    # Alpha adds a new product
+    resp = client.post("/catalogue/item", data={
+        "sku": "SKU-ALPHA-EXCLUSIVE-01",
+        "title": "Alpha Exclusive Widget",
+        "description": "Visible only to Alpha"
+    })
+    assert resp.status_code == 200
+
+    # Verify present in Alpha repository
+    repo_alpha = PackRepository(org_id="org_demo_alpha")
+    alpha_skus = [i["sku"] for i in repo_alpha.list_catalogue_items()]
+    assert "SKU-ALPHA-EXCLUSIVE-01" in alpha_skus
+
+    # Bravo client and repo must NOT see Alpha's item
+    bravo_client = TestClient(app)
+    bravo_client.cookies.set(COOKIE_NAME, sign_session_org("org_demo_bravo"))
+    repo_bravo = PackRepository(org_id="org_demo_bravo")
+    bravo_skus = [i["sku"] for i in repo_bravo.list_catalogue_items()]
+    assert "SKU-ALPHA-EXCLUSIVE-01" not in bravo_skus
+
+    # Bravo attempting to delete Alpha's item does not delete it
+    del_resp = bravo_client.post("/catalogue/item/delete", data={"sku": "SKU-ALPHA-EXCLUSIVE-01"})
+    assert del_resp.status_code == 200
+    assert "not found" in del_resp.text.lower()
+
+    # Confirm item remains intact in Alpha repository
+    assert "SKU-ALPHA-EXCLUSIVE-01" in [i["sku"] for i in repo_alpha.list_catalogue_items()]
+
+
+def test_empty_catalogue_triggers_fallback_and_records_candidate_source_order_only():
+    """Proves an empty catalogue triggers the fallback warning and sets candidate_source = 'order_only'."""
+    import io
+    from PIL import Image
+    from starlette.testclient import TestClient
+    from agent.main import app, sign_session_org, COOKIE_NAME, set_adapter
+    from agent.models.mock import MockVisionAdapter
+    from agent.models.base import ModelObservation, ObservedItem, ImageQuality
+
+    empty_org = "org_demo_empty_test"
+    repo = PackRepository(org_id=empty_org)
+    repo.create_org(empty_org, "Empty Catalogue Merchant")
+    assert len(repo.list_catalogue_items()) == 0
+
+    client_empty = TestClient(app)
+    client_empty.cookies.set(COOKIE_NAME, sign_session_org(empty_org))
+
+    mock_obs = ModelObservation(
+        observed_items=[ObservedItem(sku="SKU-FALLBACK-1", count=1, count_confidence=0.9, identity_confidence=0.9, partially_occluded=False, bbox=[0,0,0,0])],
+        unrecognised_items=[],
+        image_quality=ImageQuality(usable=True, issues=[]),
+        occlusion_suspected=False
+    )
+    set_adapter(MockVisionAdapter(default_observation=mock_obs))
+
+    buf = io.BytesIO()
+    Image.new("RGB", (60, 60)).save(buf, format="JPEG")
+    files = {"photo": ("box.jpg", buf.getvalue(), "image/jpeg")}
+    data = {
+        "order_id": "ORD-EMPTY-100",
+        "unit_id": "UNIT-EMPTY-100",
+        "order_lines": "SKU-FALLBACK-1:1"
+    }
+
+    resp = client_empty.post("/pack/verify", data=data, files=files)
+    assert resp.status_code == 200
+    html = resp.text
+
+    # 1. Fallback warning banner must appear in rendered output
+    assert "⚠️ No catalogue set up. Wrong-item checks are weaker because unexpected products cannot be recognized." in html
+
+    # 2. Record must have candidate_source = 'order_only'
+    records = repo.list_records(unit_id="UNIT-EMPTY-100")
+    assert len(records) == 1
+    rec = records[0]
+    assert rec["checks"]["_audit"]["candidate_source"] == "order_only"
+
+

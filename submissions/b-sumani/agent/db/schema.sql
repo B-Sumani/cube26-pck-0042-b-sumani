@@ -105,6 +105,17 @@ CREATE TABLE IF NOT EXISTS eval_items (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- 8. Catalogue Items (Org-specific products, titles, and visual descriptions)
+CREATE TABLE IF NOT EXISTS catalogue_items (
+    id VARCHAR(64) PRIMARY KEY,
+    org_id VARCHAR(64) NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
+    sku VARCHAR(64) NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_catalogue_org_sku UNIQUE (org_id, sku)
+);
+
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS) - FORCED ON EVERY TABLE
 -- ============================================================================
@@ -130,6 +141,9 @@ ALTER TABLE eval_runs FORCE ROW LEVEL SECURITY;
 ALTER TABLE eval_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE eval_items FORCE ROW LEVEL SECURITY;
 
+ALTER TABLE catalogue_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE catalogue_items FORCE ROW LEVEL SECURITY;
+
 -- Helper function to retrieve the active tenant org_id from the session setting
 -- or from the Supabase JWT auth claim if present
 CREATE OR REPLACE FUNCTION current_org_id()
@@ -152,6 +166,7 @@ END $$;
 
 GRANT USAGE ON SCHEMA public TO pack_app_user;
 GRANT SELECT, INSERT, UPDATE ON orgs, users, captures, records, eval_runs, eval_items TO pack_app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON catalogue_items TO pack_app_user;
 -- Note: Overrides table only gets SELECT and INSERT. Never UPDATE or DELETE.
 GRANT SELECT, INSERT ON overrides TO pack_app_user;
 
@@ -163,6 +178,7 @@ DROP POLICY IF EXISTS records_isolation ON records;
 DROP POLICY IF EXISTS overrides_isolation ON overrides;
 DROP POLICY IF EXISTS eval_runs_isolation ON eval_runs;
 DROP POLICY IF EXISTS eval_items_isolation ON eval_items;
+DROP POLICY IF EXISTS catalogue_items_isolation ON catalogue_items;
 
 -- Tenant Isolation Policies
 CREATE POLICY orgs_isolation ON orgs
@@ -206,3 +222,10 @@ CREATE POLICY eval_items_isolation ON eval_items
     TO PUBLIC
     USING (org_id = current_org_id())
     WITH CHECK (org_id = current_org_id());
+
+CREATE POLICY catalogue_items_isolation ON catalogue_items
+    FOR ALL
+    TO PUBLIC
+    USING (org_id = current_org_id())
+    WITH CHECK (org_id = current_org_id());
+

@@ -52,7 +52,7 @@ def test_live_pack_app_user_privileges_and_ownership():
             assert rolbypassrls is False, "CRITICAL SECURITY RISK: pack_app_user must NOT have BYPASSRLS!"
 
             # 2. Verify table ownership and row security in pg_class / pg_tables
-            tables = ["orgs", "users", "captures", "records", "overrides", "eval_runs", "eval_items"]
+            tables = ["orgs", "users", "captures", "records", "overrides", "eval_runs", "eval_items", "catalogue_items"]
             for tbl in tables:
                 cur.execute("""
                     SELECT t.tableowner, c.relrowsecurity, c.relforcerowsecurity
@@ -177,3 +177,51 @@ def test_live_storage_bucket_privacy_and_guessing():
         except Exception as e:
             # If bucket not yet created, note for admin setup
             pass
+
+
+def test_live_catalogue_items_rls_isolation():
+    """Confirms catalogue_items enforces live Row-Level Security:
+    Alpha's items are completely invisible to Bravo, and Bravo cannot modify or delete them.
+    """
+    from agent.db.connection import get_app_user_db_connection, get_admin_db_connection
+
+    # Clean up any leftover test SKUs using admin connection
+    admin_conn = get_admin_db_connection()
+    try:
+        with admin_conn.transaction():
+            with admin_conn.cursor() as cur:
+                cur.execute("DELETE FROM catalogue_items WHERE sku = 'SKU-LIVE-RLS-TEST';")
+    finally:
+        admin_conn.close()
+
+    app_conn = get_app_user_db_connection()
+    try:
+        # 1. Insert as org_demo_alpha under pack_app_user
+        with app_conn.transaction():
+            with app_conn.cursor() as cur:
+                cur.execute("SET LOCAL app.current_org_id = 'org_demo_alpha';")
+                cur.execute("""
+                    INSERT INTO catalogue_items (org_id, sku, title, description)
+                    VALUES ('org_demo_alpha', 'SKU-LIVE-RLS-TEST', 'Live Secret Widget', 'Secret alpha product')
+                    RETURNING id;
+                """)
+                item_id = cur.fetchone()[0]
+
+        # 2. Query as org_demo_bravo under pack_app_user
+        with app_conn.transaction():
+            with app_conn.cursor() as cur:
+                cur.execute("SET LOCAL app.current_org_id = 'org_demo_bravo';")
+                cur.execute("SELECT * FROM catalogue_items WHERE sku = 'SKU-LIVE-RLS-TEST';")
+                rows = cur.fetchall()
+                assert len(rows) == 0, f"Live RLS breach! Bravo saw alpha catalogue item: {rows}"
+
+                # Bravo attempting update affects 0 rows
+                cur.execute("UPDATE catalogue_items SET title = 'Hacked' WHERE id = %s;", (item_id,))
+                assert cur.rowcount == 0, "Live RLS breach! Bravo updated alpha item!"
+
+                # Bravo attempting delete affects 0 rows
+                cur.execute("DELETE FROM catalogue_items WHERE id = %s;", (item_id,))
+                assert cur.rowcount == 0, "Live RLS breach! Bravo deleted alpha item!"
+    finally:
+        app_conn.close()
+

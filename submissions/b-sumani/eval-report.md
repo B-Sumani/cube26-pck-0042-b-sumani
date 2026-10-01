@@ -35,6 +35,8 @@ $$\text{Pending Rate} = \frac{\text{Pending Count}}{\text{Total Units}}$$
 > > **Batch-Runner Pacing Note**: Automated benchmark evaluations enforce a 7-second inter-unit pacing interval to respect free-tier API provider quotas and prevent throttling-induced fail-opens (`pending = 0`). This is a test harness batch pacing setting, not a live packing-bench latency or takt-time claim. Live operations execute on-demand per packing event.
 > 
 > > **Stochastic Run-to-Run Variance Protocol**: To measure stochastic stability prior to freeze, the dev set was run twice consecutively under `temperature: 0.0`. Across both runs, 0 of 18 verdicts changed (0.0% variance) and 0 per-SKU counts changed across all 18 boxes. Setting `temperature: 0.0` eliminated count fluctuations observed at default temperatures. The frozen evaluation run will execute strictly under this deterministic `temperature: 0.0` configuration.
+> 
+> > **Model Confidence Calibration Note**: model-reported confidence was near-constant on the dev set and is not a reliable signal (all observations returned 1.00 for both count and identity confidence across all 18 dev cartons, including blurry and occluded boxes). As a result, the confidence thresholds (0.70 identity, 0.65 count) remained inactive during dev evaluation. Carton gating relies on deterministic image quality analysis, bounding detection, and piece-count mismatch logic.
 
 ---
 

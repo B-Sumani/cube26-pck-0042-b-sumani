@@ -1,0 +1,117 @@
+<!-- Catalogue Section Partial: Swapped dynamically via HTMX -->
+<div id="catalogue-container" class="space-y-6">
+
+  {% if feedback_msg %}
+  <div class="p-3 rounded-lg text-xs font-semibold {% if feedback_is_error %}bg-red-50 text-[var(--fail)] border border-red-200{% else %}bg-green-50 text-[var(--pass)] border border-green-200{% endif %}">
+    {{ feedback_msg }}
+  </div>
+  {% endif %}
+
+  <!-- Catalogue Controls Header: Add Product & Upload CSV -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    
+    <!-- Add Single Product Form -->
+    <details class="bg-white border border-[var(--stone-light)] rounded-xl p-4 shadow-sm group">
+      <summary class="cursor-pointer font-semibold text-xs text-[var(--espresso)] uppercase tracking-wider flex items-center justify-between select-none">
+        <span>+ Add New Product</span>
+        <span class="text-[var(--taupe)] group-open:rotate-180 transition">▼</span>
+      </summary>
+      <form 
+        hx-post="/catalogue/item" 
+        hx-target="#catalogue-container" 
+        class="mt-4 space-y-3 text-xs"
+      >
+        <div>
+          <label class="block uppercase tracking-wider font-semibold text-[var(--umber)] mb-1 text-[11px]">SKU Code (3-64 chars, e.g. SKU-PHONE-M36)</label>
+          <input type="text" name="sku" required placeholder="SKU-XXXX" class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded p-2 font-mono uppercase focus:outline-none focus:border-[var(--walnut)]">
+        </div>
+        <div>
+          <label class="block uppercase tracking-wider font-semibold text-[var(--umber)] mb-1 text-[11px]">Product Title</label>
+          <input type="text" name="title" required placeholder="Brand & Model Name" class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded p-2 focus:outline-none focus:border-[var(--walnut)]">
+        </div>
+        <div>
+          <label class="block uppercase tracking-wider font-semibold text-[var(--umber)] mb-1 text-[11px]">Visual Packaging Description (Colors, Logos, Bottle/Box Shape)</label>
+          <textarea name="description" rows="2" placeholder="e.g. Blue plastic bottle with white cap and brand logo." class="w-full bg-[var(--cream-soft)] border border-[var(--stone)] rounded p-2 focus:outline-none focus:border-[var(--walnut)]"></textarea>
+        </div>
+        <button type="submit" class="bg-[var(--espresso)] hover:bg-[var(--walnut)] text-[var(--cream)] px-4 py-2 rounded font-semibold uppercase tracking-wider text-[11px] transition shadow">
+          Save Product
+        </button>
+      </form>
+    </details>
+
+    <!-- Upload CSV Form -->
+    <details class="bg-white border border-[var(--stone-light)] rounded-xl p-4 shadow-sm group">
+      <summary class="cursor-pointer font-semibold text-xs text-[var(--espresso)] uppercase tracking-wider flex items-center justify-between select-none">
+        <span>📁 Upload Catalogue CSV</span>
+        <span class="text-[var(--taupe)] group-open:rotate-180 transition">▼</span>
+      </summary>
+      <form 
+        hx-post="/catalogue/upload-csv" 
+        hx-target="#catalogue-container" 
+        enctype="multipart/form-data" 
+        class="mt-4 space-y-3 text-xs"
+      >
+        <div>
+          <label class="block uppercase tracking-wider font-semibold text-[var(--umber)] mb-1 text-[11px]">CSV File (Header: sku, title, description)</label>
+          <input type="file" name="csv_file" accept=".csv" required class="w-full text-xs text-[var(--taupe)] file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[11px] file:font-semibold file:bg-[var(--stone-light)] file:text-[var(--espresso)] hover:file:bg-[var(--stone)]">
+        </div>
+        <p class="text-[11px] text-[var(--taupe)]">Upload seller catalogue in bulk. Duplicates within org will be updated in-place.</p>
+        <button type="submit" class="bg-[var(--walnut)] hover:bg-[var(--espresso)] text-[var(--cream)] px-4 py-2 rounded font-semibold uppercase tracking-wider text-[11px] transition shadow">
+          Import CSV
+        </button>
+      </form>
+    </details>
+
+  </div>
+
+  <!-- Catalogue Items Table -->
+  <div class="bg-white border border-[var(--stone-light)] rounded-xl overflow-hidden shadow-sm">
+    <div class="px-5 py-3 border-b border-[var(--stone-light)] bg-[var(--cream-soft)] flex items-center justify-between">
+      <span class="font-semibold text-xs uppercase tracking-wider text-[var(--espresso)]">
+        Seller Catalogue ({{ catalogue_items|length }} Products)
+      </span>
+      <span class="text-[11px] font-mono text-[var(--taupe)]">Tenant: {{ session_org }}</span>
+    </div>
+
+    {% if catalogue_items %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs text-left">
+        <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider bg-[var(--cream-soft)]/50">
+          <tr>
+            <th class="py-2.5 px-4 font-mono">SKU</th>
+            <th class="py-2.5 px-4">Title</th>
+            <th class="py-2.5 px-4">Visual Description</th>
+            <th class="py-2.5 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[var(--stone-light)]">
+          {% for item in catalogue_items %}
+          <tr class="hover:bg-[var(--cream-soft)]/30 transition">
+            <td class="py-3 px-4 font-mono font-bold text-[var(--charcoal)] whitespace-nowrap">{{ item.sku }}</td>
+            <td class="py-3 px-4 font-medium text-[var(--charcoal)]">{{ item.title }}</td>
+            <td class="py-3 px-4 text-[var(--taupe)] text-[11px] max-w-md">{{ item.description }}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap space-x-2">
+              <button 
+                hx-post="/catalogue/item/delete" 
+                hx-target="#catalogue-container" 
+                hx-vals='{"sku": "{{ item.sku }}"}'
+                hx-confirm="Are you sure you want to delete {{ item.sku }} from your catalogue?"
+                class="text-[var(--fail)] hover:text-red-800 text-[11px] font-semibold uppercase tracking-wider"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-8 text-center text-xs text-[var(--taupe)]">
+      <p class="font-medium text-[var(--espresso)] text-sm mb-1">Your catalogue is empty.</p>
+      <p>Add products above or upload a CSV. If unconfigured, verification falls back to order-only SKUs.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>

@@ -154,10 +154,17 @@ The user interface serves warehouse packing operators working on desktop station
   - Typography: Cormorant Garamond (headings/wordmark), Inter (body)
   - Status Indicators: `--pass #4f6a4a`, `--fail #9c3a2b`, `--uncertain #8a5a00`, `--pending #5b5f66`
   - Visual Accessibility: The layout, borders, and status labels are designed for contrast across packing station lighting environments.
-- **Authentication Notice (Demo Controls)**:
-  - **The current website has no authentication.**
-  - The organization selector dropdown (`org_id`) and the operator input field (`operator_id`) are demo controls designed to showcase database multi-tenancy and audit trail attribution without requiring login overhead.
-  - In a production distribution center, tenant identity and operator credentials must be supplied via authenticated session headers (e.g. OIDC / SAML / JWT) rather than browser form controls.
+- **Demo Organisation Switch (Not Authentication or Secure Login)**:
+  - **The website has no credentials or authentication.**
+  - The login view at `/login` provides a demo organisation switch with two buttons ("Enter as Alpha Demo Merchant" and "Enter as Bravo Demo Merchant") with no passwords.
+  - Selecting an organisation issues an HMAC-SHA256 signed, HttpOnly, SameSite=Lax session cookie (`pack_session`) containing `org_id`. The application refuses to start if `SESSION_SECRET` is not configured.
+  - The active organisation is determined exclusively from the session cookie; all form submissions, APIs, image downloads, audit queries, and catalogue operations ignore any `org_id` supplied in form fields or query parameters.
+  - This demonstrates database multi-tenant Row-Level Security (RLS) and storage isolation without password overhead. It is NOT authentication or a secure login system. Production deployments must bind tenant and operator identity to enterprise SSO/OIDC/SAML.
+- **Per-Organisation Seller Catalogue & Future OMS Work**:
+  - Catalogue items (`sku`, `title`, `description`) are stored per tenant in the `catalogue_items` table under forced RLS.
+  - The pack station UI provides an interactive product picker (dropdown + quantity stepper) backed by the signed-in tenant's catalogue, ensuring quantities never reach the vision model.
+  - If an organisation has no catalogue set up, the system falls back to order SKUs with an explicit warning banner and records `candidate_source = 'order_only'` in audit metadata.
+  - Pulling customer order lines automatically from an Order Management System (OMS) or warehouse barcode scan is future work.
 
 ---
 

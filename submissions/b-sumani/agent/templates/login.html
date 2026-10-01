@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login · Pack Manager</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cream: #f7f1ec;
+      --cream-soft: #fcf9f5;
+      --stone: #d9cec1;
+      --stone-light: #e8dfd5;
+      --taupe: #8c7d70;
+      --walnut: #59493b;
+      --umber: #40342a;
+      --espresso: #382d22;
+      --charcoal: #1c1815;
+      --pass: #2d5a27;
+      --fail: #a83232;
+      --uncertain: #d97706;
+      --pending: #4b5563;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--cream);
+      color: var(--charcoal);
+    }
+
+    .font-serif {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased">
+
+  <!-- Top Nav -->
+  <nav class="bg-[var(--espresso)] text-[var(--cream)] border-b border-[var(--umber)] px-6 py-4 shadow">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <span class="font-serif text-2xl font-bold tracking-wider">PACK MANAGER</span>
+      <span class="text-xs uppercase tracking-widest text-[var(--stone)] font-semibold">Demo Authentication</span>
+    </div>
+  </nav>
+
+  <!-- Main Login Card -->
+  <main class="flex-grow flex items-center justify-center px-4 py-12">
+    <div class="max-w-lg w-full bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-2xl p-8 sm:p-10 shadow-lg space-y-8">
+      
+      <!-- Header -->
+      <div class="text-center space-y-2">
+        <h1 class="font-serif text-4xl font-bold text-[var(--espresso)] tracking-tight">Select Demo Organisation</h1>
+        <p class="text-xs uppercase tracking-widest text-[var(--taupe)] font-semibold">
+          Demo access: no password. Choose an organisation to see tenant separation.
+        </p>
+      </div>
+
+      <!-- Explanatory Notice -->
+      <div class="bg-white border border-[var(--stone-light)] rounded-xl p-4 text-xs text-[var(--umber)] leading-relaxed space-y-1.5 shadow-sm">
+        <div class="font-semibold uppercase tracking-wider text-[11px] text-[var(--walnut)] flex items-center space-x-1.5">
+          <span>ℹ️ Tenant Isolation Demo</span>
+        </div>
+        <p>
+          Selecting an organisation sets a signed, HttpOnly session cookie holding your <code class="font-mono bg-[var(--cream)] px-1 py-0.5 rounded">org_id</code>. All pack inspections, seller catalogue records, and audit logs are strictly isolated to that tenant.
+        </p>
+      </div>
+
+      <!-- Login Buttons Form -->
+      <div class="space-y-4">
+        
+        <!-- Alpha Demo Merchant Form -->
+        <form method="POST" action="/login">
+          <input type="hidden" name="org_id" value="org_demo_alpha">
+          <button 
+            type="submit" 
+            id="btn-login-alpha"
+            class="w-full text-left bg-[var(--espresso)] hover:bg-[var(--walnut)] text-[var(--cream)] p-5 rounded-xl transition shadow-md group flex items-center justify-between"
+          >
+            <div>
+              <div class="font-serif text-xl font-bold text-white tracking-wide">Enter as Alpha Demo Merchant</div>
+              <div class="text-xs text-[var(--stone)] font-mono mt-0.5">org_demo_alpha · Dedicated Catalogue & Evidence Records</div>
+            </div>
+            <div class="text-white text-xl transform group-hover:translate-x-1 transition font-bold">→</div>
+          </button>
+        </form>
+
+        <!-- Bravo Demo Merchant Form -->
+        <form method="POST" action="/login">
+          <input type="hidden" name="org_id" value="org_demo_bravo">
+          <button 
+            type="submit" 
+            id="btn-login-bravo"
+            class="w-full text-left bg-white hover:bg-[var(--cream)] text-[var(--espresso)] border-2 border-[var(--stone)] hover:border-[var(--walnut)] p-5 rounded-xl transition shadow-sm group flex items-center justify-between"
+          >
+            <div>
+              <div class="font-serif text-xl font-bold text-[var(--espresso)] tracking-wide">Enter as Bravo Demo Merchant</div>
+              <div class="text-xs text-[var(--taupe)] font-mono mt-0.5">org_demo_bravo · Dedicated Catalogue & Evidence Records</div>
+            </div>
+            <div class="text-[var(--espresso)] text-xl transform group-hover:translate-x-1 transition font-bold">→</div>
+          </button>
+        </form>
+
+      </div>
+
+      <div class="text-center">
+        <p class="text-[11px] text-[var(--taupe)]">
+          Signed session cookie enforced with HMAC-SHA256 signature · SameSite=Lax · HttpOnly
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-[var(--charcoal)] text-[var(--stone)] py-6 px-6 border-t border-[var(--espresso)] text-xs">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <p class="font-serif text-lg font-bold text-[var(--cream)]">PACK MANAGER</p>
+    </div>
+  </footer>
+
+</body>
+</html>

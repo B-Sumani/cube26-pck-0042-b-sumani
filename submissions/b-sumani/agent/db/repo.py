@@ -8,9 +8,13 @@ constraints, append-only triggers, and isolation boundaries.
 
 from __future__ import annotations
 import os
+import re
+import csv
+import uuid
 import json
 import sqlite3
 import hashlib
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from agent.db.connection import is_live_db_configured, get_app_db_connection
@@ -133,6 +137,16 @@ class LocalRLSEngine:
             is_match INTEGER NOT NULL,
             cause TEXT CHECK (cause IN ('occlusion', 'recognition', 'timeout', 'error') OR cause IS NULL),
             created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE catalogue_items (
+            id TEXT PRIMARY KEY,
+            org_id TEXT NOT NULL REFERENCES orgs(id),
+            sku TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(org_id, sku)
         );
         """)
         self.conn.commit()
@@ -300,6 +314,13 @@ class PackRepository:
         """Inserts an override record. Table is append-only."""
         if new_verdict not in ("SEAL", "STOP_AND_FIX"):
             raise ValueError(f"Invalid new_verdict '{new_verdict}'. Must be SEAL or STOP_AND_FIX.")
+
+        # Strict tenancy verification: record must belong to self.org_id
+        rec = self.get_record(record_id)
+        if not rec:
+            raise TenancyViolationError(
+                f"Record '{record_id}' does not exist or does not belong to organization '{self.org_id}'"
+            )
 
         now = created_at or datetime.now(timezone.utc).isoformat()
         if is_live_db_configured():
@@ -554,3 +575,229 @@ class PackRepository:
                 _local_engine.conn.commit()
             except sqlite3.DatabaseError as e:
                 raise AppendOnlyViolationError(str(e))
+
+    def list_catalogue_items(self) -> List[Dict[str, Any]]:
+        """Lists catalogue items strictly scoped to self.org_id."""
+        if is_live_db_configured():
+            conn = get_app_db_connection(self.org_id)
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT * FROM catalogue_items ORDER BY sku ASC;")
+                    rows = cur.fetchall()
+                    cols = [desc[0] for desc in cur.description]
+                    return [dict(zip(cols, row)) for row in rows]
+            finally:
+                conn.close()
+        else:
+            cur = _local_engine.conn.cursor()
+            cur.execute("SELECT * FROM catalogue_items WHERE org_id = ? ORDER BY sku ASC;", (self.org_id,))
+            return [dict(row) for row in cur.fetchall()]
+
+    def get_catalogue_item(self, sku: str) -> Optional[Dict[str, Any]]:
+        """Fetches a single catalogue item by sku strictly scoped to self.org_id."""
+        clean_sku = sku.strip().upper()
+        if is_live_db_configured():
+            conn = get_app_db_connection(self.org_id)
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT * FROM catalogue_items WHERE sku = %s;", (clean_sku,))
+                    row = cur.fetchone()
+                    if not row:
+                        return None
+                    cols = [desc[0] for desc in cur.description]
+                    return dict(zip(cols, row))
+            finally:
+                conn.close()
+        else:
+            cur = _local_engine.conn.cursor()
+            cur.execute("SELECT * FROM catalogue_items WHERE org_id = ? AND sku = ?;", (self.org_id, clean_sku))
+            row = cur.fetchone()
+            return dict(row) if row else None
+
+    def insert_catalogue_item(self, sku: str, title: str, description: str) -> Dict[str, Any]:
+        """Inserts a new product into the organisation's catalogue.
+        
+        Validates SKU (no duplicates, sensible characters: alphanumeric, hyphens, underscores).
+        """
+        clean_sku = sku.strip().upper()
+        clean_title = title.strip()
+        clean_desc = description.strip()
+
+        if not re.match(r"^[A-Z0-9_-]{3,64}$", clean_sku):
+            raise ValueError(f"Invalid SKU format '{clean_sku}'. SKUs must be 3-64 characters using uppercase letters, digits, hyphens or underscores.")
+        if not clean_title:
+            raise ValueError("Product title cannot be empty.")
+
+        existing = self.get_catalogue_item(clean_sku)
+        if existing:
+            raise ValueError(f"SKU '{clean_sku}' already exists in your catalogue.")
+
+        item_id = f"CAT-{uuid.uuid4().hex[:8].upper()}"
+        now = datetime.now(timezone.utc).isoformat()
+
+        if is_live_db_configured():
+            conn = get_app_db_connection(self.org_id)
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """INSERT INTO catalogue_items (id, org_id, sku, title, description, created_at)
+                           VALUES (%s, %s, %s, %s, %s, %s);""",
+                        (item_id, self.org_id, clean_sku, clean_title, clean_desc, now)
+                    )
+                conn.commit()
+            finally:
+                conn.close()
+        else:
+            cur = _local_engine.conn.cursor()
+            cur.execute(
+                """INSERT INTO catalogue_items (id, org_id, sku, title, description, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?);""",
+                (item_id, self.org_id, clean_sku, clean_title, clean_desc, now)
+            )
+            _local_engine.conn.commit()
+
+        return {
+            "id": item_id,
+            "org_id": self.org_id,
+            "sku": clean_sku,
+            "title": clean_title,
+            "description": clean_desc,
+            "created_at": now
+        }
+
+    def update_catalogue_item(self, sku: str, title: str, description: str) -> Dict[str, Any]:
+        """Updates title and visual description for an existing SKU in self.org_id."""
+        clean_sku = sku.strip().upper()
+        clean_title = title.strip()
+        clean_desc = description.strip()
+
+        if not clean_title:
+            raise ValueError("Product title cannot be empty.")
+
+        existing = self.get_catalogue_item(clean_sku)
+        if not existing:
+            raise KeyError(f"SKU '{clean_sku}' does not exist in your catalogue.")
+
+        if is_live_db_configured():
+            conn = get_app_db_connection(self.org_id)
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """UPDATE catalogue_items SET title = %s, description = %s
+                           WHERE sku = %s;""",
+                        (clean_title, clean_desc, clean_sku)
+                    )
+                conn.commit()
+            finally:
+                conn.close()
+        else:
+            cur = _local_engine.conn.cursor()
+            cur.execute(
+                """UPDATE catalogue_items SET title = ?, description = ?
+                   WHERE org_id = ? AND sku = ?;""",
+                (clean_title, clean_desc, self.org_id, clean_sku)
+            )
+            _local_engine.conn.commit()
+
+        return {
+            "id": existing["id"],
+            "org_id": self.org_id,
+            "sku": clean_sku,
+            "title": clean_title,
+            "description": clean_desc,
+            "created_at": existing["created_at"]
+        }
+
+    def delete_catalogue_item(self, sku: str) -> bool:
+        """Deletes a catalogue item strictly scoped to self.org_id."""
+        clean_sku = sku.strip().upper()
+        existing = self.get_catalogue_item(clean_sku)
+        if not existing:
+            return False
+
+        if is_live_db_configured():
+            conn = get_app_db_connection(self.org_id)
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("DELETE FROM catalogue_items WHERE sku = %s;", (clean_sku,))
+                conn.commit()
+            finally:
+                conn.close()
+        else:
+            cur = _local_engine.conn.cursor()
+            cur.execute("DELETE FROM catalogue_items WHERE org_id = ? AND sku = ?;", (self.org_id, clean_sku))
+            _local_engine.conn.commit()
+        return True
+
+    def seed_catalogue_if_empty(self, csv_path: Optional[str] = None) -> int:
+        """Seeds the organisation catalogue from data/catalogue.csv if currently empty."""
+        items = self.list_catalogue_items()
+        if len(items) > 0:
+            return len(items)
+
+        if not csv_path:
+            possible_paths = [
+                Path("submissions/b-sumani/data/catalogue.csv"),
+                Path("data/catalogue.csv"),
+                Path(__file__).resolve().parents[2] / "data" / "catalogue.csv",
+            ]
+            for p in possible_paths:
+                if p.exists():
+                    csv_path = str(p)
+                    break
+
+        if not csv_path or not Path(csv_path).exists():
+            return 0
+
+        inserted = 0
+        with open(csv_path, mode="r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                sku = row.get("sku", "").strip()
+                title = row.get("title", "").strip()
+                desc = row.get("description", "").strip()
+                if sku and title:
+                    try:
+                        self.insert_catalogue_item(sku=sku, title=title, description=desc)
+                        inserted += 1
+                    except ValueError:
+                        pass
+        return inserted
+
+    def import_catalogue_csv(self, csv_text: str) -> Dict[str, Any]:
+        """Imports or upserts catalogue items from uploaded CSV string."""
+        import io
+        f = io.StringIO(csv_text)
+        reader = csv.DictReader(f)
+        added = 0
+        updated = 0
+        errors = []
+
+        for idx, row in enumerate(reader, start=1):
+            sku = (row.get("sku") or row.get("SKU") or "").strip().upper()
+            title = (row.get("title") or row.get("Title") or "").strip()
+            desc = (row.get("description") or row.get("Description") or "").strip()
+
+            if not sku:
+                errors.append(f"Row {idx}: missing sku")
+                continue
+            if not title:
+                errors.append(f"Row {idx} ({sku}): missing title")
+                continue
+
+            existing = self.get_catalogue_item(sku)
+            if existing:
+                try:
+                    self.update_catalogue_item(sku, title, desc)
+                    updated += 1
+                except Exception as e:
+                    errors.append(f"Row {idx} ({sku}): {str(e)}")
+            else:
+                try:
+                    self.insert_catalogue_item(sku, title, desc)
+                    added += 1
+                except Exception as e:
+                    errors.append(f"Row {idx} ({sku}): {str(e)}")
+
+        return {"added": added, "updated": updated, "errors": errors}
+
