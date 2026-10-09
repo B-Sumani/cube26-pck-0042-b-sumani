@@ -1,0 +1,1156 @@
+[
+  {
+    "unit_id": "UNIT-0010",
+    "order_lines": "SKU-SANITIZER-DETTOL:1;SKU-TRIMMER-BOMBAY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 12233,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SANITIZER-DETTOL, SKU-TRIMMER-BOMBAY",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Bombay Shaving Company All Rounder 2-in-1 Trimmer' (count: 1), Non-candidate item reported as 'Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel' (count: 1), Non-candidate item reported as 'Dettol Original Instant Hand Sanitizer' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Bombay Shaving Company All Rounder 2-in-1 Trimmer' (count: 1)",
+          "bbox": [
+            65.0,
+            65.0,
+            943.0,
+            438.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel' (count: 1)",
+          "bbox": [
+            233.0,
+            514.0,
+            816.0,
+            709.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dettol Original Instant Hand Sanitizer' (count: 1)",
+          "bbox": [
+            251.0,
+            734.0,
+            729.0,
+            906.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "All items are clearly visible and identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0012",
+    "order_lines": "SKU-SOAP-MYSORE:1;SKU-TRIMMER-BOMBAY:1;SKU-EARBUDS-BOAT:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 8895,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SOAP-MYSORE, SKU-TRIMMER-BOMBAY, SKU-EARBUDS-BOAT",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Mysore Sandal Soap' (count: 1), Non-candidate item reported as 'boAt Airdopes 311 Pro' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Mysore Sandal Soap' (count: 1)",
+          "bbox": [
+            281.0,
+            148.0,
+            803.0,
+            415.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'boAt Airdopes 311 Pro' (count: 1)",
+          "bbox": [
+            208.0,
+            505.0,
+            903.0,
+            913.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The items are clearly visible and fully identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0017",
+    "order_lines": "SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 12491,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-EARBUDS-BOAT, SKU-PHONE-M36",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Samsung Galaxy M36 5G' (count: 1), Non-candidate item reported as 'boAt Airdopes 311 Pro' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Samsung Galaxy M36 5G' (count: 1)",
+          "bbox": [
+            81.0,
+            133.0,
+            828.0,
+            481.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'boAt Airdopes 311 Pro' (count: 1)",
+          "bbox": [
+            172.0,
+            506.0,
+            711.0,
+            868.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The items are clearly visible and fully identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0019",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-SUNSCREEN-DERMA:1;SKU-SANITIZER-DETTOL:1;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 5235,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BOOK-GGGM, SKU-SUNSCREEN-DERMA, SKU-SANITIZER-DETTOL, SKU-STICKY-MRDIY",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'A Good Girl's Guide to Murder' (count: 1), Non-candidate item reported as 'Dettol Hand Sanitizer' (count: 1), Non-candidate item reported as 'MR.DIY Color Sticky Notes' (count: 1), Non-candidate item reported as 'Dermatouch Multivitamin Sunscreen Gel' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'A Good Girl's Guide to Murder' (count: 1)",
+          "bbox": [
+            70.0,
+            113.0,
+            906.0,
+            528.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dettol Hand Sanitizer' (count: 1)",
+          "bbox": [
+            116.0,
+            573.0,
+            543.0,
+            712.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'MR.DIY Color Sticky Notes' (count: 1)",
+          "bbox": [
+            551.0,
+            531.0,
+            866.0,
+            769.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dermatouch Multivitamin Sunscreen Gel' (count: 1)",
+          "bbox": [
+            288.0,
+            772.0,
+            807.0,
+            935.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "All items are clearly visible and identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0020",
+    "order_lines": "SKU-BODYMILK-NIVEA:1;SKU-SOAP-MYSORE:3;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 10996,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BODYMILK-NIVEA, SKU-SOAP-MYSORE, SKU-PHONE-M36",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Nivea Body Milk' (count: 1), Non-candidate item reported as 'Mysore Sandal Soap' (count: 2), Non-candidate item reported as 'Samsung Galaxy M36 5G' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Nivea Body Milk' (count: 1)",
+          "bbox": [
+            220.0,
+            40.0,
+            850.0,
+            218.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Mysore Sandal Soap' (count: 2)",
+          "bbox": [
+            350.0,
+            208.0,
+            758.0,
+            645.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Samsung Galaxy M36 5G' (count: 1)",
+          "bbox": [
+            85.0,
+            658.0,
+            852.0,
+            968.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "All items are clearly visible and identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0021",
+    "order_lines": "SKU-BOOK-GGBB:1;SKU-BODYMILK-NIVEA:1;SKU-SOAP-MYSORE:3",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 5239,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BOOK-GGBB, SKU-BODYMILK-NIVEA, SKU-SOAP-MYSORE",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Good Girl, Bad Blood book' (count: 1), Non-candidate item reported as 'Nivea Body Milk' (count: 1), Non-candidate item reported as 'Mysore Sandal Soap' (count: 2)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Good Girl, Bad Blood book' (count: 1)",
+          "bbox": [
+            104.0,
+            109.0,
+            873.0,
+            535.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Nivea Body Milk' (count: 1)",
+          "bbox": [
+            25.0,
+            533.0,
+            583.0,
+            696.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Mysore Sandal Soap' (count: 2)",
+          "bbox": [
+            102.0,
+            695.0,
+            873.0,
+            951.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The two Mysore Sandal Soap boxes are positioned one above the other on the right side of the image."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0024",
+    "order_lines": "SKU-SUNSCREEN-DERMA:1;SKU-TRIMMER-BOMBAY:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 4693,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SUNSCREEN-DERMA, SKU-TRIMMER-BOMBAY, SKU-PHONE-M36",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Samsung Galaxy M36 5G' (count: 1), Non-candidate item reported as 'Dermatouch Multivitamin SPF 50 Sunscreen Gel' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Samsung Galaxy M36 5G' (count: 1)",
+          "bbox": [
+            180.0,
+            96.0,
+            877.0,
+            593.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dermatouch Multivitamin SPF 50 Sunscreen Gel' (count: 1)",
+          "bbox": [
+            319.0,
+            678.0,
+            804.0,
+            935.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The items are clearly visible on a flat surface."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0029",
+    "order_lines": "SKU-BODYMILK-NIVEA:1;SKU-TRIMMER-BOMBAY:1;SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 8320,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BODYMILK-NIVEA, SKU-TRIMMER-BOMBAY, SKU-EARBUDS-BOAT, SKU-PHONE-M36",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'BOMBAY_SHAVING_COMPANY_TRIMMER' (count: 1), Non-candidate item reported as 'DERMATOUCH_SUNSCREEN' (count: 1), Non-candidate item reported as 'BOAT_AIRDOPES_311_PRO' (count: 1), Non-candidate item reported as 'SAMSUNG_GALAXY_M36_5G' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'BOMBAY_SHAVING_COMPANY_TRIMMER' (count: 1)",
+          "bbox": [
+            256.0,
+            78.0,
+            868.0,
+            336.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'DERMATOUCH_SUNSCREEN' (count: 1)",
+          "bbox": [
+            58.0,
+            437.0,
+            492.0,
+            588.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'BOAT_AIRDOPES_311_PRO' (count: 1)",
+          "bbox": [
+            523.0,
+            357.0,
+            944.0,
+            625.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'SAMSUNG_GALAXY_M36_5G' (count: 1)",
+          "bbox": [
+            184.0,
+            632.0,
+            802.0,
+            906.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "All items are clearly visible and identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0038",
+    "order_lines": "SKU-BOOK-GGBB:1;SKU-SOAP-MYSORE:2",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 14898,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BOOK-GGBB, SKU-SOAP-MYSORE",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Good Girl, Bad Blood' (count: 1), Non-candidate item reported as 'Mysore Sandal Soap' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Good Girl, Bad Blood' (count: 1)",
+          "bbox": [
+            58.0,
+            210.0,
+            966.0,
+            648.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Mysore Sandal Soap' (count: 1)",
+          "bbox": [
+            284.0,
+            676.0,
+            698.0,
+            908.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The items are clearly visible on a flat surface."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0043",
+    "order_lines": "SKU-SANITIZER-DETTOL:1;SKU-SOAP-MYSORE:1;SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 7545,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SANITIZER-DETTOL, SKU-SOAP-MYSORE, SKU-EARBUDS-BOAT, SKU-PHONE-M36",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Samsung Galaxy M36 5G' (count: 1), Non-candidate item reported as 'boAt Airdopes 311 Pro' (count: 1), Non-candidate item reported as 'Dettol Hand Sanitizer' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Samsung Galaxy M36 5G' (count: 1)",
+          "bbox": [
+            111.0,
+            93.0,
+            928.0,
+            443.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'boAt Airdopes 311 Pro' (count: 1)",
+          "bbox": [
+            283.0,
+            463.0,
+            797.0,
+            783.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dettol Hand Sanitizer' (count: 1)",
+          "bbox": [
+            369.0,
+            785.0,
+            791.0,
+            931.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "All items are clearly visible and identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0048",
+    "order_lines": "SKU-SOAP-MYSORE:1;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 12859,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SOAP-MYSORE, SKU-STICKY-MRDIY",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Mysore Sandal Soap' (count: 1), Non-candidate item reported as '8955053' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Mysore Sandal Soap' (count: 1)",
+          "bbox": [
+            207.0,
+            168.0,
+            810.0,
+            481.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as '8955053' (count: 1)",
+          "bbox": [
+            268.0,
+            521.0,
+            741.0,
+            875.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The items are clearly visible and fully identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0049",
+    "order_lines": "SKU-BOOK-GGBB:1;SKU-SUNSCREEN-DERMA:1;SKU-SOAP-MYSORE:1;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 20504,
+    "checks": {
+      "all_items_present": {
+        "result": "UNCERTAIN",
+        "reason_code": "UNVERIFIED_UNDER_QUALITY_DEFECT",
+        "reason": "Image quality issues observed (blur): cannot verify if missing item(s) are absent or concealed",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "UNCERTAIN",
+        "reason_code": "UNVERIFIED_UNDER_QUALITY_DEFECT",
+        "reason": "Image quality issues observed (blur): item quantities cannot be verified",
+        "cause": "recognition"
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Good Girl Eau de Parfum' (count: 1), Non-candidate item reported as 'Unknown Skincare Tube' (count: 1), Non-candidate item reported as 'Unknown Red Box' (count: 1), Non-candidate item reported as 'Unknown Small Box' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Good Girl Eau de Parfum' (count: 1)",
+          "bbox": [
+            72.0,
+            72.0,
+            835.0,
+            518.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Unknown Skincare Tube' (count: 1)",
+          "bbox": [
+            402.0,
+            510.0,
+            875.0,
+            690.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Unknown Red Box' (count: 1)",
+          "bbox": [
+            442.0,
+            665.0,
+            742.0,
+            935.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Unknown Small Box' (count: 1)",
+          "bbox": [
+            0.0,
+            518.0,
+            365.0,
+            742.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": [
+          "blur"
+        ]
+      },
+      "occlusion_suspected": false,
+      "notes": "The image is quite blurry, making it difficult to identify the specific SKUs for the tube, the small box, and the red box. Only the Good Girl perfume box is clearly identifiable."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0063",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-SUNSCREEN-DERMA:1;SKU-SANITIZER-DETTOL:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 3889,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BOOK-GGGM, SKU-SUNSCREEN-DERMA, SKU-SANITIZER-DETTOL",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Dermatouch Multivitamin SPF 50 Sunscreen Gel' (count: 1), Non-candidate item reported as 'Dettol Original Instant Hand Sanitizer' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Dermatouch Multivitamin SPF 50 Sunscreen Gel' (count: 1)",
+          "bbox": [
+            221.0,
+            131.0,
+            904.0,
+            489.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dettol Original Instant Hand Sanitizer' (count: 1)",
+          "bbox": [
+            260.0,
+            535.0,
+            815.0,
+            844.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The items are clearly visible and fully identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0069",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-SANITIZER-DETTOL:1;SKU-SOAP-MYSORE:2;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 11372,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BOOK-GGGM, SKU-SANITIZER-DETTOL, SKU-SOAP-MYSORE, SKU-STICKY-MRDIY",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Mysore Sandal Soap' (count: 3), Non-candidate item reported as 'A Good Girl's Guide to Murder' (count: 1), Non-candidate item reported as 'Dermatouch Multivitamin SPF 50' (count: 1), Non-candidate item reported as 'DIY Color Sticky Notes' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Mysore Sandal Soap' (count: 3)",
+          "bbox": [
+            38.0,
+            546.0,
+            664.0,
+            917.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'A Good Girl's Guide to Murder' (count: 1)",
+          "bbox": [
+            48.0,
+            76.0,
+            700.0,
+            494.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dermatouch Multivitamin SPF 50' (count: 1)",
+          "bbox": [
+            356.0,
+            544.0,
+            754.0,
+            698.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'DIY Color Sticky Notes' (count: 1)",
+          "bbox": [
+            694.0,
+            674.0,
+            958.0,
+            918.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "All items are clearly visible and identified."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0081",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-STICKY-MRDIY:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 10968,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BOOK-GGGM, SKU-STICKY-MRDIY, SKU-PHONE-M36",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: A Good Girl's Guide to Murder book, Samsung Galaxy M36 5G phone box",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "A Good Girl's Guide to Murder book",
+          "bbox": [
+            50.0,
+            46.0,
+            938.0,
+            546.0
+          ]
+        },
+        {
+          "description": "Samsung Galaxy M36 5G phone box",
+          "bbox": [
+            104.0,
+            586.0,
+            892.0,
+            944.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The items in the image are not part of the provided catalogue."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0084",
+    "order_lines": "SKU-SOAP-MYSORE:2;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 10447,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SOAP-MYSORE, SKU-STICKY-MRDIY",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Mysore Sandal Soap' (count: 2), Non-candidate item reported as 'MR.DIY Color Sticky Notes' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Mysore Sandal Soap' (count: 2)",
+          "bbox": [
+            282.0,
+            39.0,
+            793.0,
+            321.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'MR.DIY Color Sticky Notes' (count: 1)",
+          "bbox": [
+            323.0,
+            359.0,
+            727.0,
+            663.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains two bars of Mysore Sandal Soap and one pack of MR.DIY Color Sticky Notes."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0087",
+    "order_lines": "SKU-SOAP-MYSORE:1;SKU-EARBUDS-BOAT:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 6660,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SOAP-MYSORE, SKU-EARBUDS-BOAT",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'Dettol Hand Sanitizer' (count: 1), Non-candidate item reported as 'boAt Airdopes 311 Pro' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'Dettol Hand Sanitizer' (count: 1)",
+          "bbox": [
+            208.0,
+            71.0,
+            707.0,
+            280.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'boAt Airdopes 311 Pro' (count: 1)",
+          "bbox": [
+            114.0,
+            461.0,
+            718.0,
+            922.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": ""
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0091",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-SUNSCREEN-DERMA:1;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 6253,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BOOK-GGGM, SKU-SUNSCREEN-DERMA, SKU-STICKY-MRDIY",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "DEFERRED_TO_PRESENCE_CHECK",
+        "reason": "Quantity check deferred: all items missing, evaluated under identity check",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised foreign item(s) found in box: Non-candidate item reported as 'A Good Girl's Guide to Murder' (count: 1), Non-candidate item reported as 'DIY Color Sticky Notes' (count: 1), Non-candidate item reported as 'Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel' (count: 1), Non-candidate item reported as 'Dettol Original Hand Sanitizer' (count: 1)",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [],
+      "unrecognised_items": [
+        {
+          "description": "Non-candidate item reported as 'A Good Girl's Guide to Murder' (count: 1)",
+          "bbox": [
+            121.0,
+            58.0,
+            919.0,
+            516.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'DIY Color Sticky Notes' (count: 1)",
+          "bbox": [
+            91.0,
+            685.0,
+            391.0,
+            944.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel' (count: 1)",
+          "bbox": [
+            411.0,
+            522.0,
+            906.0,
+            693.0
+          ]
+        },
+        {
+          "description": "Non-candidate item reported as 'Dettol Original Hand Sanitizer' (count: 1)",
+          "bbox": [
+            459.0,
+            798.0,
+            857.0,
+            951.0
+          ]
+        }
+      ],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": ""
+    },
+    "error": null
+  }
+]

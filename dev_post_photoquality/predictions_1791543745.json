@@ -1,0 +1,1506 @@
+[
+  {
+    "unit_id": "UNIT-0010",
+    "order_lines": "SKU-SANITIZER-DETTOL:1;SKU-TRIMMER-BOMBAY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 3872,
+    "checks": {
+      "all_items_present": {
+        "result": "PASS",
+        "reason_code": "ALL_ITEMS_PRESENT",
+        "reason": "All required order SKUs are clearly present in the box",
+        "cause": null
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised extra item(s) found in box: Dermatouch Multivitamin SPF 50 PA++++ (count: 1, bbox: [233.0, 515.0, 815.0, 682.0])",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Bombay Shaving Company All Rounder 2-in-1 Trimmer",
+          "visible_attributes": "Turquoise and white rectangular box with product branding and image of a man using a trimmer.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            75.0,
+            65.0,
+            945.0,
+            435.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-TRIMMER-BOMBAY"
+        },
+        {
+          "label": "Dettol Original Instant Hand Sanitizer",
+          "visible_attributes": "Clear plastic bottle with green cap and green Dettol branding label.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            250.0,
+            735.0,
+            728.0,
+            905.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-SANITIZER-DETTOL"
+        },
+        {
+          "label": "Dermatouch Multivitamin SPF 50 PA++++",
+          "visible_attributes": "White tube with orange and black text, Dermatouch branding.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            233.0,
+            515.0,
+            815.0,
+            682.0
+          ],
+          "matches_order_index": null,
+          "sku": null
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains a Bombay Shaving Company All Rounder 2-in-1 Trimmer, a Dettol Original Instant Hand Sanitizer, and an unlisted Dermatouch Multivitamin SPF 50 PA++++ sunscreen tube."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0012",
+    "order_lines": "SKU-SOAP-MYSORE:1;SKU-TRIMMER-BOMBAY:1;SKU-EARBUDS-BOAT:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 3441,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-TRIMMER-BOMBAY",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Mysore Sandal Soap Carton",
+          "visible_attributes": "Red and green rectangular box with gold elephant logo and floral design",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            282.0,
+            148.0,
+            802.0,
+            415.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-SOAP-MYSORE"
+        },
+        {
+          "label": "boAt Airdopes 311 Pro True Wireless Earbuds",
+          "visible_attributes": "White box with image of black earbuds and charging case, boAt branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            210.0,
+            503.0,
+            885.0,
+            915.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-EARBUDS-BOAT"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains one Mysore Sandal Soap carton and one boAt Airdopes 311 Pro box. The Bombay Shaving Company trimmer is missing."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0017",
+    "order_lines": "SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "SEAL",
+    "status": "completed",
+    "latency_ms": 6679,
+    "checks": {
+      "all_items_present": {
+        "result": "PASS",
+        "reason_code": "ALL_ITEMS_PRESENT",
+        "reason": "All required order SKUs are clearly present in the box",
+        "cause": null
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Samsung Galaxy M36 5G Smartphone Box",
+          "visible_attributes": "White rectangular box with Samsung branding, image of a smartphone with a colorful screen, and Galaxy M36 5G text.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            83.0,
+            133.0,
+            829.0,
+            481.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-PHONE-M36"
+        },
+        {
+          "label": "boAt Airdopes 311 Pro True Wireless Earbuds",
+          "visible_attributes": "Square box with boAt branding, image of black earbuds and charging case, and text 'Airdopes 311 Pro' and 'TOTAL PLAYTIME: 50 HOURS'.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            172.0,
+            507.0,
+            708.0,
+            866.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-EARBUDS-BOAT"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains two items: a Samsung Galaxy M36 5G smartphone box and a boAt Airdopes 311 Pro True Wireless Earbuds box. Both items are clearly visible."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0019",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-SUNSCREEN-DERMA:1;SKU-SANITIZER-DETTOL:1;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "SEAL",
+    "status": "completed",
+    "latency_ms": 4422,
+    "checks": {
+      "all_items_present": {
+        "result": "PASS",
+        "reason_code": "ALL_ITEMS_PRESENT",
+        "reason": "All required order SKUs are clearly present in the box",
+        "cause": null
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "A Good Girl's Guide to Murder book",
+          "visible_attributes": "Paperback book with white cover, red string graphic, and black text.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            70.0,
+            113.0,
+            907.0,
+            528.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-BOOK-GGGM"
+        },
+        {
+          "label": "Dettol Original Instant Hand Sanitizer",
+          "visible_attributes": "Clear plastic bottle with green cap and Dettol branding.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            117.0,
+            572.0,
+            542.0,
+            712.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-SANITIZER-DETTOL"
+        },
+        {
+          "label": "MR.DIY Color Sticky Notes",
+          "visible_attributes": "Red rectangular box with white text and MR.DIY logo.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            551.0,
+            528.0,
+            867.0,
+            769.0
+          ],
+          "matches_order_index": 3,
+          "sku": "SKU-STICKY-MRDIY"
+        },
+        {
+          "label": "Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel",
+          "visible_attributes": "White tube with black and orange text, Dermatouch branding.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            289.0,
+            772.0,
+            806.0,
+            935.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-SUNSCREEN-DERMA"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains four items: A Good Girl's Guide to Murder book, a bottle of Dettol Original Instant Hand Sanitizer, a pack of MR.DIY Color Sticky Notes, and a tube of Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0020",
+    "order_lines": "SKU-BODYMILK-NIVEA:1;SKU-SOAP-MYSORE:3;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 9655,
+    "checks": {
+      "all_items_present": {
+        "result": "PASS",
+        "reason_code": "ALL_ITEMS_PRESENT",
+        "reason": "All required order SKUs are clearly present in the box",
+        "cause": null
+      },
+      "quantities_correct": {
+        "result": "FAIL",
+        "reason_code": "SHORT_QUANTITY",
+        "reason": "Short quantity for required item(s): SKU-SOAP-MYSORE (expected 3, observed 2)",
+        "cause": "recognition"
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Nivea Nourishing Body Milk 72h Moisture Lotion",
+          "visible_attributes": "Blue bottle, Nivea branding, 72h moisture label",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            220.0,
+            40.0,
+            850.0,
+            218.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-BODYMILK-NIVEA"
+        },
+        {
+          "label": "Mysore Sandal Soap Carton",
+          "visible_attributes": "Red and green packaging, Mysore Sandal Soap text, floral design",
+          "count": 2,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            350.0,
+            218.0,
+            760.0,
+            645.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-SOAP-MYSORE"
+        },
+        {
+          "label": "Samsung Galaxy M36 5G Smartphone Box",
+          "visible_attributes": "White rectangular box, Samsung branding, Galaxy M36 5G text, phone image on front",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            85.0,
+            658.0,
+            852.0,
+            966.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-PHONE-M36"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains one Nivea Nourishing Body Milk bottle, two Mysore Sandal Soap cartons, and one Samsung Galaxy M36 5G smartphone box."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0021",
+    "order_lines": "SKU-BOOK-GGBB:1;SKU-BODYMILK-NIVEA:1;SKU-SOAP-MYSORE:3",
+    "predicted_verdict": "SEAL",
+    "status": "completed",
+    "latency_ms": 7915,
+    "checks": {
+      "all_items_present": {
+        "result": "PASS",
+        "reason_code": "ALL_ITEMS_PRESENT",
+        "reason": "All required order SKUs are clearly present in the box",
+        "cause": null
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Good Girl, Bad Blood by Holly Jackson",
+          "visible_attributes": "Red cover with white and grey text, title 'Good Girl, Bad Blood' prominent",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            104.0,
+            108.0,
+            871.0,
+            532.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-BOOK-GGBB"
+        },
+        {
+          "label": "Nivea Nourishing Body Milk 72h Moisture Lotion",
+          "visible_attributes": "Blue plastic bottle with white and blue branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            25.0,
+            532.0,
+            583.0,
+            696.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-BODYMILK-NIVEA"
+        },
+        {
+          "label": "Mysore Sandal Soap Carton",
+          "visible_attributes": "Green and red rectangular carton with gold text and floral design",
+          "count": 3,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            102.0,
+            695.0,
+            484.0,
+            906.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-SOAP-MYSORE"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains one copy of the book 'Good Girl, Bad Blood' by Holly Jackson, one bottle of Nivea Nourishing Body Milk, and three cartons of Mysore Sandal Soap."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0024",
+    "order_lines": "SKU-SUNSCREEN-DERMA:1;SKU-TRIMMER-BOMBAY:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 5125,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-TRIMMER-BOMBAY",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Samsung Galaxy M36 5G Smartphone Box",
+          "visible_attributes": "White rectangular box with Samsung branding and a graphic of the phone on the front.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            180.0,
+            96.0,
+            877.0,
+            592.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-PHONE-M36"
+        },
+        {
+          "label": "Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel",
+          "visible_attributes": "White tube with black text, Dermatouch branding, and orange accents.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            319.0,
+            677.0,
+            804.0,
+            935.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-SUNSCREEN-DERMA"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains a Samsung Galaxy M36 5G smartphone box and a tube of Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel. The Bombay Shaving Company All Rounder 2-in-1 Trimmer is missing."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0029",
+    "order_lines": "SKU-BODYMILK-NIVEA:1;SKU-TRIMMER-BOMBAY:1;SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 14423,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BODYMILK-NIVEA",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised extra item(s) found in box: Dermatouch Multivitamin SPF 50 Sunscreen (count: 1, bbox: [68.0, 439.0, 492.0, 588.0])",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Bombay Shaving Company All Rounder 2-in-1 Trimmer",
+          "visible_attributes": "Teal and white box with product branding and image of a man using the trimmer",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            257.0,
+            81.0,
+            868.0,
+            335.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-TRIMMER-BOMBAY"
+        },
+        {
+          "label": "Dermatouch Multivitamin SPF 50 Sunscreen",
+          "visible_attributes": "White tube with orange and black text, Dermatouch branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            68.0,
+            439.0,
+            492.0,
+            588.0
+          ],
+          "matches_order_index": null,
+          "sku": null
+        },
+        {
+          "label": "boAt Airdopes 311 Pro True Wireless Earbuds",
+          "visible_attributes": "White box with image of black earbuds and charging case, boAt branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            543.0,
+            357.0,
+            943.0,
+            625.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-EARBUDS-BOAT"
+        },
+        {
+          "label": "Samsung Galaxy M36 5G Smartphone Box",
+          "visible_attributes": "White box with image of smartphone on front, Samsung branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            183.0,
+            632.0,
+            801.0,
+            907.0
+          ],
+          "matches_order_index": 3,
+          "sku": "SKU-PHONE-M36"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains a Bombay Shaving Company trimmer, a Dermatouch sunscreen tube, a boAt Airdopes 311 Pro box, and a Samsung Galaxy M36 5G smartphone box. The Nivea lotion is missing from the box."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0038",
+    "order_lines": "SKU-BOOK-GGBB:1;SKU-SOAP-MYSORE:2",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 9979,
+    "checks": {
+      "all_items_present": {
+        "result": "PASS",
+        "reason_code": "ALL_ITEMS_PRESENT",
+        "reason": "All required order SKUs are clearly present in the box",
+        "cause": null
+      },
+      "quantities_correct": {
+        "result": "FAIL",
+        "reason_code": "SHORT_QUANTITY",
+        "reason": "Short quantity for required item(s): SKU-SOAP-MYSORE (expected 2, observed 1)",
+        "cause": "recognition"
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Good Girl, Bad Blood book",
+          "visible_attributes": "Red cover with white and black text, title 'Good Girl, Bad Blood', author 'Holly Jackson', white circular line graphics",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            58.0,
+            210.0,
+            965.0,
+            648.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-BOOK-GGBB"
+        },
+        {
+          "label": "Mysore Sandal Soap carton",
+          "visible_attributes": "Rectangular box, green and red color scheme, floral design, Mysore Sandal Soap branding, lion logo",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            284.0,
+            676.0,
+            697.0,
+            908.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-SOAP-MYSORE"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains one copy of the book 'Good Girl, Bad Blood' by Holly Jackson and one carton of 'Mysore Sandal Soap'. Both items are clearly visible and fully contained within the frame."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0043",
+    "order_lines": "SKU-SANITIZER-DETTOL:1;SKU-SOAP-MYSORE:1;SKU-EARBUDS-BOAT:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 4765,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SOAP-MYSORE",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Samsung Galaxy M36 5G Smartphone Box",
+          "visible_attributes": "White rectangular box with Samsung branding and a graphic of the phone on the front.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            111.0,
+            93.0,
+            928.0,
+            437.0
+          ],
+          "matches_order_index": 3,
+          "sku": "SKU-PHONE-M36"
+        },
+        {
+          "label": "boAt Airdopes 311 Pro True Wireless Earbuds",
+          "visible_attributes": "White box with boAt branding and image of black earbuds and charging case.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            284.0,
+            461.0,
+            797.0,
+            784.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-EARBUDS-BOAT"
+        },
+        {
+          "label": "Dettol Original Instant Hand Sanitizer",
+          "visible_attributes": "Clear plastic bottle with green cap and Dettol branding.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            369.0,
+            786.0,
+            787.0,
+            930.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-SANITIZER-DETTOL"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains a Samsung Galaxy M36 5G smartphone box, a boAt Airdopes 311 Pro box, and a bottle of Dettol Original Instant Hand Sanitizer. The Mysore Sandal Soap Carton is missing."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0048",
+    "order_lines": "SKU-SOAP-MYSORE:1;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "SEAL",
+    "status": "completed",
+    "latency_ms": 9276,
+    "checks": {
+      "all_items_present": {
+        "result": "PASS",
+        "reason_code": "ALL_ITEMS_PRESENT",
+        "reason": "All required order SKUs are clearly present in the box",
+        "cause": null
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Mysore Sandal Soap Carton",
+          "visible_attributes": "Rectangular box, red and green border, cream-colored center with Mysore Sandal Soap branding and logo.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            207.0,
+            168.0,
+            811.0,
+            481.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-SOAP-MYSORE"
+        },
+        {
+          "label": "MR.DIY Color Sticky Notes",
+          "visible_attributes": "Square red packaging, MR.DIY logo, labeled 'COLOR STICKY NOTES', '8 COLORS', '240 SHEETS'.",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            268.0,
+            523.0,
+            740.0,
+            875.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-STICKY-MRDIY"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains one Mysore Sandal Soap carton and one pack of MR.DIY Color Sticky Notes. Both items are clearly visible and fully accounted for."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0049",
+    "order_lines": "SKU-BOOK-GGBB:1;SKU-SUNSCREEN-DERMA:1;SKU-SOAP-MYSORE:1;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "UNCERTAIN",
+    "status": "completed",
+    "latency_ms": 11957,
+    "checks": {
+      "all_items_present": {
+        "result": "UNCERTAIN",
+        "reason_code": "IMAGE_UNUSABLE",
+        "reason": "Photo quality is insufficient to verify item presence: blur",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "UNCERTAIN",
+        "reason_code": "IMAGE_UNUSABLE",
+        "reason": "Photo quality is insufficient to count quantities: blur",
+        "cause": "recognition"
+      },
+      "nothing_extra": {
+        "result": "UNCERTAIN",
+        "reason_code": "IMAGE_UNUSABLE",
+        "reason": "Photo quality is insufficient to verify absence of extra items: blur",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Good Girl Bad Blood by Holly Jackson",
+          "visible_attributes": "Red cover with white text and circular line graphics",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            75.0,
+            75.0,
+            835.0,
+            515.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-BOOK-GGBB"
+        },
+        {
+          "label": "Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel",
+          "visible_attributes": "White tube with orange accents",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 0.9,
+          "partially_occluded": false,
+          "bbox": [
+            405.0,
+            510.0,
+            875.0,
+            690.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-SUNSCREEN-DERMA"
+        },
+        {
+          "label": "Mysore Sandal Soap Carton",
+          "visible_attributes": "Rectangular box with red and green branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 0.9,
+          "partially_occluded": false,
+          "bbox": [
+            0.0,
+            520.0,
+            360.0,
+            745.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-SOAP-MYSORE"
+        },
+        {
+          "label": "MR.DIY Color Sticky Notes",
+          "visible_attributes": "Small red square packaging",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 0.8,
+          "partially_occluded": false,
+          "bbox": [
+            445.0,
+            665.0,
+            740.0,
+            935.0
+          ],
+          "matches_order_index": 3,
+          "sku": "SKU-STICKY-MRDIY"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": false,
+        "issues": [
+          "blur"
+        ]
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains four items: a book titled 'Good Girl Bad Blood', a tube of Dermatouch sunscreen, a Mysore Sandal soap carton, and a pack of MR.DIY sticky notes. The image is blurry."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0063",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-SUNSCREEN-DERMA:1;SKU-SANITIZER-DETTOL:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 7936,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-BOOK-GGGM",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel",
+          "visible_attributes": "White tube with orange and black text, Dermatouch branding, 50g/1.76 oz",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            222.0,
+            131.0,
+            905.0,
+            489.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-SUNSCREEN-DERMA"
+        },
+        {
+          "label": "Dettol Original Instant Hand Sanitizer",
+          "visible_attributes": "Clear plastic bottle with green cap and green label, Dettol branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            261.0,
+            538.0,
+            816.0,
+            844.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-SANITIZER-DETTOL"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains one Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel tube and one Dettol Original Instant Hand Sanitizer bottle. The book 'A Good Girl's Guide to Murder' is missing from the box."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0069",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-SANITIZER-DETTOL:1;SKU-SOAP-MYSORE:2;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 7888,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SANITIZER-DETTOL",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "FAIL",
+        "reason_code": "SURPLUS_QUANTITY",
+        "reason": "Excess quantity packed for ordered item(s): SKU-SOAP-MYSORE (expected 2, observed 3)",
+        "cause": "recognition"
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised extra item(s) found in box: Dermatouch Multivitamin SPF 50 Sunscreen (count: 1, bbox: [356.0, 544.0, 751.0, 698.0])",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "A Good Girl's Guide to Murder by Holly Jackson",
+          "visible_attributes": "Book cover with grid pattern, red string design, and title text",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            48.0,
+            85.0,
+            701.0,
+            495.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-BOOK-GGGM"
+        },
+        {
+          "label": "Mysore Sandal Soap Carton",
+          "visible_attributes": "Green and red rectangular box with gold logo and floral design",
+          "count": 3,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            38.0,
+            547.0,
+            664.0,
+            923.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-SOAP-MYSORE"
+        },
+        {
+          "label": "MR.DIY Color Sticky Notes",
+          "visible_attributes": "Red packaging with MR.DIY logo and text 'COLOR STICKY NOTES'",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            694.0,
+            675.0,
+            958.0,
+            918.0
+          ],
+          "matches_order_index": 3,
+          "sku": "SKU-STICKY-MRDIY"
+        },
+        {
+          "label": "Dermatouch Multivitamin SPF 50 Sunscreen",
+          "visible_attributes": "White tube with orange and black text, Dermatouch branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            356.0,
+            544.0,
+            751.0,
+            698.0
+          ],
+          "matches_order_index": null,
+          "sku": null
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains one copy of 'A Good Girl's Guide to Murder', three Mysore Sandal Soap cartons, one pack of MR.DIY Color Sticky Notes, and one unlisted item: a Dermatouch Multivitamin SPF 50 sunscreen tube."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0081",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-STICKY-MRDIY:1;SKU-PHONE-M36:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 10001,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-STICKY-MRDIY",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "A Good Girl's Guide to Murder by Holly Jackson",
+          "visible_attributes": "Book cover with red string and pin design, title text, author name",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            44.0,
+            46.0,
+            956.0,
+            546.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-BOOK-GGGM"
+        },
+        {
+          "label": "Samsung Galaxy M36 5G Smartphone Box",
+          "visible_attributes": "White rectangular box with Samsung branding and image of phone on front",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            104.0,
+            584.0,
+            892.0,
+            944.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-PHONE-M36"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains a copy of the book 'A Good Girl's Guide to Murder' by Holly Jackson and a Samsung Galaxy M36 5G smartphone box. The sticky notes are not visible."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0084",
+    "order_lines": "SKU-SOAP-MYSORE:2;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "SEAL",
+    "status": "completed",
+    "latency_ms": 2397,
+    "checks": {
+      "all_items_present": {
+        "result": "PASS",
+        "reason_code": "ALL_ITEMS_PRESENT",
+        "reason": "All required order SKUs are clearly present in the box",
+        "cause": null
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "PASS",
+        "reason_code": "NO_EXTRA_ITEMS",
+        "reason": "No extra, decoy, or foreign items observed in the box",
+        "cause": null
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Mysore Sandal Soap Carton",
+          "visible_attributes": "Green and red packaging with gold logo and text",
+          "count": 2,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            282.0,
+            38.0,
+            796.0,
+            321.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-SOAP-MYSORE"
+        },
+        {
+          "label": "MR.DIY Color Sticky Notes",
+          "visible_attributes": "Red square packaging with MR.DIY branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            323.0,
+            359.0,
+            727.0,
+            663.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-STICKY-MRDIY"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains two Mysore Sandal Soap cartons and one pack of MR.DIY Color Sticky Notes."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0087",
+    "order_lines": "SKU-SOAP-MYSORE:1;SKU-EARBUDS-BOAT:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 3312,
+    "checks": {
+      "all_items_present": {
+        "result": "FAIL",
+        "reason_code": "MISSING_ITEMS",
+        "reason": "Required item(s) missing from open box: SKU-SOAP-MYSORE",
+        "cause": "recognition"
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised extra item(s) found in box: Dettol hand sanitizer (count: 1, bbox: [208.0, 70.0, 706.0, 279.0])",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "Dettol hand sanitizer",
+          "visible_attributes": "Clear plastic bottle, green cap, Dettol branding, Original label",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            208.0,
+            70.0,
+            706.0,
+            279.0
+          ],
+          "matches_order_index": null,
+          "sku": null
+        },
+        {
+          "label": "boAt Airdopes 311 Pro True Wireless Earbuds",
+          "visible_attributes": "White box, boAt branding, image of earbuds and charging case, 'TOTAL PLAYTIME: 50 HOURS' text",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            115.0,
+            460.0,
+            703.0,
+            922.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-EARBUDS-BOAT"
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains a boAt Airdopes 311 Pro True Wireless Earbuds box and an unlisted Dettol hand sanitizer bottle."
+    },
+    "error": null
+  },
+  {
+    "unit_id": "UNIT-0091",
+    "order_lines": "SKU-BOOK-GGGM:1;SKU-SUNSCREEN-DERMA:1;SKU-STICKY-MRDIY:1",
+    "predicted_verdict": "STOP_AND_FIX",
+    "status": "completed",
+    "latency_ms": 7300,
+    "checks": {
+      "all_items_present": {
+        "result": "PASS",
+        "reason_code": "ALL_ITEMS_PRESENT",
+        "reason": "All required order SKUs are clearly present in the box",
+        "cause": null
+      },
+      "quantities_correct": {
+        "result": "PASS",
+        "reason_code": "QUANTITIES_MATCH",
+        "reason": "Observed item counts exactly match the order line quantities",
+        "cause": null
+      },
+      "nothing_extra": {
+        "result": "FAIL",
+        "reason_code": "UNRECOGNISED_ITEMS_PRESENT",
+        "reason": "Unrecognised extra item(s) found in box: Dettol Original Hand Sanitizer (count: 1, bbox: [458.0, 798.0, 858.0, 951.0])",
+        "cause": "recognition"
+      }
+    },
+    "observation": {
+      "observed_items": [
+        {
+          "label": "A Good Girl's Guide to Murder by Holly Jackson",
+          "visible_attributes": "Book cover with string and pin graphic, white background, black text",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            121.0,
+            59.0,
+            918.0,
+            516.0
+          ],
+          "matches_order_index": 0,
+          "sku": "SKU-BOOK-GGGM"
+        },
+        {
+          "label": "Dermatouch Multivitamin SPF 50 PA++++ Sunscreen Gel",
+          "visible_attributes": "White tube with orange and black text, branding visible",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            411.0,
+            521.0,
+            906.0,
+            694.0
+          ],
+          "matches_order_index": 1,
+          "sku": "SKU-SUNSCREEN-DERMA"
+        },
+        {
+          "label": "MR.DIY Color Sticky Notes",
+          "visible_attributes": "Red packaging, MR.DIY logo, 8 colors 240 sheets text",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            91.0,
+            685.0,
+            391.0,
+            944.0
+          ],
+          "matches_order_index": 2,
+          "sku": "SKU-STICKY-MRDIY"
+        },
+        {
+          "label": "Dettol Original Hand Sanitizer",
+          "visible_attributes": "Clear plastic bottle, green cap, Dettol branding",
+          "count": 1,
+          "count_confidence": 1.0,
+          "identity_confidence": 1.0,
+          "partially_occluded": false,
+          "bbox": [
+            458.0,
+            798.0,
+            858.0,
+            951.0
+          ],
+          "matches_order_index": null,
+          "sku": null
+        }
+      ],
+      "unrecognised_items": [],
+      "image_quality": {
+        "usable": true,
+        "issues": []
+      },
+      "occlusion_suspected": false,
+      "notes": "The box contains a book titled 'A Good Girl's Guide to Murder', a tube of Dermatouch Multivitamin SPF 50 Sunscreen Gel, a pack of MR.DIY Color Sticky Notes, and an unlisted bottle of Dettol Original Hand Sanitizer."
+    },
+    "error": null
+  }
+]
