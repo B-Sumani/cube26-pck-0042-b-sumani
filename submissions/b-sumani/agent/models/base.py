@@ -34,7 +34,7 @@ class ModelParsingError(ModelError):
     pass
 
 
-PROMPT_VERSION = "pack-prompt-v2.1-occlusion"
+PROMPT_VERSION = "pack-prompt-v2.2-occlusion-narrow"
 
 
 class ObservedItem(BaseModel):

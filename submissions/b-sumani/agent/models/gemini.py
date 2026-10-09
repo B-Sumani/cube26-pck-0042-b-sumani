@@ -150,12 +150,8 @@ class GeminiVisionAdapter(VisionModelAdapter):
             "   - 'bbox': [ymin, xmin, ymax, xmax] coordinates normalized to 0-1000.\n"
             "   - 'matches_order_index': 0-based integer index of the matched ordered item above (e.g. 0 or 1), or null if the item does NOT match any item in the order list.\n"
             "5. Evaluate image quality in 'image_quality': set 'usable' to true/false, and list any 'issues' (blur, glare, dark, box_not_in_frame).\n"
-            "6. Set 'occlusion_suspected' to true whenever ANY of these is visible:\n"
-            "   - packing paper, bubble wrap, filler, crumpled paper, or a cloth covering part of the box;\n"
-            "   - items stacked so that lower ones cannot be seen;\n"
-            "   - the bottom of the box not fully visible;\n"
-            "   - an ordered item that is not seen AND there is covered or hidden space where it could be.\n"
-            "7. If an ordered item is not visible but it could be hidden in covered space, do NOT conclude that it is absent. Leave it out of observed_items AND set occlusion_suspected to true. Only treat an item as absent when the whole box interior is clearly visible and empty of it."
+            "6. Set 'occlusion_suspected' to true ONLY if you can actually see something covering part of the box interior: packing paper, bubble wrap, filler, crumpled paper or cloth lying over the contents, or items stacked so that lower ones are not visible. A missing ordered item alone is NOT a reason to set occlusion_suspected.\n"
+            "7. If an ordered item is not visible AND the box interior is clearly visible where it would be, it is absent: leave it out of observed_items and leave occlusion_suspected false (unless rule 6 applies elsewhere). If an ordered item is not visible AND covering material (rule 6) lies over space where it could be, leave it out of observed_items and set occlusion_suspected to true."
         )
 
     def analyze_box(
