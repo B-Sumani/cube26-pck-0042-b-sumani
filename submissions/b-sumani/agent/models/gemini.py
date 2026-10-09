@@ -149,7 +149,10 @@ class GeminiVisionAdapter(VisionModelAdapter):
             "   - 'partially_occluded': true if the item is partially hidden, covered, or cut off.\n"
             "   - 'bbox': [ymin, xmin, ymax, xmax] coordinates normalized to 0-1000.\n"
             "   - 'matches_order_index': 0-based integer index of the matched ordered item above (e.g. 0 or 1), or null if the item does NOT match any item in the order list.\n"
-            "5. Evaluate image quality in 'image_quality': set 'usable' to true/false, and list any 'issues' (blur, glare, dark, box_not_in_frame).\n"
+            "5. Evaluate image quality in 'image_quality': set 'usable' to true/false, and list any 'issues' (blur, glare, dark, box_not_in_frame):\n"
+            "   - If any ordered item, carton or box edge is clipped or cut off by the edge of the frame, set usable to false and add \"box_not_in_frame\" to issues, even if the items are still recognisable.\n"
+            "   - If reflective glare covers part of a carton, label or item so that some text or surface cannot be read clearly, add \"glare\" to issues and set usable to false, even if you can still guess the item.\n"
+            "   - Do not flag these for normal, well-lit photos with the whole box in frame.\n"
             "6. Set 'occlusion_suspected' to true ONLY if you can actually see something covering part of the box interior: packing paper, bubble wrap, filler, crumpled paper or cloth lying over the contents, or items stacked so that lower ones are not visible. A missing ordered item alone is NOT a reason to set occlusion_suspected.\n"
             "7. If an ordered item is not visible AND the box interior is clearly visible where it would be, it is absent: leave it out of observed_items and leave occlusion_suspected false (unless rule 6 applies elsewhere). If an ordered item is not visible AND covering material (rule 6) lies over space where it could be, leave it out of observed_items and set occlusion_suspected to true."
         )
