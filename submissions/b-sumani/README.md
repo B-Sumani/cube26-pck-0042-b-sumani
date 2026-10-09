@@ -211,3 +211,18 @@ Tuning on 18 boxes is inherently small and carries a risk of overfitting. Improv
 3. **Demo Organisation Switch (Not Secure Authentication)**: The login page at `/login` provides a demo organisation switch with two one-click buttons ("Enter as Alpha Demo Merchant" and "Enter as Bravo Demo Merchant") with no credentials or passwords. It sets a signed session cookie (`pack_session`) holding `org_id` strictly to demonstrate multi-tenant database row-level security and tenant separation. It is NOT authentication or a secure login system. Production deployments must bind tenant and operator identity to enterprise SSO/OIDC/SAML.
 4. **Per-Organisation Seller Catalogue & Future OMS Work**: Product catalogue items (SKU, title, description) are stored per organisation in the `catalogue_items` table under forced RLS. The packing verification form uses an interactive product picker built from the seller's active catalogue. Pulling customer orders and order lines directly from an Order Management System (OMS/WMS) via API or scanner is future work.
 5. **Visual Accessibility**: Layout, borders, and status badges are designed for contrast across packing station lighting environments.
+
+---
+
+## 8. Changes After Scoring
+
+- **Official Exam Score**: The official held-out exam score comes from the frozen commit `b5c04f3` ("Final prompt v2.2-occlusion-narrow, frozen before held-out exam"), with results stored in `exam_final/`. The exam was not rerun.
+- **Post-Scoring Prompt Adjustments**: After inspecting the exam failures, two prompt-wording changes were made and tested on the dev set only (detailed breakdown and metrics are in [`post_scoring_changes.md`](./post_scoring_changes.md)):
+  1. Image-quality wording for cut-off frames and glare (commit `1e52743`).
+  2. Strict printed-title matching for look-alike items (commit `0350436`).
+- **Validation Scope**: Both changes are post-scoring and not validated on held-out data; the dev set contains no glare, cut-off, or look-alike-swap cases, so their effect on those cases is untested.
+- **Known Model Limitations**: Named cases that need a stronger model, not a prompt change:
+  - `UNIT-0093`: extra item (Nivea Body Milk) not detected; the model did not see the extra item.
+  - `UNIT-0046`: partially hidden item not detected; the model reported no occlusion.
+- **Own-Photo Test Set**: A separate own-photo test set (18 boxes) was planned but not run, for lack of time.
+
