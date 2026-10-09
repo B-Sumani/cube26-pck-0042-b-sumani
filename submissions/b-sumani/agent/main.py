@@ -44,6 +44,7 @@ from agent.models.base import (
     ModelTimeoutError,
     ModelProviderError,
     ModelParsingError,
+    PROMPT_VERSION,
 )
 from agent.models.gemini import GeminiVisionAdapter
 from agent.models.mock import MockVisionAdapter
@@ -58,7 +59,6 @@ if not SESSION_SECRET or not SESSION_SECRET.strip():
     raise RuntimeError("Application startup failed: SESSION_SECRET environment variable is required.")
 
 COOKIE_NAME = "pack_session"
-PROMPT_VERSION = "pack-prompt-v1.0"
 
 app = FastAPI(
     title="Pack Manager",
@@ -70,9 +70,12 @@ app = FastAPI(
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-# Allowed MIME types and max upload size (10 MB)
+# Allowed MIME types and photo upload limits (Vercel serverless request body is 4.5 MB)
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/jpg"}
-MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+MAX_PHOTOS_COUNT = 5
+MAX_INDIVIDUAL_PHOTO_BYTES = 4 * 1024 * 1024  # 4 MB
+MAX_TOTAL_UPLOAD_BYTES = 4500000  # 4.5 MB Vercel request body limit
+MAX_FILE_SIZE_BYTES = MAX_TOTAL_UPLOAD_BYTES
 
 # In-memory sliding window rate limiter per client IP
 _rate_limit_history: Dict[str, List[float]] = defaultdict(list)
@@ -244,7 +247,8 @@ async def verify_pack_box(
     unit_id: str = Form(...),
     order_lines: str = Form(...),
     operator_id: str = Form("op_default"),
-    photo: UploadFile = File(...),
+    photos: Optional[List[UploadFile]] = File(None),
+    photo: Optional[UploadFile] = File(None),
     simulate_timeout: Optional[str] = Form(None)
 ):
     """Core pack verification endpoint.
@@ -268,67 +272,93 @@ async def verify_pack_box(
     content_length = request.headers.get("content-length")
     if content_length:
         try:
-            if int(content_length) > MAX_FILE_SIZE_BYTES:
-                raise HTTPException(status_code=400, detail="File too large. Maximum size is 10 MB.")
+            if int(content_length) > MAX_TOTAL_UPLOAD_BYTES:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Total upload payload exceeds 4.5 MB (Vercel serverless request body limit)."
+                )
         except ValueError:
             pass
 
-    # 1. Upload Validation
-    raw_filename = photo.filename or "box.jpg"
-    if ".." in raw_filename or "/" in raw_filename or "\\" in raw_filename:
-        raise HTTPException(status_code=400, detail="Invalid filename: path traversal tricks forbidden.")
-    filename = os.path.basename(raw_filename)
+    # 1. Multi-photo Upload Collection & Validation
+    upload_files: List[UploadFile] = []
+    if photos:
+        upload_files.extend(photos)
+    if photo:
+        upload_files.append(photo)
+    upload_files = [f for f in upload_files if f.filename and f.filename.strip()]
 
-    # Read photo bytes and check size
-    photo_bytes = await photo.read()
-    if len(photo_bytes) > MAX_FILE_SIZE_BYTES:
-        raise HTTPException(status_code=400, detail="File too large. Maximum size is 10 MB.")
-    if len(photo_bytes) == 0:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if not upload_files:
+        raise HTTPException(status_code=400, detail="At least one photo is required.")
 
-    # Validate header magic bytes for JPEG / PNG
-    is_jpeg = photo_bytes.startswith(b"\xff\xd8")
-    is_png = photo_bytes.startswith(b"\x89PNG\r\n\x1a\n")
-    if not (is_jpeg or is_png):
-        raise HTTPException(status_code=400, detail="Invalid image format. Only JPEG and PNG are allowed.")
+    if len(upload_files) > MAX_PHOTOS_COUNT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many photos: maximum {MAX_PHOTOS_COUNT} photos allowed per request (Vercel request limit)."
+        )
 
-    # 2. Store photo under unguessable key
-    storage_key = generate_storage_key(
-        org_id=org_id,
-        unit_id=unit_id,
-        filename=filename,
-        content_bytes=photo_bytes
-    )
-    save_file_bytes(storage_key, photo_bytes)
-    signed_image_url = create_signed_url(org_id=org_id, storage_key=storage_key)
+    photo_bytes_list: List[bytes] = []
+    storage_keys: List[str] = []
+    total_bytes = 0
 
-    # 3. Create Capture Record
+    for idx, p_file in enumerate(upload_files, start=1):
+        raw_filename = p_file.filename or f"box_{idx}.jpg"
+        if ".." in raw_filename or "/" in raw_filename or "\\" in raw_filename:
+            raise HTTPException(status_code=400, detail="Invalid filename: path traversal tricks forbidden.")
+        filename = os.path.basename(raw_filename)
+
+        p_bytes = await p_file.read()
+        if len(p_bytes) == 0:
+            raise HTTPException(status_code=400, detail=f"Uploaded photo '{filename}' is empty.")
+        if len(p_bytes) > MAX_INDIVIDUAL_PHOTO_BYTES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Photo '{filename}' exceeds individual cap of 4 MB (Vercel request body limit is 4.5 MB)."
+            )
+
+        total_bytes += len(p_bytes)
+        if total_bytes > MAX_TOTAL_UPLOAD_BYTES:
+            raise HTTPException(
+                status_code=400,
+                detail="Total upload payload exceeds 4.5 MB (Vercel serverless request body limit)."
+            )
+
+        is_jpeg = p_bytes.startswith(b"\xff\xd8")
+        is_png = p_bytes.startswith(b"\x89PNG\r\n\x1a\n")
+        if not (is_jpeg or is_png):
+            raise HTTPException(status_code=400, detail=f"Invalid image format for '{filename}'. Only JPEG and PNG allowed.")
+
+        storage_key = generate_storage_key(
+            org_id=org_id,
+            unit_id=unit_id,
+            filename=f"{unit_id}_{idx}_{filename}",
+            content_bytes=p_bytes
+        )
+        save_file_bytes(storage_key, p_bytes)
+        storage_keys.append(storage_key)
+        photo_bytes_list.append(p_bytes)
+
+    signed_image_urls = [create_signed_url(org_id=org_id, storage_key=k) for k in storage_keys]
+    signed_image_url = signed_image_urls[0] if signed_image_urls else None
+
+    # 2. Create Capture Record
     capture_id = f"CAP-{uuid.uuid4().hex[:8].upper()}"
     repo.insert_capture(
         capture_id=capture_id,
         unit_id=unit_id,
         order_id=order_id,
-        photo_keys=[storage_key],
+        photo_keys=storage_keys,
         operator_id=operator_id
     )
 
-    # 4. Build Candidate Set from Organisation's Catalogue (Fallback to order_only)
+    # 3. Resolve Ordered Item Names from Tenant Catalogue (zero quantities sent!)
     cat_items = repo.list_catalogue_items()
+    cat_map = {item["sku"]: item.get("title", "") for item in cat_items}
     order_dict = parse_order_lines(order_lines)
+    ordered_skus = list(order_dict.keys())
+    ordered_item_names = [cat_map.get(sku, "").strip() or sku for sku in ordered_skus]
 
-    if cat_items and len(cat_items) > 0:
-        candidates_list = [item["sku"] for item in cat_items]
-        candidate_source = "catalogue"
-        # Ensure any order item is included in the candidate set
-        for expected_sku in order_dict.keys():
-            if expected_sku not in candidates_list:
-                candidates_list.append(expected_sku)
-    else:
-        # Fallback: org has no catalogue set up
-        candidates_list = list(order_dict.keys())
-        candidate_source = "order_only"
-
-    # 5. Model Execution with Fail-Open Safeguard
+    # 4. Model Execution with Fail-Open Safeguard
     record_id = f"PCK-{uuid.uuid4().hex[:8].upper()}"
     status = "completed"
     verdict: Optional[str] = None
@@ -341,31 +371,98 @@ async def verify_pack_box(
         if simulate_timeout == "true" or request.headers.get("X-Simulate-Timeout") == "true":
             raise ModelTimeoutError("Simulated model timeout exceeded budget of 15.0s")
 
-        # ONE call per unit carrying candidate SKUs only (Zero order quantities sent!)
         observation, latency_ms = adapter.analyze_box(
-            image_bytes=photo_bytes,
-            candidate_skus=candidates_list
+            image_bytes=photo_bytes_list,
+            ordered_item_names=ordered_item_names
         )
-        # 6. Deterministic Rules Layer
+        # Deterministic Rules Layer
         checks, verdict, operator_action = evaluate_pack_box(
             order_lines_str=order_lines,
-            observation=observation,
-            candidate_skus=candidates_list
+            observation=observation
         )
 
     except (ModelTimeoutError, ModelProviderError, ModelParsingError, Exception) as err:
-        # FAIL OPEN: Model error or timeout saves capture, produces PENDING record, does not block operator
         status = "pending"
         verdict = None
         checks = {}
         latency_ms = latency_ms or 0
 
-    # 7. Save Record to Database (with forced RLS)
-    observed_str = None
-    if observation and status == "completed":
-        observed_tokens = [f"{item.sku}:{item.count}" for item in observation.observed_items if item.count > 0]
-        observed_str = ";".join(observed_tokens) if observed_tokens else "NONE"
+    # 5. Partition Observations into "Matches the order" and "Not in the order"
+    matches_order = []
+    not_in_order = []
+    extra_objects = []
 
+    matched_by_idx: Dict[int, List[ObservedItem]] = {i: [] for i in range(len(ordered_skus))}
+    if observation:
+        for it in observation.observed_items:
+            if it.matches_order_index is not None and 0 <= it.matches_order_index < len(ordered_skus):
+                it.sku = ordered_skus[it.matches_order_index]
+                matched_by_idx[it.matches_order_index].append(it)
+            elif it.count > 0:
+                not_in_order.append({
+                    "label": it.label or "Extra Item",
+                    "attributes": it.visible_attributes or "None",
+                    "count": it.count,
+                    "count_conf": it.count_confidence,
+                    "ident_conf": it.identity_confidence,
+                    "occluded": it.partially_occluded,
+                    "bbox": it.bbox,
+                })
+                extra_objects.append({
+                    "label": it.label or "Extra Item",
+                    "attributes": it.visible_attributes or "",
+                    "count": it.count,
+                    "bbox": it.bbox,
+                    "confidence": {
+                        "count_confidence": it.count_confidence,
+                        "identity_confidence": it.identity_confidence
+                    }
+                })
+        for unrec in observation.unrecognised_items:
+            not_in_order.append({
+                "label": unrec.description,
+                "attributes": "Unrecognised",
+                "count": 1,
+                "count_conf": 1.0,
+                "ident_conf": 1.0,
+                "occluded": False,
+                "bbox": unrec.bbox,
+            })
+            extra_objects.append({
+                "label": unrec.description,
+                "attributes": "",
+                "count": 1,
+                "bbox": unrec.bbox,
+                "confidence": {"count_confidence": 1.0, "identity_confidence": 1.0}
+            })
+
+    observed_tokens = []
+    for idx, sku in enumerate(ordered_skus):
+        exp_qty = order_dict[sku]
+        matched = matched_by_idx[idx]
+        obs_count = sum(m.count for m in matched)
+        min_c_conf = min((m.count_confidence for m in matched), default=None)
+        min_i_conf = min((m.identity_confidence for m in matched), default=None)
+        is_occ = any(m.partially_occluded for m in matched)
+        title = cat_map.get(sku, "")
+
+        if obs_count > 0:
+            observed_tokens.append(f"{sku}:{obs_count}")
+
+        matches_order.append({
+            "sku": sku,
+            "title": title or sku,
+            "expected_qty": exp_qty,
+            "observed_count": obs_count,
+            "count_conf": min_c_conf,
+            "ident_conf": min_i_conf,
+            "occluded": is_occ,
+            "mismatch": obs_count != exp_qty
+        })
+
+    observed_str = ";".join(observed_tokens) if observed_tokens else "NONE"
+
+    # 6. Save Record to Database (with forced RLS)
     hash_input = f"{org_id}:{unit_id}:{order_lines}:{observed_str}:{status}:{verdict}"
     content_hash = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()
 
@@ -374,7 +471,7 @@ async def verify_pack_box(
         "_audit": {
             "prompt_version": PROMPT_VERSION,
             "threshold_config_version": DEFAULT_CONFIG.version,
-            "candidate_source": candidate_source,
+            "extra_objects": extra_objects,
             "observations": [item.model_dump() for item in observation.observed_items] if observation else [],
             "image_quality": observation.image_quality.model_dump() if observation else {"usable": False, "issues": []},
             "occlusion_suspected": observation.occlusion_suspected if observation else False,
@@ -395,50 +492,18 @@ async def verify_pack_box(
         content_hash=content_hash
     )
 
-    # 8. Build Evidence Comparison Table and Bounding Boxes
-    comparison_table = []
-    observed_map = {}
-    if observation:
-        for item in observation.observed_items:
-            observed_map[item.sku] = item
-
-    for sku, exp_qty in order_dict.items():
-        obs_item = observed_map.get(sku)
-        obs_count = obs_item.count if obs_item else 0
-        comparison_table.append({
-            "sku": sku,
-            "expected_qty": exp_qty,
-            "observed_count": obs_count,
-            "count_conf": obs_item.count_confidence if obs_item else None,
-            "ident_conf": obs_item.identity_confidence if obs_item else None,
-            "occluded": obs_item.partially_occluded if obs_item else False,
-            "mismatch": obs_count != exp_qty
-        })
-
-    # Check for surplus or decoy items seen
-    if observation:
-        for item in observation.observed_items:
-            if item.sku not in order_dict and item.count > 0:
-                comparison_table.append({
-                    "sku": f"{item.sku} (DECOY/EXTRA)",
-                    "expected_qty": 0,
-                    "observed_count": item.count,
-                    "count_conf": item.count_confidence,
-                    "ident_conf": item.identity_confidence,
-                    "occluded": item.partially_occluded,
-                    "mismatch": True
-                })
-
+    # 7. Bounding Boxes for Visual Overlay
     bboxes = []
     if observation:
         for item in observation.observed_items:
             if item.bbox and len(item.bbox) == 4 and any(v > 0 for v in item.bbox):
+                lbl = item.label or item.sku or "item"
                 bboxes.append({
                     "ymin": item.bbox[0],
                     "xmin": item.bbox[1],
                     "ymax": item.bbox[2],
                     "xmax": item.bbox[3],
-                    "label": f"{item.sku} ({item.count})"
+                    "label": f"{lbl} ({item.count})"
                 })
 
     return templates.TemplateResponse(
@@ -451,12 +516,14 @@ async def verify_pack_box(
             "status": status,
             "verdict": verdict,
             "checks": checks,
-            "candidate_source": candidate_source,
             "model_name": model_name,
             "model_latency_ms": latency_ms,
             "content_hash": content_hash,
-            "comparison_table": comparison_table,
+            "matches_order": matches_order,
+            "not_in_order": not_in_order,
+            "comparison_table": matches_order,  # backward compatibility
             "signed_image_url": signed_image_url,
+            "signed_image_urls": signed_image_urls,
             "bboxes": bboxes,
         }
     )
@@ -526,49 +593,85 @@ async def get_record_detail(request: Request, record_id: str):
     audit_meta = checks_dict.get("_audit", {
         "prompt_version": PROMPT_VERSION,
         "threshold_config_version": DEFAULT_CONFIG.version,
-        "candidate_source": "catalogue",
         "observations": [],
+        "extra_objects": [],
         "image_quality": {"usable": True, "issues": []}
     })
 
-    # Build comparison table and bboxes
+    cat_items = repo.list_catalogue_items()
+    cat_map = {item["sku"]: item.get("title", "") for item in cat_items}
     order_dict = parse_order_lines(record["order_lines"])
+    ordered_skus = list(order_dict.keys())
     observations_list = audit_meta.get("observations", [])
-    observed_map = {item.get("sku"): item for item in observations_list if isinstance(item, dict)}
 
-    comparison_table = []
-    for sku, exp_qty in order_dict.items():
-        obs_item = observed_map.get(sku)
-        obs_count = obs_item.get("count", 0) if obs_item else 0
-        comparison_table.append({
-            "sku": sku,
-            "expected_qty": exp_qty,
-            "observed_count": obs_count,
-            "count_conf": obs_item.get("count_confidence") if obs_item else None,
-            "ident_conf": obs_item.get("identity_confidence") if obs_item else None,
-            "occluded": obs_item.get("partially_occluded", False) if obs_item else False,
-            "mismatch": obs_count != exp_qty
-        })
+    # Build matches_order and not_in_order tables
+    matches_order = []
+    not_in_order = []
 
+    extra_objects = audit_meta.get("extra_objects", [])
+    if extra_objects:
+        for obj in extra_objects:
+            conf = obj.get("confidence", {})
+            not_in_order.append({
+                "label": obj.get("label", "Extra Object"),
+                "attributes": obj.get("attributes", ""),
+                "count": obj.get("count", 1),
+                "count_conf": conf.get("count_confidence") if isinstance(conf, dict) else conf,
+                "ident_conf": conf.get("identity_confidence") if isinstance(conf, dict) else conf,
+                "occluded": False,
+                "bbox": obj.get("bbox", [0.0, 0.0, 0.0, 0.0])
+            })
+    else:
+        for item in observations_list:
+            if isinstance(item, dict):
+                idx = item.get("matches_order_index")
+                sku = item.get("sku")
+                if (idx is None and (not sku or sku not in order_dict)) and item.get("count", 0) > 0:
+                    not_in_order.append({
+                        "label": item.get("label") or sku or "Extra Object",
+                        "attributes": item.get("visible_attributes", ""),
+                        "count": item.get("count", 1),
+                        "count_conf": item.get("count_confidence"),
+                        "ident_conf": item.get("identity_confidence"),
+                        "occluded": item.get("partially_occluded", False),
+                        "bbox": item.get("bbox", [0.0, 0.0, 0.0, 0.0])
+                    })
+
+    matched_by_idx: Dict[int, List[Dict[str, Any]]] = {i: [] for i in range(len(ordered_skus))}
     for item in observations_list:
         if isinstance(item, dict):
-            sku = item.get("sku")
-            count = item.get("count", 0)
-            if sku and sku not in order_dict and count > 0:
-                comparison_table.append({
-                    "sku": f"{sku} (DECOY/EXTRA)",
-                    "expected_qty": 0,
-                    "observed_count": count,
-                    "count_conf": item.get("count_confidence"),
-                    "ident_conf": item.get("identity_confidence"),
-                    "occluded": item.get("partially_occluded", False),
-                    "mismatch": True
-                })
+            idx = item.get("matches_order_index")
+            if idx is not None and 0 <= idx < len(ordered_skus):
+                matched_by_idx[idx].append(item)
+            elif item.get("sku") in order_dict:
+                matched_idx = ordered_skus.index(item["sku"])
+                matched_by_idx[matched_idx].append(item)
+
+    for idx, sku in enumerate(ordered_skus):
+        exp_qty = order_dict[sku]
+        matched = matched_by_idx[idx]
+        obs_count = sum(m.get("count", 0) for m in matched)
+        confs_c = [m.get("count_confidence") for m in matched if m.get("count_confidence") is not None]
+        confs_i = [m.get("identity_confidence") for m in matched if m.get("identity_confidence") is not None]
+        min_c_conf = min(confs_c) if confs_c else None
+        min_i_conf = min(confs_i) if confs_i else None
+        is_occ = any(m.get("partially_occluded", False) for m in matched)
+        title = cat_map.get(sku, "")
+        matches_order.append({
+            "sku": sku,
+            "title": title or sku,
+            "expected_qty": exp_qty,
+            "observed_count": obs_count,
+            "count_conf": min_c_conf,
+            "ident_conf": min_i_conf,
+            "occluded": is_occ,
+            "mismatch": obs_count != exp_qty
+        })
 
     bboxes = []
     for item in observations_list:
         if isinstance(item, dict):
-            sku = item.get("sku")
+            lbl = item.get("label") or item.get("sku") or "item"
             count = item.get("count", 0)
             bbox = item.get("bbox")
             if bbox and len(bbox) == 4 and any(v > 0 for v in bbox):
@@ -577,7 +680,7 @@ async def get_record_detail(request: Request, record_id: str):
                     "xmin": bbox[1],
                     "ymax": bbox[2],
                     "xmax": bbox[3],
-                    "label": f"{sku} ({count})"
+                    "label": f"{lbl} ({count})"
                 })
 
     org_name = "Alpha Demo Merchant" if org_id == "org_demo_alpha" else "Bravo Demo 3PL"
@@ -591,7 +694,9 @@ async def get_record_detail(request: Request, record_id: str):
             "capture": capture,
             "overrides": overrides,
             "signed_image_url": signed_image_url,
-            "comparison_table": comparison_table,
+            "matches_order": matches_order,
+            "not_in_order": not_in_order,
+            "comparison_table": matches_order,  # backward compatibility
             "bboxes": bboxes,
             "audit_metadata": audit_meta,
         }

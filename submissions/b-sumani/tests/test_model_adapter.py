@@ -88,15 +88,15 @@ def test_schema_tightening_validates_constraints():
         )
 
 
-def test_non_candidate_sku_demoted_to_unrecognised():
-    """Confirms any SKU outside candidate set is stripped from observed_items and moved to unrecognised_items."""
-    candidate_skus = ["SKU-PUZZLE-500", "SKU-BOTTLE-750"]  # Decoys + order items
-
+def test_out_of_range_matches_order_index_becomes_null():
+    """Confirms matches_order_index outside [0, num_ordered_items) is coerced to None."""
     raw_json = """
     {
         "observed_items": [
             {
-                "sku": "SKU-PUZZLE-500",
+                "label": "Puzzle 500 Pieces",
+                "visible_attributes": "Blue box",
+                "matches_order_index": 0,
                 "count": 1,
                 "count_confidence": 0.95,
                 "identity_confidence": 0.99,
@@ -104,7 +104,19 @@ def test_non_candidate_sku_demoted_to_unrecognised():
                 "bbox": [10.0, 10.0, 100.0, 100.0]
             },
             {
-                "sku": "SKU-UNKNOWN-ALIEN",
+                "label": "Unknown alien item",
+                "visible_attributes": "Green bottle",
+                "matches_order_index": 99,
+                "count": 1,
+                "count_confidence": 0.80,
+                "identity_confidence": 0.85,
+                "partially_occluded": false,
+                "bbox": [150.0, 150.0, 250.0, 250.0]
+            },
+            {
+                "label": "Another item",
+                "visible_attributes": "Box",
+                "matches_order_index": -1,
                 "count": 1,
                 "count_confidence": 0.80,
                 "identity_confidence": 0.85,
@@ -118,16 +130,15 @@ def test_non_candidate_sku_demoted_to_unrecognised():
         "notes": "Test"
     }
     """
-    obs = parse_and_validate_observation(raw_json, candidate_skus=candidate_skus)
+    obs = parse_and_validate_observation(raw_json, num_ordered_items=1)
 
-    # SKU-PUZZLE-500 remains in observed_items
-    assert len(obs.observed_items) == 1
-    assert obs.observed_items[0].sku == "SKU-PUZZLE-500"
-
-    # SKU-UNKNOWN-ALIEN must be demoted to unrecognised_items
-    assert len(obs.unrecognised_items) == 1
-    assert "SKU-UNKNOWN-ALIEN" in obs.unrecognised_items[0].description
-    assert obs.unrecognised_items[0].bbox == [150.0, 150.0, 250.0, 250.0]
+    assert len(obs.observed_items) == 3
+    # index 0 is valid for num_ordered_items=1
+    assert obs.observed_items[0].matches_order_index == 0
+    # index 99 is out of range -> coerced to None
+    assert obs.observed_items[1].matches_order_index is None
+    # index -1 is out of range -> coerced to None
+    assert obs.observed_items[2].matches_order_index is None
 
 
 def test_local_json_repair_recovers_without_second_call():
@@ -137,7 +148,9 @@ def test_local_json_repair_recovers_without_second_call():
     {
         "observed_items": [
             {
-                "sku": "SKU-BOTTLE-750",
+                "label": "Stainless Steel Bottle",
+                "visible_attributes": "Silver finish",
+                "matches_order_index": 0,
                 "count": 1,
                 "count_confidence": 0.9,
                 "identity_confidence": 0.95,
@@ -158,17 +171,18 @@ def test_local_json_repair_recovers_without_second_call():
     # Direct json.loads would fail due to ```json and trailing commas
     obs = parse_and_validate_observation(
         malformed_json_with_fences_and_commas,
-        candidate_skus=["SKU-BOTTLE-750"]
+        num_ordered_items=1
     )
     assert len(obs.observed_items) == 1
-    assert obs.observed_items[0].sku == "SKU-BOTTLE-750"
+    assert obs.observed_items[0].label == "Stainless Steel Bottle"
+    assert obs.observed_items[0].matches_order_index == 0
     assert obs.notes == "Cleaned locally"
 
 
 def test_hopelessly_corrupt_json_raises_model_parsing_error():
     """Confirms irrecoverable output cleanly raises ModelParsingError for fail-open handling."""
     with pytest.raises(ModelParsingError):
-        parse_and_validate_observation("This is not JSON at all: 404 Not Found", ["SKU-A"])
+        parse_and_validate_observation("This is not JSON at all: 404 Not Found", 1)
 
 
 def test_exactly_one_call_per_unit_assertion():
@@ -177,30 +191,30 @@ def test_exactly_one_call_per_unit_assertion():
     assert mock_adapter.call_count == 0
 
     image_bytes = create_sample_jpeg_bytes()
-    candidate_skus = ["SKU-MUG-11", "SKU-DECOY-1"]
+    ordered_item_names = ["Ceramic Mug 11oz"]
 
-    obs, latency_ms = mock_adapter.analyze_box(image_bytes, candidate_skus)
+    obs, latency_ms = mock_adapter.analyze_box(image_bytes, ordered_item_names)
 
     # Exactly one call must have been made
     assert mock_adapter.call_count == 1
     assert latency_ms > 0
     assert obs is not None
-    # Verify candidate SKUs were passed without quantities
-    assert mock_adapter.last_candidate_skus == ["SKU-MUG-11", "SKU-DECOY-1"]
+    # Verify ordered item names were passed without quantities
+    assert mock_adapter.last_ordered_item_names == ["Ceramic Mug 11oz"]
 
 
 def test_model_timeout_produces_pending_signal():
     """Proves that a timeout produces ModelTimeoutError (which pipeline catches for PENDING)."""
     mock_adapter = MockVisionAdapter(simulate_timeout=True)
     with pytest.raises(ModelTimeoutError):
-        mock_adapter.analyze_box(b"fake_image", ["SKU-PUZZLE-500"])
+        mock_adapter.analyze_box(b"fake_image", ["Jigsaw Puzzle 500 Pieces"])
 
 
 def test_provider_exception_produces_pending_signal():
     """Proves that a provider 5xx/network error produces ModelProviderError for fail-open handling."""
     mock_adapter = MockVisionAdapter(simulate_error=True)
     with pytest.raises(ModelProviderError):
-        mock_adapter.analyze_box(b"fake_image", ["SKU-PUZZLE-500"])
+        mock_adapter.analyze_box(b"fake_image", ["Jigsaw Puzzle 500 Pieces"])
 
 
 def test_eval_harness_refuses_mock_adapter():
@@ -233,11 +247,11 @@ def test_live_gemini_smoke_call():
     )
 
     image_bytes = create_sample_jpeg_bytes()
-    candidate_skus = ["SKU-BOTTLE-750", "SKU-PUZZLE-500", "SKU-DECOY-TOWEL"]
+    ordered_item_names = ["Stainless Steel Water Bottle 750ml", "Jigsaw Puzzle 500 Pieces"]
 
     obs, latency_ms = adapter.analyze_box(
         image_bytes=image_bytes,
-        candidate_skus=candidate_skus
+        ordered_item_names=ordered_item_names
     )
 
     assert isinstance(obs, ModelObservation)

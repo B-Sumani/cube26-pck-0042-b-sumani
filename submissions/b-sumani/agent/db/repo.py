@@ -865,9 +865,6 @@ class PackRepository:
         self.create_org(self.org_id, "Alpha Demo Merchant" if self.org_id == "org_demo_alpha" else "Bravo Demo 3PL")
         self.seed_catalogue_if_empty()
 
-        cat_items = self.list_catalogue_items()
-        candidate_skus = [it["sku"] for it in cat_items] if cat_items else []
-
         inserted = 0
         with open(inputs_path, mode="r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
@@ -921,10 +918,9 @@ class PackRepository:
                     checks, verdict, _ = evaluate_pack_box(
                         order_lines_str=order_lines,
                         observation=obs,
-                        candidate_skus=candidate_skus,
                         config=DEFAULT_CONFIG
                     )
-                    observed_tokens = [f"{item.sku}:{item.count}" for item in obs.observed_items if item.count > 0]
+                    observed_tokens = [f"{item.sku}:{item.count}" for item in obs.observed_items if item.count > 0 and item.sku]
                     observed_str = ";".join(observed_tokens) if observed_tokens else "NONE"
                     obs_dump = [item.model_dump() for item in obs.observed_items]
                     img_quality = obs.image_quality.model_dump()
@@ -937,12 +933,12 @@ class PackRepository:
                     img_quality = {"usable": True, "issues": []}
                     occlusion = False
 
+                from agent.models.base import PROMPT_VERSION
                 checks_payload = {
                     **checks,
                     "_audit": {
-                        "prompt_version": "pack-prompt-v1.0",
+                        "prompt_version": PROMPT_VERSION,
                         "threshold_config_version": DEFAULT_CONFIG.version,
-                        "candidate_source": "catalogue",
                         "observations": obs_dump,
                         "image_quality": img_quality,
                         "occlusion_suspected": occlusion,

@@ -44,9 +44,9 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(line_buffering=True)
 
-from agent.models.base import validate_eval_adapter
+from agent.models.base import validate_eval_adapter, PROMPT_VERSION
 from agent.models.gemini import GeminiVisionAdapter, load_catalogue
-from agent.rules.evaluator import evaluate_pack_box
+from agent.rules.evaluator import evaluate_pack_box, parse_order_lines
 from agent.rules.config import DEFAULT_CONFIG
 from agent.eval.metrics import (
     compute_eval_metrics,
@@ -156,10 +156,11 @@ def run_evaluation(
     if not is_dev_run:
         check_and_update_eval_history(eval_dir, history_file)
 
+    catalogue = {}
     catalogue_file = catalogue_path or (BASE_DIR / "data" / "catalogue.csv")
-    catalogue = load_catalogue(catalogue_file)
-    candidate_skus = list(catalogue.keys())
-    catalogue_version = f"{len(candidate_skus)} candidate SKUs ({catalogue_file.name})"
+    if catalogue_file and Path(catalogue_file).exists():
+        catalogue = load_catalogue(Path(catalogue_file))
+    catalogue_version = f"{len(catalogue)} titles ({Path(catalogue_file).name})" if catalogue else "SKU fallback (no catalogue)"
     git_commit = get_git_commit_hash(BASE_DIR)
 
     predictions: List[Dict[str, Any]] = []
@@ -236,16 +237,25 @@ def run_evaluation(
             error_msg = None
 
             try:
+                order_dict = parse_order_lines(order_lines)
+                ordered_skus = list(order_dict.keys())
+                ordered_item_names = [
+                    catalogue.get(sku, {}).get("title", "").strip() or sku
+                    for sku in ordered_skus
+                ]
+
                 # ONE model call: zero order quantities sent
-                obs, latency_ms = adapter.analyze_box(image_bytes, candidate_skus)
+                obs, latency_ms = adapter.analyze_box(image_bytes, ordered_item_names)
                 # Deterministic rules evaluation
                 checks, predicted_verdict, _ = evaluate_pack_box(
                     order_lines_str=order_lines,
                     observation=obs,
-                    candidate_skus=candidate_skus,
                     config=DEFAULT_CONFIG
                 )
             except Exception as e:
+                status = "pending"
+                predicted_verdict = None
+                error_msg = str(e)
                 status = "pending"
                 predicted_verdict = None
                 error_msg = str(e)
@@ -315,7 +325,7 @@ def run_evaluation(
         eval_data=metrics,
         dataset_name=dataset_label,
         model_name=model_name,
-        prompt_version="pack-prompt-v1.0",
+        prompt_version=PROMPT_VERSION,
         threshold_config_version=DEFAULT_CONFIG.version,
         catalogue_version=catalogue_version,
         git_commit=git_commit,
@@ -332,7 +342,7 @@ def run_evaluation(
 
     run_manifest = {
         "git_commit": git_commit,
-        "prompt_version": "pack-prompt-v1.0",
+        "prompt_version": PROMPT_VERSION,
         "threshold_config_version": DEFAULT_CONFIG.version,
         "catalogue_version": catalogue_version,
         "model_name": model_name,

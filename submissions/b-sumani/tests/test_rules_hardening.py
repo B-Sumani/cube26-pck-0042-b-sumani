@@ -194,14 +194,15 @@ def test_surplus_of_ordered_sku_fails_only_quantities_correct_and_not_nothing_ex
 
 
 def test_one_home_per_check_decoy_item_present():
-    """Defect: Authorized decoy SKU observed in box.
-    Home: nothing_extra FAIL (DECOY_ITEM_PRESENT).
+    """Defect: Extra item (previously decoy SKU) observed in box.
+    Home: nothing_extra FAIL (UNRECOGNISED_ITEMS_PRESENT, merged from DECOY_ITEM_PRESENT).
     all_items_present PASS.
     quantities_correct PASS.
     """
     obs = ModelObservation(
         observed_items=[
             ObservedItem(
+                matches_order_index=0,
                 sku="SKU-PUZZLE-500",
                 count=1,
                 count_confidence=0.95,
@@ -210,7 +211,9 @@ def test_one_home_per_check_decoy_item_present():
                 bbox=[10, 10, 100, 100]
             ),
             ObservedItem(
-                sku="SKU-CABLE-USBC",  # Decoy!
+                matches_order_index=None,
+                sku="SKU-CABLE-USBC",  # Extra item / decoy
+                label="USB-C Cable",
                 count=1,
                 count_confidence=0.92,
                 identity_confidence=0.95,
@@ -223,15 +226,14 @@ def test_one_home_per_check_decoy_item_present():
         occlusion_suspected=False
     )
     order = "SKU-PUZZLE-500:1"
-    candidates = ["SKU-PUZZLE-500", "SKU-CABLE-USBC"]
-    checks, verdict, action = evaluate_pack_box(order, obs, candidate_skus=candidates)
+    checks, verdict, action = evaluate_pack_box(order, obs)
 
     assert checks["all_items_present"]["result"] == "PASS"
     assert checks["quantities_correct"]["result"] == "PASS"
     assert checks["nothing_extra"]["result"] == "FAIL"
-    assert checks["nothing_extra"]["reason_code"] == "DECOY_ITEM_PRESENT"
+    assert checks["nothing_extra"]["reason_code"] == "UNRECOGNISED_ITEMS_PRESENT"
     assert checks["nothing_extra"]["cause"] == "recognition"
-    assert "SKU-CABLE-USBC" in checks["nothing_extra"]["reason"]
+    assert "USB-C Cable" in checks["nothing_extra"]["reason"] or "SKU-CABLE-USBC" in checks["nothing_extra"]["reason"]
 
     assert verdict == "STOP_AND_FIX"
     assert action == "STOP"

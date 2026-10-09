@@ -24,6 +24,7 @@ from agent.models.base import (
     ModelTimeoutError,
     ModelProviderError,
     ModelParsingError,
+    PROMPT_VERSION,
 )
 from agent.models.parser import parse_and_validate_observation
 
@@ -37,30 +38,22 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model
 GEMINI_RESPONSE_SCHEMA = {
     "type": "OBJECT",
     "properties": {
+        "notes": {"type": "STRING"},
         "observed_items": {
             "type": "ARRAY",
             "items": {
                 "type": "OBJECT",
                 "properties": {
-                    "sku": {"type": "STRING"},
+                    "label": {"type": "STRING"},
+                    "visible_attributes": {"type": "STRING"},
                     "count": {"type": "INTEGER"},
                     "count_confidence": {"type": "NUMBER"},
                     "identity_confidence": {"type": "NUMBER"},
                     "partially_occluded": {"type": "BOOLEAN"},
-                    "bbox": {"type": "ARRAY", "items": {"type": "NUMBER"}}
+                    "bbox": {"type": "ARRAY", "items": {"type": "NUMBER"}},
+                    "matches_order_index": {"type": "INTEGER", "nullable": True}
                 },
-                "required": ["sku", "count", "count_confidence", "identity_confidence", "partially_occluded", "bbox"]
-            }
-        },
-        "unrecognised_items": {
-            "type": "ARRAY",
-            "items": {
-                "type": "OBJECT",
-                "properties": {
-                    "description": {"type": "STRING"},
-                    "bbox": {"type": "ARRAY", "items": {"type": "NUMBER"}}
-                },
-                "required": ["description", "bbox"]
+                "required": ["label", "visible_attributes", "count", "count_confidence", "identity_confidence", "partially_occluded", "bbox"]
             }
         },
         "image_quality": {
@@ -71,10 +64,9 @@ GEMINI_RESPONSE_SCHEMA = {
             },
             "required": ["usable", "issues"]
         },
-        "occlusion_suspected": {"type": "BOOLEAN"},
-        "notes": {"type": "STRING"}
+        "occlusion_suspected": {"type": "BOOLEAN"}
     },
-    "required": ["observed_items", "unrecognised_items", "image_quality", "occlusion_suspected"]
+    "required": ["notes", "observed_items", "image_quality", "occlusion_suspected"]
 }
 
 
@@ -130,43 +122,46 @@ class GeminiVisionAdapter(VisionModelAdapter):
         self.max_transport_retries = max_transport_retries
         self.catalogue = catalogue if catalogue is not None else load_catalogue()
 
-    def _build_prompt(self, candidate_skus: List[str]) -> str:
-        """Constructs the prompt containing candidate SKUs and seller catalogue descriptions.
+    def _build_prompt(self, ordered_item_names: List[str]) -> str:
+        """Constructs prompt containing ordered item names (never quantities).
         
-        CRITICAL: Never send order quantities or indicate which SKUs are real order items.
+        CRITICAL: Never send order quantities or assume an ordered item is present.
         """
-        sku_lines = []
-        for sku in candidate_skus:
-            cat_entry = self.catalogue.get(sku)
-            if cat_entry and cat_entry.get("title"):
-                title = cat_entry.get("title", "")
-                desc = cat_entry.get("description", "")
-                if desc:
-                    sku_lines.append(f"- {sku}: {title} - {desc}")
-                else:
-                    sku_lines.append(f"- {sku}: {title}")
-            else:
-                sku_lines.append(f"- {sku}")
+        items_formatted = []
+        for idx, name in enumerate(ordered_item_names):
+            items_formatted.append(f"[{idx}] {name}")
+        ordered_items_str = "\n".join(items_formatted) if items_formatted else "(None specified)"
 
-        sku_list = "\n".join(sku_lines)
         return (
-            "You are inspecting a photograph of an open shipping box before it is sealed.\n"
-            "Below is the seller's catalogue of candidate products that may be packed in this box:\n"
-            f"{sku_list}\n\n"
+            "You are an expert warehouse QA inspector verifying an open shipping box before it is sealed.\n"
+            "Below is the list of ordered product names for this shipment:\n"
+            f"{ordered_items_str}\n\n"
             "Instructions:\n"
-            "1. Carefully identify which candidate SKUs from the catalogue above are visible in the open box.\n"
-            "2. For each SKU observed, count how many units are visible, report count_confidence (0.0 to 1.0) "
-            "and identity_confidence (0.0 to 1.0), whether it is partially occluded, and its bounding box [ymin, xmin, ymax, xmax].\n"
-            "3. If you observe any item in the box that does NOT match any candidate SKU, add it to unrecognised_items "
-            "with a description and bounding box.\n"
-            "4. Inspect the image quality: mark usable as true/false, and list any issues (blur, glare, box_not_in_frame, dark).\n"
-            "5. State whether occlusion is suspected (e.g. items stacked, hidden under packing material, or bottom not visible)."
+            "1. In the 'notes' field, list every distinct visible item you see in the box in free text first.\n"
+            "2. Inspect all visible objects in the box. NEVER assume an ordered item is present simply because it is in the order list.\n"
+            "3. Multiple photographs (if provided) are different angles/views of the SAME box. Count each physical object once across all views.\n"
+            "4. For each distinct visible item observed in the box, output an entry in 'observed_items' with:\n"
+            "   - 'label': Clear descriptive name of the item.\n"
+            "   - 'visible_attributes': Distinctive visible features (color, branding, packaging, shape, markings).\n"
+            "   - 'count': Number of physical units visible in the box (integer >= 0).\n"
+            "   - 'count_confidence': Confidence in the visible count (0.0 to 1.0).\n"
+            "   - 'identity_confidence': Confidence in the item identity (0.0 to 1.0).\n"
+            "   - 'partially_occluded': true if the item is partially hidden, covered, or cut off.\n"
+            "   - 'bbox': [ymin, xmin, ymax, xmax] coordinates normalized to 0-1000.\n"
+            "   - 'matches_order_index': 0-based integer index of the matched ordered item above (e.g. 0 or 1), or null if the item does NOT match any item in the order list.\n"
+            "5. Evaluate image quality in 'image_quality': set 'usable' to true/false, and list any 'issues' (blur, glare, dark, box_not_in_frame).\n"
+            "6. Set 'occlusion_suspected' to true whenever ANY of these is visible:\n"
+            "   - packing paper, bubble wrap, filler, crumpled paper, or a cloth covering part of the box;\n"
+            "   - items stacked so that lower ones cannot be seen;\n"
+            "   - the bottom of the box not fully visible;\n"
+            "   - an ordered item that is not seen AND there is covered or hidden space where it could be.\n"
+            "7. If an ordered item is not visible but it could be hidden in covered space, do NOT conclude that it is absent. Leave it out of observed_items AND set occlusion_suspected to true. Only treat an item as absent when the whole box interior is clearly visible and empty of it."
         )
 
     def analyze_box(
         self,
-        image_bytes: bytes,
-        candidate_skus: List[str],
+        image_bytes: bytes | List[bytes],
+        ordered_item_names: List[str],
         timeout_seconds: Optional[float] = None
     ) -> Tuple[ModelObservation, int]:
         """Executes single vision model call with transport retries and local JSON repair."""
@@ -175,24 +170,27 @@ class GeminiVisionAdapter(VisionModelAdapter):
 
         budget = timeout_seconds or self.total_timeout_budget
         start_time = time.monotonic()
-        image_b64 = base64.b64encode(image_bytes).decode("utf-8")
-        prompt_text = self._build_prompt(candidate_skus)
+
+        images_list: List[bytes] = [image_bytes] if isinstance(image_bytes, bytes) else list(image_bytes)
+        prompt_text = self._build_prompt(ordered_item_names)
 
         url = GEMINI_API_URL.format(model=self.model_name)
         url_with_key = f"{url}?key={self.api_key}"
 
+        parts: List[Dict[str, Any]] = [{"text": prompt_text}]
+        for img in images_list:
+            mime_type = "image/png" if img.startswith(b"\x89PNG\r\n\x1a\n") else "image/jpeg"
+            parts.append({
+                "inline_data": {
+                    "mime_type": mime_type,
+                    "data": base64.b64encode(img).decode("utf-8")
+                }
+            })
+
         payload = {
             "contents": [
                 {
-                    "parts": [
-                        {"text": prompt_text},
-                        {
-                            "inline_data": {
-                                "mime_type": "image/jpeg",
-                                "data": image_b64
-                            }
-                        }
-                    ]
+                    "parts": parts
                 }
             ],
             "generationConfig": {
@@ -236,7 +234,8 @@ class GeminiVisionAdapter(VisionModelAdapter):
                     total_latency_ms = int((time.monotonic() - start_time) * 1000)
 
                     # Local string repair and schema validation (ZERO second LLM calls!)
-                    observation = parse_and_validate_observation(raw_text, candidate_skus)
+                    num_items = len(ordered_item_names)
+                    observation = parse_and_validate_observation(raw_text, num_items)
                     return observation, total_latency_ms
 
                 elif resp.status_code in (429, 500, 502, 503, 504):

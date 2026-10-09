@@ -178,7 +178,7 @@
         <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] p-5 rounded-lg shadow-sm flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">Surplus / Decoys</span>
+              <span class="text-xs uppercase tracking-wider font-semibold text-[var(--umber)]">Extra Objects</span>
               {% set c3 = record.checks.nothing_extra if record.checks else None %}
               {% if c3 and c3.result == 'PASS' %}
                 <span class="px-2 py-0.5 text-xs font-bold bg-[#edf3ec] text-[var(--pass)] rounded">PASS</span>
@@ -208,40 +208,101 @@
       <!-- Left Column: Order Comparison & Audit Metadata -->
       <div class="space-y-6">
         
-        <!-- Comparison Table -->
-        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 shadow-sm">
-          <h3 class="font-serif text-lg sm:text-xl font-bold text-[var(--espresso)] mb-4">Order Lines vs Model Observations</h3>
+        <!-- Table 1: Matches the Order -->
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-serif text-lg sm:text-xl font-bold text-[var(--espresso)]">Matches the order</h3>
+            <span class="text-xs font-mono text-[var(--taupe)]">{{ matches_order|length if matches_order else 0 }} item(s)</span>
+          </div>
           
           <div class="overflow-x-auto -mx-1 sm:mx-0">
             <table class="w-full min-w-[460px] sm:min-w-full text-xs text-left">
               <thead class="border-b border-[var(--stone)] text-[var(--umber)] uppercase tracking-wider">
                 <tr>
-                  <th class="py-2.5 px-3">SKU</th>
+                  <th class="py-2.5 px-3">Item / SKU</th>
                   <th class="py-2.5 px-3">Expected Qty</th>
                   <th class="py-2.5 px-3">Observed In Box</th>
                   <th class="py-2.5 px-3">Model-Reported Confidence (Not Calibrated)</th>
+                  <th class="py-2.5 px-3">Status</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[var(--stone-light)] font-mono">
-                {% for item in comparison_table %}
-                <tr class="hover:bg-white/60">
-                  <td class="py-2.5 px-3 font-semibold text-[var(--charcoal)]">{{ item.sku }}</td>
+                {% for item in matches_order %}
+                <tr class="hover:bg-white/60 {% if item.mismatch %}bg-red-50/50{% endif %}">
+                  <td class="py-2.5 px-3 font-semibold text-[var(--charcoal)]">
+                    <div>{{ item.sku }}</div>
+                    <div class="font-sans text-[11px] text-[var(--taupe)] truncate max-w-[180px]">{{ item.title }}</div>
+                  </td>
                   <td class="py-2.5 px-3">{{ item.expected_qty }}</td>
                   <td class="py-2.5 px-3 {% if item.mismatch %}text-[var(--fail)] font-bold{% endif %}">
                     {{ item.observed_count }}
                     {% if item.occluded %}<span class="ml-1 text-[10px] text-[var(--uncertain)]">(occluded)</span>{% endif %}
                   </td>
                   <td class="py-2.5 px-3 text-[var(--taupe)]">
-                    {% if item.count_conf is not none %}
+                    {% if item.count_conf is not none and item.ident_conf is not none %}
                       {{ "%.2f"|format(item.count_conf) }} count · {{ "%.2f"|format(item.ident_conf) }} id
                     {% else %}
                       N/A
+                    {% endif %}
+                  </td>
+                  <td class="py-2.5 px-3">
+                    {% if item.mismatch %}
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#fcf0ee] text-[var(--fail)]">MISMATCH</span>
+                    {% else %}
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#edf3ec] text-[var(--pass)]">MATCH</span>
                     {% endif %}
                   </td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Table 2: Not in the Order -->
+        <div class="bg-[var(--cream-soft)] border border-[var(--stone-light)] rounded-xl p-4 sm:p-6 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-serif text-lg sm:text-xl font-bold text-[var(--espresso)]">Not in the order</h3>
+            <span class="text-xs font-mono text-[var(--taupe)]">{{ not_in_order|length if not_in_order else 0 }} object(s)</span>
+          </div>
+          
+          <div class="overflow-x-auto -mx-1 sm:mx-0">
+            {% if not_in_order and not_in_order|length > 0 %}
+            <table class="w-full min-w-[460px] sm:min-w-full text-xs text-left">
+              <thead class="border-b border-amber-300 text-amber-900 bg-amber-50 uppercase tracking-wider">
+                <tr>
+                  <th class="py-2.5 px-3">Label</th>
+                  <th class="py-2.5 px-3">Visible Attributes</th>
+                  <th class="py-2.5 px-3">Count</th>
+                  <th class="py-2.5 px-3">Confidence</th>
+                  <th class="py-2.5 px-3">BBox</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[var(--stone-light)] font-mono">
+                {% for item in not_in_order %}
+                <tr class="hover:bg-white/60 bg-red-50/40">
+                  <td class="py-2.5 px-3 font-semibold text-[var(--fail)]">{{ item.label }}</td>
+                  <td class="py-2.5 px-3 font-sans text-[11px] text-[var(--charcoal)]">{{ item.attributes }}</td>
+                  <td class="py-2.5 px-3 font-bold">{{ item.count }}</td>
+                  <td class="py-2.5 px-3 text-[var(--taupe)]">
+                    {% if item.count_conf is not none and item.ident_conf is not none %}
+                      {{ "%.2f"|format(item.count_conf) }} count · {{ "%.2f"|format(item.ident_conf) }} id
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  </td>
+                  <td class="py-2.5 px-3 text-[10px] text-[var(--taupe)]">
+                    {% if item.bbox %}[{{ item.bbox[0]|int }}, {{ item.bbox[1]|int }}, {{ item.bbox[2]|int }}, {{ item.bbox[3]|int }}]{% else %}N/A{% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <div class="p-3 text-center text-xs text-[var(--taupe)] bg-[#edf3ec]/40 font-sans rounded">
+              ✓ No extra or unauthorized objects recorded.
+            </div>
+            {% endif %}
           </div>
         </div>
 

@@ -34,13 +34,19 @@ class ModelParsingError(ModelError):
     pass
 
 
+PROMPT_VERSION = "pack-prompt-v2.1-occlusion"
+
+
 class ObservedItem(BaseModel):
-    sku: str
-    count: int = Field(ge=0, description="Count of visible units of this SKU")
+    label: str = Field(default="", description="Descriptive label of the item")
+    visible_attributes: str = Field(default="", description="Visible attributes (color, packaging, shape, etc.)")
+    count: int = Field(ge=0, description="Count of visible units of this item")
     count_confidence: float = Field(ge=0.0, le=1.0, description="Confidence in the count assessment [0, 1]")
-    identity_confidence: float = Field(ge=0.0, le=1.0, description="Confidence in the SKU identity [0, 1]")
-    partially_occluded: bool = Field(default=False, description="Whether this SKU is partially occluded")
+    identity_confidence: float = Field(ge=0.0, le=1.0, description="Confidence in the item identity [0, 1]")
+    partially_occluded: bool = Field(default=False, description="Whether this item is partially occluded")
     bbox: List[float] = Field(default_factory=lambda: [0.0, 0.0, 0.0, 0.0], description="[ymin, xmin, ymax, xmax]")
+    matches_order_index: Optional[int] = Field(default=None, description="0-based index in the ordered list, or null")
+    sku: Optional[str] = Field(default=None, description="Matched order SKU if resolved")
 
     @field_validator("bbox")
     @classmethod
@@ -74,26 +80,6 @@ class ModelObservation(BaseModel):
     occlusion_suspected: bool = Field(default=False)
     notes: Optional[str] = Field(default="")
 
-    def demote_unexpected_skus(self, candidate_skus: List[str]) -> None:
-        """Demotes any observed item whose SKU is outside candidate_skus to unrecognised_items.
-        
-        Enforces Rule 4 requirement: The model must discriminate among candidate SKUs.
-        Any hallucinated or non-candidate SKU is treated as unrecognised.
-        """
-        valid_candidates = set(candidate_skus)
-        remaining_observed: List[ObservedItem] = []
-        for item in self.observed_items:
-            if item.sku in valid_candidates:
-                remaining_observed.append(item)
-            else:
-                self.unrecognised_items.append(
-                    UnrecognisedItem(
-                        description=f"Non-candidate item reported as '{item.sku}' (count: {item.count})",
-                        bbox=item.bbox
-                    )
-                )
-        self.observed_items = remaining_observed
-
 
 class VisionModelAdapter(ABC):
     """Abstract base class for vision model providers."""
@@ -102,15 +88,15 @@ class VisionModelAdapter(ABC):
     @abstractmethod
     def analyze_box(
         self,
-        image_bytes: bytes,
-        candidate_skus: List[str],
+        image_bytes: bytes | List[bytes],
+        ordered_item_names: List[str],
         timeout_seconds: Optional[float] = None
     ) -> tuple[ModelObservation, int]:
-        """Analyzes an open box image against candidate SKUs.
+        """Analyzes open box image(s) against ordered item names.
         
         CRITICAL RULES:
-        1. Only candidate SKUs are sent (order SKUs + decoys). NO order quantities are sent!
-        2. Exactly ONE model call is made per unit.
+        1. Only ordered item NAMES are sent (zero quantities!).
+        2. Exactly ONE model call is made per unit across all images.
         
         Returns:
             tuple[ModelObservation, int]: (parsed observation, model latency in milliseconds)

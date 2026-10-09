@@ -452,13 +452,15 @@ def test_empty_catalogue_triggers_fallback_and_records_candidate_source_order_on
     assert resp.status_code == 200
     html = resp.text
 
-    # 1. Fallback warning banner must appear in rendered output
-    assert "⚠️ No catalogue set up. Wrong-item checks are weaker because unexpected products cannot be recognized." in html
+    # 1. Fallback warning banner is removed under open detection
+    assert "⚠️ No catalogue set up" not in html
+    assert "SEAL" in html
 
-    # 2. Record must have candidate_source = 'order_only'
+    # 2. Record must have prompt_version recorded in audit
+    from agent.models.base import PROMPT_VERSION
     records = repo.list_records(unit_id="UNIT-EMPTY-100")
     assert len(records) == 1
     rec = records[0]
-    assert rec["checks"]["_audit"]["candidate_source"] == "order_only"
+    assert rec["checks"]["_audit"]["prompt_version"] == PROMPT_VERSION
 
 

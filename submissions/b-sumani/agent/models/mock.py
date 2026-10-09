@@ -34,6 +34,7 @@ class MockVisionAdapter(VisionModelAdapter):
         self.simulate_error = simulate_error
         self.simulated_latency_ms = simulated_latency_ms
         self.call_count: int = 0
+        self.last_ordered_item_names: List[str] = []
         self.last_candidate_skus: List[str] = []
 
     def set_observation(self, observation: ModelObservation) -> None:
@@ -42,13 +43,14 @@ class MockVisionAdapter(VisionModelAdapter):
 
     def analyze_box(
         self,
-        image_bytes: bytes,
-        candidate_skus: List[str],
+        image_bytes: bytes | List[bytes],
+        ordered_item_names: List[str],
         timeout_seconds: Optional[float] = None
     ) -> Tuple[ModelObservation, int]:
         """Simulates analyzing an open box."""
         self.call_count += 1
-        self.last_candidate_skus = list(candidate_skus)
+        self.last_ordered_item_names = list(ordered_item_names)
+        self.last_candidate_skus = list(ordered_item_names)
 
         if self.simulate_timeout:
             raise ModelTimeoutError("Simulated model timeout (exceeded timeout budget)")
@@ -57,21 +59,21 @@ class MockVisionAdapter(VisionModelAdapter):
             raise ModelProviderError("Simulated 500 provider error")
 
         if self.default_observation is not None:
-            obs = self.default_observation.model_copy(deep=True)
-            obs.demote_unexpected_skus(candidate_skus)
-            return obs, self.simulated_latency_ms
+            return self.default_observation.model_copy(deep=True), self.simulated_latency_ms
 
-        # Fallback default observation: reports first candidate SKU as visible
+        # Fallback default observation: reports first ordered item as visible
         items = []
-        if candidate_skus:
+        if ordered_item_names:
             items.append(
                 ObservedItem(
-                    sku=candidate_skus[0],
+                    label=ordered_item_names[0],
+                    visible_attributes="Standard packaging",
                     count=1,
                     count_confidence=0.95,
                     identity_confidence=0.98,
                     partially_occluded=False,
-                    bbox=[100.0, 100.0, 400.0, 400.0]
+                    bbox=[100.0, 100.0, 400.0, 400.0],
+                    matches_order_index=0
                 )
             )
 

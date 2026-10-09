@@ -40,15 +40,20 @@ def local_repair_json_string(raw: str) -> str:
 
 def parse_and_validate_observation(
     raw_text: str,
-    candidate_skus: List[str]
+    num_ordered_items: int | List[Any] = 0
 ) -> ModelObservation:
     """Parses raw model output string into validated ModelObservation.
     
     Tries direct JSON parse; if that fails, performs deterministic local string repair.
-    Enforces candidate SKU filtering (demoting non-candidates to unrecognised_items).
+    Coerces out-of-range matches_order_index to None.
     """
     if not raw_text or not raw_text.strip():
         raise ModelParsingError("Model returned empty or whitespace-only response")
+
+    if isinstance(num_ordered_items, list):
+        max_idx = len(num_ordered_items)
+    else:
+        max_idx = int(num_ordered_items)
 
     data: Dict[str, Any] = {}
     try:
@@ -62,13 +67,20 @@ def parse_and_validate_observation(
         except json.JSONDecodeError as err:
             raise ModelParsingError(f"Failed to parse JSON even after local repair: {err}") from err
 
-    # Sanitize observed_items and unrecognised_items bboxes to exactly 4 coordinates
+    # Sanitize observed_items: sanitize bbox and bounds-check matches_order_index
     if isinstance(data, dict):
-        for key in ("observed_items", "unrecognised_items"):
-            items = data.get(key)
-            if isinstance(items, list):
-                for item in items:
-                    if isinstance(item, dict) and "bbox" in item:
+        obs_items = data.get("observed_items")
+        if isinstance(obs_items, list):
+            for item in obs_items:
+                if isinstance(item, dict):
+                    # Out of range matches_order_index becomes null
+                    idx = item.get("matches_order_index")
+                    if idx is not None:
+                        if not isinstance(idx, int) or isinstance(idx, bool) or idx < 0 or idx >= max_idx:
+                            item["matches_order_index"] = None
+
+                    # Sanitize bbox to exactly 4 numbers
+                    if "bbox" in item:
                         bbox = item.get("bbox")
                         if isinstance(bbox, list) and len(bbox) != 4:
                             if len(bbox) >= 4 and len(bbox) % 4 == 0:
@@ -80,15 +92,23 @@ def parse_and_validate_observation(
                             elif len(bbox) > 4:
                                 item["bbox"] = bbox[:4]
                             else:
-                                item["bbox"] = [0, 0, 1000, 1000]
+                                item["bbox"] = [0.0, 0.0, 1000.0, 1000.0]
+
+        unrec_items = data.get("unrecognised_items")
+        if isinstance(unrec_items, list):
+            for item in unrec_items:
+                if isinstance(item, dict) and "bbox" in item:
+                    bbox = item.get("bbox")
+                    if isinstance(bbox, list) and len(bbox) != 4:
+                        if len(bbox) > 4:
+                            item["bbox"] = bbox[:4]
+                        else:
+                            item["bbox"] = [0.0, 0.0, 1000.0, 1000.0]
 
     # Validate against Pydantic schema
     try:
         observation = ModelObservation.model_validate(data)
     except ValidationError as err:
         raise ModelParsingError(f"Model output failed schema validation: {err}") from err
-
-    # Enforce candidate set boundary
-    observation.demote_unexpected_skus(candidate_skus)
 
     return observation

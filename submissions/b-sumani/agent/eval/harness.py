@@ -24,6 +24,7 @@ from agent.models.base import (
     ModelTimeoutError,
     ModelProviderError,
     ModelParsingError,
+    PROMPT_VERSION,
 )
 from agent.rules.evaluator import evaluate_pack_box, parse_order_lines
 from agent.rules.config import RulesThresholdConfig, DEFAULT_CONFIG
@@ -56,9 +57,13 @@ class EvaluationHarness:
         """Executes a single test case through the one-call vision adapter + deterministic rules layer."""
         unit_id = case.get("unit_id", "UNIT-UNKNOWN")
         order_lines = case.get("order_lines", "")
-        candidate_skus = case.get("candidate_skus", [])
-        if isinstance(candidate_skus, str):
-            candidate_skus = [s.strip() for s in candidate_skus.split(",") if s.strip()]
+        order_dict = parse_order_lines(order_lines)
+        ordered_skus = list(order_dict.keys())
+        cat = getattr(self.adapter, "catalogue", {}) or {}
+        ordered_item_names = [
+            cat.get(sku, {}).get("title", "").strip() or sku
+            for sku in ordered_skus
+        ]
 
         status = "completed"
         verdict = None
@@ -70,13 +75,12 @@ class EvaluationHarness:
             # ONE model call per unit (zero order quantities sent)
             observation, latency_ms = self.adapter.analyze_box(
                 image_bytes=image_bytes,
-                candidate_skus=candidate_skus
+                ordered_item_names=ordered_item_names
             )
             # Deterministic rules evaluation
             checks, verdict, _ = evaluate_pack_box(
                 order_lines_str=order_lines,
                 observation=observation,
-                candidate_skus=candidate_skus,
                 config=self.config
             )
         except (ModelTimeoutError, ModelProviderError, ModelParsingError, Exception) as err:
@@ -136,7 +140,7 @@ class EvaluationHarness:
             eval_data=metrics_summary,
             dataset_name=dataset_name,
             model_name=metrics_summary["model_name"],
-            prompt_version="pack-prompt-v1.0",
+            prompt_version=PROMPT_VERSION,
             threshold_config_version=self.config.version,
             is_frozen_eval=self.is_frozen_eval,
             is_synthetic_fixtures=self.is_synthetic

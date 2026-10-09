@@ -91,11 +91,40 @@ def evaluate_pack_box(
     """
     cfg = config or DEFAULT_CONFIG
     expected_lines = parse_order_lines(order_lines_str)
+    ordered_skus = list(expected_lines.keys())
+    sku_to_idx = {sku.strip().upper(): idx for idx, sku in enumerate(ordered_skus)}
     
-    # Map observed items by SKU
-    observed_by_sku: Dict[str, List[ObservedItem]] = {}
+    # Resolve matches_order_index and SKU for all observed items
     for item in observation.observed_items:
-        observed_by_sku.setdefault(item.sku, []).append(item)
+        if item.matches_order_index is not None:
+            if 0 <= item.matches_order_index < len(ordered_skus):
+                item.sku = ordered_skus[item.matches_order_index]
+            else:
+                item.matches_order_index = None
+        elif item.sku and item.sku.strip().upper() in sku_to_idx:
+            # Fallback for directly set SKU (e.g. in test fixtures)
+            item.matches_order_index = sku_to_idx[item.sku.strip().upper()]
+
+    # Aggregate matched items per ordered row index
+    row_stats: Dict[int, Dict[str, Any]] = {}
+    for idx, sku in enumerate(ordered_skus):
+        matched = [it for it in observation.observed_items if it.matches_order_index == idx]
+        if matched:
+            row_stats[idx] = {
+                "total_count": sum(it.count for it in matched),
+                "min_ident_conf": min(it.identity_confidence for it in matched),
+                "min_count_conf": min(it.count_confidence for it in matched),
+                "is_occluded": any(it.partially_occluded for it in matched),
+                "items": matched
+            }
+        else:
+            row_stats[idx] = {
+                "total_count": 0,
+                "min_ident_conf": 0.0,
+                "min_count_conf": 0.0,
+                "is_occluded": False,
+                "items": []
+            }
 
     # -------------------------------------------------------------------------
     # Global Image Quality Gate
@@ -119,28 +148,21 @@ def evaluate_pack_box(
         occluded_skus: List[str] = []
         low_conf_skus: List[Tuple[str, float]] = []
 
-        for sku in expected_lines.keys():
-            obs_list = observed_by_sku.get(sku, [])
-            total_count = sum(item.count for item in obs_list)
+        for idx, sku in enumerate(ordered_skus):
+            stats = row_stats[idx]
+            total_count = stats["total_count"]
 
             if total_count == 0:
-                # Item not observed: check if occlusion in the box could be hiding it
                 if observation.occlusion_suspected:
                     occluded_skus.append(sku)
                 else:
                     missing_skus.append(sku)
             else:
-                # Item was observed: check identity confidence and occlusion
-                for item in obs_list:
-                    if item.partially_occluded:
-                        occluded_skus.append(sku)
-                        break
-                    elif item.identity_confidence < cfg.identity_confidence_threshold:
-                        low_conf_skus.append((sku, item.identity_confidence))
-                        break
+                if stats["is_occluded"]:
+                    occluded_skus.append(sku)
+                elif stats["min_ident_conf"] < cfg.identity_confidence_threshold:
+                    low_conf_skus.append((sku, stats["min_ident_conf"]))
 
-        # Decision logic for Check 1:
-        # Confidence gates FAIL: if occlusion suspected or low confidence, gate FAIL to UNCERTAIN
         if occluded_skus:
             check_identity = CheckResult(
                 result="UNCERTAIN",
@@ -189,32 +211,25 @@ def evaluate_pack_box(
         count_low_conf: List[Tuple[str, float]] = []
         present_count = 0
 
-        for sku, expected_qty in expected_lines.items():
-            obs_list = observed_by_sku.get(sku, [])
-            total_observed = sum(item.count for item in obs_list)
+        for idx, sku in enumerate(ordered_skus):
+            expected_qty = expected_lines[sku]
+            stats = row_stats[idx]
+            total_observed = stats["total_count"]
 
-            # If completely missing, its defect home is all_items_present
             if total_observed == 0:
                 continue
 
             present_count += 1
 
-            # Check for occlusion and count confidence
-            for item in obs_list:
-                if item.partially_occluded:
-                    count_occluded.append(sku)
-                    break
-                if item.count_confidence < cfg.count_confidence_threshold:
-                    count_low_conf.append((sku, item.count_confidence))
-                    break
-
-            if total_observed < expected_qty:
+            if stats["is_occluded"]:
+                count_occluded.append(sku)
+            elif stats["min_count_conf"] < cfg.count_confidence_threshold:
+                count_low_conf.append((sku, stats["min_count_conf"]))
+            elif total_observed < expected_qty:
                 short_items.append(f"{sku} (expected {expected_qty}, observed {total_observed})")
             elif total_observed > expected_qty:
                 surplus_items.append(f"{sku} (expected {expected_qty}, observed {total_observed})")
 
-        # Decision logic for Check 2:
-        # Confidence gates FAIL: occlusion or low count confidence produces UNCERTAIN
         if count_occluded:
             check_count = CheckResult(
                 result="UNCERTAIN",
@@ -245,7 +260,6 @@ def evaluate_pack_box(
                 cause="recognition"
             )
         elif present_count == 0 and len(expected_lines) > 0:
-            # All items were missing: defect is owned by Check 1
             check_count = CheckResult(
                 result="PASS",
                 reason_code="DEFERRED_TO_PRESENCE_CHECK",
@@ -260,7 +274,7 @@ def evaluate_pack_box(
 
     # =========================================================================
     # CHECK 3: nothing_extra (Surplus / Decoys / Foreign Items)
-    # Home: Are there unauthorized items (decoys or unrecognised items) in the box?
+    # Home: Are there unauthorized items (null match) in the box?
     # One home per check: Surplus of an ordered SKU is handled in Check 2.
     # =========================================================================
     if not image_usable:
@@ -271,55 +285,50 @@ def evaluate_pack_box(
             cause="recognition"
         )
     else:
-        unrecognised_found: List[str] = []
-        decoys_found: List[str] = []
-        low_conf_extra: List[Tuple[str, float]] = []
+        extra_items = [
+            it for it in observation.observed_items
+            if it.matches_order_index is None and it.count > 0
+        ]
+        legacy_extras = [
+            it.description for it in observation.unrecognised_items
+        ]
 
-        # 1. Unrecognised items (foreign items outside candidate catalogue)
-        if observation.unrecognised_items:
-            for unrec in observation.unrecognised_items:
-                desc = unrec.description or "unrecognised object"
-                unrecognised_found.append(desc)
-
-        # 2. Decoy items (candidate SKUs that are NOT in the order lines)
-        order_skus_normalized = {k.strip().upper() for k in expected_lines.keys()}
-        for item in observation.observed_items:
-            sku_clean = item.sku.strip().upper()
-            if sku_clean not in order_skus_normalized and item.count > 0:
-                if item.identity_confidence < cfg.identity_confidence_threshold:
-                    low_conf_extra.append((item.sku, item.identity_confidence))
-                else:
-                    decoys_found.append(f"{item.sku} (count: {item.count})")
-
-        # Decision logic for Check 3:
-        if low_conf_extra:
-            sku_name, conf = low_conf_extra[0]
-            check_extra = CheckResult(
-                result="UNCERTAIN",
-                reason_code="LOW_CONFIDENCE_EXTRA_ITEM",
-                reason=f"Low confidence ({conf:.2f}) identifying possible extra item {sku_name}",
-                cause="recognition"
-            )
-        elif unrecognised_found:
-            check_extra = CheckResult(
-                result="FAIL",
-                reason_code="UNRECOGNISED_ITEMS_PRESENT",
-                reason=f"Unrecognised foreign item(s) found in box: {', '.join(unrecognised_found)}",
-                cause="recognition"
-            )
-        elif decoys_found:
-            check_extra = CheckResult(
-                result="FAIL",
-                reason_code="DECOY_ITEM_PRESENT",
-                reason=f"Unauthorized decoy SKU(s) found in box: {', '.join(decoys_found)}",
-                cause="recognition"
-            )
-        else:
+        if not extra_items and not legacy_extras:
             check_extra = CheckResult(
                 result="PASS",
                 reason_code="NO_EXTRA_ITEMS",
                 reason="No extra, decoy, or foreign items observed in the box"
             )
+        else:
+            # If any extra object is confident, the check is FAIL (UNRECOGNISED_ITEMS_PRESENT).
+            # UNCERTAIN only when all extras are low confidence. Use identity_confidence for extras.
+            confident_extras = [
+                it for it in extra_items
+                if it.identity_confidence >= cfg.identity_confidence_threshold
+            ]
+
+            if confident_extras or legacy_extras:
+                descriptions = [
+                    f"{it.label or 'unrecognised item'} (count: {it.count}, bbox: {it.bbox})"
+                    for it in confident_extras
+                ] + legacy_extras
+                check_extra = CheckResult(
+                    result="FAIL",
+                    reason_code="UNRECOGNISED_ITEMS_PRESENT",
+                    reason=f"Unrecognised extra item(s) found in box: {', '.join(descriptions)}",
+                    cause="recognition"
+                )
+            else:
+                low_conf_extras = [
+                    f"{it.label or 'unknown object'} ({it.identity_confidence:.2f})"
+                    for it in extra_items
+                ]
+                check_extra = CheckResult(
+                    result="UNCERTAIN",
+                    reason_code="LOW_CONFIDENCE_EXTRA_ITEM",
+                    reason=f"Low confidence ({extra_items[0].identity_confidence:.2f}) identifying possible extra item: {', '.join(low_conf_extras)}",
+                    cause="recognition"
+                )
 
     # -------------------------------------------------------------------------
     # Gating Rule (Iteration B): Ambiguity / Quality Downgrade

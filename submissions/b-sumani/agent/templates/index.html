@@ -242,33 +242,27 @@
                   {% endfor %}
                 </div>
               </details>
-            {% else %}
-              <div class="flex items-center space-x-2 text-amber-900 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                <span class="text-base">⚠️</span>
-                <div>
-                  <strong class="font-semibold">No catalogue set up. Wrong-item checks are weaker.</strong>
-                  <p class="text-[11px] text-amber-800 mt-0.5 font-sans">
-                    Verification will fall back to order-only SKUs as candidates. Add products in the <a href="#catalogue" class="underline font-semibold">Catalogue section</a> below to enable full decoy item detection.
-                  </p>
-                </div>
-              </div>
             {% endif %}
           </div>
 
           <!-- Photo Upload & Operator Field -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
             <div class="md:col-span-2">
-              <label for="photo" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
-                Open-Box Photograph (ONE photo, max 10MB)
+              <label for="photos" class="block text-xs uppercase tracking-wider font-semibold text-[var(--umber)] mb-1">
+                Open-Box Photographs (1 to 5 photos, max 4MB each, total <= 4.5MB Vercel limit)
               </label>
               <input 
                 type="file" 
-                id="photo" 
-                name="photo" 
+                id="photos" 
+                name="photos" 
                 accept="image/jpeg,image/png" 
+                multiple
                 required
                 class="w-full bg-white border border-[var(--stone)] rounded-lg px-3 py-2 text-sm text-[var(--charcoal)] file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[var(--stone-light)] file:text-[var(--espresso)] hover:file:bg-[var(--stone)]"
               >
+              <p class="text-[11px] text-[var(--taupe)] mt-1">
+                Multiple views are inspected as different angles of the same box. Each physical item is counted once.
+              </p>
             </div>
 
             <div>
