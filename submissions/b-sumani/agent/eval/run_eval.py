@@ -151,6 +151,7 @@ def run_evaluation(
     """Executes the full evaluation pipeline and outputs JSON and Markdown reports."""
     output_dir = output_dir or (BASE_DIR / "eval" / "results")
     output_dir.mkdir(parents=True, exist_ok=True)
+    history_file = output_dir / "eval_history.json"
     # Repeat run check on held-out evaluation directory
     if not is_dev_run:
         check_and_update_eval_history(eval_dir, history_file)
@@ -375,7 +376,7 @@ def run_evaluation(
 
 def main():
     parser = argparse.ArgumentParser(description="Pack Manager Evaluation Suite")
-    parser.add_argument("--images-dir", type=str, default=os.getenv("IMAGES_DIR", "images"), help="Path to images directory")
+    parser.add_argument("--images", "--images-dir", dest="images_dir", type=str, default=os.getenv("IMAGES_DIR", "images"), help="Path to images directory")
     parser.add_argument("--eval-dir", type=str, default=None, help="Path to evaluation dataset directory (inputs.csv, truth.csv)")
     parser.add_argument("--labels-b", type=str, default=os.getenv("LABELS_B"), help="Optional path to LABELS_B CSV")
     parser.add_argument("--catalogue", type=str, default=os.getenv("CATALOGUE_PATH"), help="Path to catalogue CSV")
